@@ -32,19 +32,19 @@ ColorModel::ColorModel()
 	ranges[blue] = HSIRanges(Range<int>(123, 151), Range<int>(71,255), Range<int>(77,255));
 	ranges[red] = HSIRanges(Range<int>(217, 248), Range<int>(133,255), Range<int>(45,255));
 	ranges[orange] = HSIRanges(Range<int>(248, 25), Range<int>(104,255), Range<int>(53,255));
-	ranges[yellow] = HSIRanges(Range<int>(0, 0), Range<int>(0,0), Range<int>(0,0));
+	ranges[yellow] = HSIRanges(Range<int>(25, 46), Range<int>(0,0), Range<int>(0,0));
 	ranges[black] = HSIRanges(Range<int>(0, 0), Range<int>(0,0), Range<int>(0,0));
 	
 	cubo = new Colors[256*256*256];
 	
 	
 	for (unsigned char i = 2; i < numOfColors; i++) {
-		update(ranges[i], Colors((Color)i).colors);
+		setCube(ranges[i], Colors((Color)i).colors);
 	}
-	update(whiteThreshold, white);
+	setCube(whiteThreshold, white);
 }
 
-void ColorModel::update(const HSIRanges& ranges, unsigned char color)
+void ColorModel::setCube(const HSIRanges& ranges, unsigned char color)
 {
 	Colors* dest = cubo;//&cubo[0][0][0];
 	for(const cv::Vec3b* src = &colorSpaceMapper.hsi[0][0][0],
@@ -58,13 +58,13 @@ void ColorModel::update(const HSIRanges& ranges, unsigned char color)
 			dest->colors &= ~color;
 }
 
-void ColorModel::update(const WhiteThresholds& thresholds, unsigned char color)
+void ColorModel::setCube(const WhiteThresholds& thresholds, unsigned char color)
 {
 	Colors* dest = cubo;//&cubo[0][0][0];
 	for (int i = 0; i < 256; i++) {
 		for (int j = 0; j < 256; j++) {
 			for (int k = 0; k < 256; k++) {
-				if (i >= thresholds.minRB && j >= thresholds.minB && k >= thresholds.minRB && !(dest->colors & 1 << (green -1))) {
+				if (i >= thresholds.minB && k >= thresholds.minR && i + k >= thresholds.minRB && !(dest->colors & 1 << (green -1))) {
 					dest->colors |= color;
 				}
 				else
@@ -75,6 +75,27 @@ void ColorModel::update(const WhiteThresholds& thresholds, unsigned char color)
 	}
 }
 
+void ColorModel::changeColor(const ColorModel::HSIRanges &range, unsigned char color)
+{
+	if (ranges[color] != range) {
+		ranges[color] = range;
+		setCube(ranges[color], color);
+		if (color == green) {
+			setCube(whiteThreshold, white);
+		}
+	}
+}
+
+void ColorModel::changeColor(const ColorModel::WhiteThresholds &thresholds, unsigned char color)
+{
+	if (thresholds != whiteThreshold) {
+		setCube(whiteThreshold, white);
+	}
+}
+void ColorModel::getColor(HSIRanges& range, unsigned char color)
+{
+	range = ranges[color];
+}
 
 ColorModel::Colors ColorModel::getColor(cv::Vec3b point)
 {
@@ -88,16 +109,31 @@ void ColorModel::segmentImage(const cv::Mat& source, cv::Mat& dest)
 	{
 		for(int j = 0; j < source.cols; j++)
 		{
-			switch(getColor(source.at<cv::Vec3b>(i,j)).colors)
-			{
-				case none: dest.at<cv::Vec3b>(i,j) = cv::Vec3b(128,128,128); break;
-				case white: dest.at<cv::Vec3b>(i,j) = cv::Vec3b(255,255,255); break;
-				case green: dest.at<cv::Vec3b>(i,j) = cv::Vec3b(0,255,0); break;
-				case blue: dest.at<cv::Vec3b>(i,j) = cv::Vec3b(255,0,0); break;
-				case red: dest.at<cv::Vec3b>(i,j) = cv::Vec3b(0,0,255); break;
-				case orange: dest.at<cv::Vec3b>(i,j) = cv::Vec3b(0,128,255); break;
-				case yellow: dest.at<cv::Vec3b>(i,j) = cv::Vec3b(0,255,255); break;
-				case black: dest.at<cv::Vec3b>(i,j) = cv::Vec3b(0,0,0); break;
+			Colors color = getColor(source.at<cv::Vec3b>(i,j));
+			
+			if (color.is(none)) {
+				dest.at<cv::Vec3b>(i,j) = cv::Vec3b(128,128,128);
+			}
+			else if (color.is(white)) {
+				dest.at<cv::Vec3b>(i,j) = cv::Vec3b(255,255,255);
+			}
+			else if (color.is(green)) {
+				dest.at<cv::Vec3b>(i,j) = cv::Vec3b(0,255,0);
+			}
+			else if (color.is(blue)) {
+				dest.at<cv::Vec3b>(i,j) = cv::Vec3b(255,0,0);
+			}
+			else if (color.is(red)) {
+				dest.at<cv::Vec3b>(i,j) = cv::Vec3b(0,0,255);
+			}
+			else if (color.is(orange)) {
+				dest.at<cv::Vec3b>(i,j) = cv::Vec3b(0,128,255);
+			}
+			else if (color.is(yellow)) {
+				dest.at<cv::Vec3b>(i,j) = cv::Vec3b(0,255,255);
+			}
+			else if (color.is(black)) {
+				dest.at<cv::Vec3b>(i,j) = cv::Vec3b(0,0,0);
 			}
 		}
 	}

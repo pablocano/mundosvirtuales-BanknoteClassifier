@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Range.h"
+#include "Tools/Range.h"
 #include <cv.h>
 
 class ColorModel
@@ -79,9 +79,15 @@ public:
 	WhiteThresholds whiteThreshold;
 	HSIRanges ranges[numOfColors];
 	
-	void update(const HSIRanges& ranges, unsigned char color);
+	void setCube(const HSIRanges& ranges, unsigned char color);
 	
-	void update(const WhiteThresholds& thresholds, unsigned char color);
+	void setCube(const WhiteThresholds& thresholds, unsigned char color);
+	
+	void changeColor(const HSIRanges& range, unsigned char color);
+	
+	void changeColor(const WhiteThresholds& thresholds, unsigned char color);
+	
+	void getColor(HSIRanges& range, unsigned char color);
 
 	Colors getColor(cv::Vec3b point);
 

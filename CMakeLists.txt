@@ -4,20 +4,15 @@ PROJECT (GroundTruth)
 find_package(OpenCV REQUIRED )
 set( NAME_SRC
     src/main.cpp
-    src/BackgroundModel.cpp
-    src/BackgroundModel.h
-    src/ColorModel.cpp
-    src/ColorModel.h
-    src/ColorModelConversions.h;
-    src/Line.cpp
-    src/Line.h
-    src/Object.cpp
-    src/Object.h
-    src/Vector2.h
-    src/Range.h
+    src/ColorModel/ColorModel.cpp
+    src/ColorModel/ColorModel.h
+    src/ColorModel/ColorModelConversions.h
+    src/ColorModel/ColorRangeCreator.h
+    src/Tools/Vector2.h
+    src/Tools/Range.h
 )
 
-include_directories(${CMAKE_INSTALL_PREFIX}/include)
+include_directories(${CMAKE_INSTALL_PREFIX}/include ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_executable( groundTruth ${NAME_SRC} ${OpenCV_INCLUDE})
 
 target_link_libraries( groundTruth ${OpenCV_LIBS} )
