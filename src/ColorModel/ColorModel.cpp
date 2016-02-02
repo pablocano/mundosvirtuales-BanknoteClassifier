@@ -39,37 +39,41 @@ ColorModel::ColorModel()
 	
 	
 	for (unsigned char i = 2; i < numOfColors; i++) {
-		setCube(ranges[i], Colors((Color)i).colors);
+		setCube(ranges[i], Colors((Color)i));
 	}
-	setCube(whiteThreshold, white);
+	setCube(whiteThreshold, Color(white));
 }
 
-void ColorModel::setCube(const HSIRanges& ranges, unsigned char color)
+void ColorModel::setCube(const HSIRanges& ranges, Colors color)
 {
-	Colors* dest = cubo;//&cubo[0][0][0];
-	for(const cv::Vec3b* src = &colorSpaceMapper.hsi[0][0][0],
-			* end = &colorSpaceMapper.hsi[256][0][0];
-			src < end; ++src, ++dest)
-		if(ranges.hue.isInside((*src)[0]) &&
-			 ranges.saturation.isInside((*src)[1]) &&
-			 ranges.intensity.isInside((*src)[2]))
-			dest->colors |= color;
-		else
-			dest->colors &= ~color;
-}
-
-void ColorModel::setCube(const WhiteThresholds& thresholds, unsigned char color)
-{
-	Colors* dest = cubo;//&cubo[0][0][0];
-	for (int i = 0; i < 256; i++) {
-		for (int j = 0; j < 256; j++) {
-			for (int k = 0; k < 256; k++) {
-				if (i >= thresholds.minB && k >= thresholds.minR && i + k >= thresholds.minRB && !(dest->colors & 1 << (green -1))) {
-					dest->colors |= color;
+	unsigned char setColor = color.colors;
+	int dest = 0;
+	for (int b = 0; b < 256; b++) {
+		for (int g = 0; g < 256; g++) {
+			for (int r = 0; r < 256; r++, dest++) {
+				cv::Vec3b hsi = colorSpaceMapper.hsi[b][g][r];
+				if (ranges.hue.isInside(hsi[0]) && ranges.saturation.isInside(hsi[1]) && ranges.intensity.isInside(hsi[2])) {
+					cubo[dest].colors |= setColor;
 				}
 				else
-					dest->colors &= ~color;
-				dest++;
+					cubo[dest].colors &= ~setColor;
+			}
+		}
+	}
+}
+
+void ColorModel::setCube(const WhiteThresholds& thresholds, Colors color)
+{
+	unsigned char setColor = color.colors;
+	int dest = 0;
+	for (int b = 0; b < 256;b++) {
+		for (int g = 0; g < 256; g++) {
+			for (int r = 0; r < 256; r++, dest++) {
+				if (b >= thresholds.minB && r >= thresholds.minR && g + r >= thresholds.minRB && !(cubo[dest].colors & 1 << (green -1))) {
+					cubo[dest].colors |= setColor;
+				}
+				else
+					cubo[dest].colors &= ~setColor;
 			}
 		}
 	}
@@ -79,9 +83,9 @@ void ColorModel::changeColor(const ColorModel::HSIRanges &range, unsigned char c
 {
 	if (ranges[color] != range) {
 		ranges[color] = range;
-		setCube(ranges[color], color);
+		setCube(ranges[color], Colors((Color)color));
 		if (color == green) {
-			setCube(whiteThreshold, white);
+			setCube(whiteThreshold, Colors(white));
 		}
 	}
 }
@@ -89,7 +93,7 @@ void ColorModel::changeColor(const ColorModel::HSIRanges &range, unsigned char c
 void ColorModel::changeColor(const ColorModel::WhiteThresholds &thresholds, unsigned char color)
 {
 	if (thresholds != whiteThreshold) {
-		setCube(whiteThreshold, white);
+		setCube(whiteThreshold, Colors(white));
 	}
 }
 void ColorModel::getColor(HSIRanges& range, unsigned char color)

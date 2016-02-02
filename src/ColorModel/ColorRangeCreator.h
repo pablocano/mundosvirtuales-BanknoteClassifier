@@ -19,11 +19,18 @@ public:
 		cv::setTrackbarPos("Max I", "Segmented", range.intensity.max);
 		cv::setTrackbarPos("Min S", "Segmented", range.saturation.min);
 		cv::setTrackbarPos("Max S", "Segmented", range.saturation.max);
+		
+		lowerH = range.hue.min;
+		upperH = range.hue.max;
+		lowerI = range.intensity.min;
+		upperI = range.intensity.max;
+		lowerS = range.saturation.min;
+		upperS = range.saturation.max;
 	}
 	
 	static void setColorRange(int, void*)
 	{
-		ColorModel::HSIRanges range(Range<int>(lowerH, upperH), Range<int>(lowerI, upperI), Range<int>(lowerS, upperS));
+		ColorModel::HSIRanges range(Range<int>(lowerH, upperH), Range<int>(lowerS, upperS), Range<int>(lowerI, upperI));
 		colorModel->changeColor(range, color);
 	}
 	

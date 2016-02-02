@@ -30,10 +30,7 @@ public:
                              unsigned char& H,
                              unsigned char& S,
                              unsigned char& I)
-{
-		if(B == 50 && G == 200 && R == 130)
-			int x = 1283;
-		
+{		
 		float b = 0, g = 0, r = 0,h,s,i;
 	
 		float sum = B + G + R;

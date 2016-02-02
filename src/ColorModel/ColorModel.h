@@ -79,9 +79,9 @@ public:
 	WhiteThresholds whiteThreshold;
 	HSIRanges ranges[numOfColors];
 	
-	void setCube(const HSIRanges& ranges, unsigned char color);
+	void setCube(const HSIRanges& ranges, Colors color);
 	
-	void setCube(const WhiteThresholds& thresholds, unsigned char color);
+	void setCube(const WhiteThresholds& thresholds, Colors color);
 	
 	void changeColor(const HSIRanges& range, unsigned char color);
 	
