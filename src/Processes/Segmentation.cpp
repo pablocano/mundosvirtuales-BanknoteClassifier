@@ -7,8 +7,8 @@
 
 #include <cv.h>
 #include <highgui.h>
-#include "ColorModel/ColorModel.h"
-#include "ColorModel/ColorRangeCreator.h"
+#include "Representations/ColorModel/ColorModel.h"
+#include "Tools/ColorRangeCreator.h"
 
 /* Main del programa*/
 int main(int argc,char** argv)
@@ -20,8 +20,8 @@ int main(int argc,char** argv)
 	cv::namedWindow( "Segmented", CV_WINDOW_AUTOSIZE );
 	cv::VideoCapture video(0);
 	
-	video.set(CV_CAP_PROP_FRAME_HEIGHT, 360);
-	video.set(CV_CAP_PROP_FRAME_WIDTH, 540);
+	video.set(CV_CAP_PROP_FRAME_HEIGHT, 180);
+	video.set(CV_CAP_PROP_FRAME_WIDTH, 270);
 	
 	cv::createTrackbar("Color", "Segmented", &ColorRangeCreator::color, 7, ColorRangeCreator::setColor);
 	cv::createTrackbar( "Min H", "Segmented", &ColorRangeCreator::lowerH, 255, ColorRangeCreator::setColorRange);
@@ -45,6 +45,8 @@ int main(int argc,char** argv)
 			break;
 		video >> frameColor;
 	}
+	
+	color.writeFile("cubo.txt");
 	
 	return 0;
 }

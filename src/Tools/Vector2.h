@@ -1,6 +1,6 @@
 /**
  * @file Vector2.h
- * Declaracion e implementacion de un vector de dos dimenciones.
+ * Declaracion e implementacion de un vector de dos dimensiones.
  * @author Pablo Cano Montecinos.
  */
 

@@ -1,8 +1,8 @@
 
 
 #include "ColorModel.h"
-#include "ColorModelConversions.h"
-
+#include "Tools/ColorModelConversions.h"
+#include <fstream>
 
 static class ColorSpaceMapper
 {
@@ -27,21 +27,17 @@ public:
 
 ColorModel::ColorModel()
 {
-	whiteThreshold = WhiteThresholds(93, 120, 199);
-	ranges[green] = HSIRanges(Range<int>(46, 125), Range<int>(105,208), Range<int>(51,219));
-	ranges[blue] = HSIRanges(Range<int>(123, 151), Range<int>(71,255), Range<int>(77,255));
-	ranges[red] = HSIRanges(Range<int>(217, 248), Range<int>(133,255), Range<int>(45,255));
-	ranges[orange] = HSIRanges(Range<int>(248, 25), Range<int>(104,255), Range<int>(53,255));
-	ranges[yellow] = HSIRanges(Range<int>(25, 46), Range<int>(0,0), Range<int>(0,0));
-	ranges[black] = HSIRanges(Range<int>(0, 0), Range<int>(0,0), Range<int>(0,0));
-	
+	readFile("cubo.txt");
 	cubo = new Colors[256*256*256];
-	
-	
 	for (unsigned char i = 2; i < numOfColors; i++) {
 		setCube(ranges[i], Colors((Color)i));
 	}
 	setCube(whiteThreshold, Color(white));
+}
+
+ColorModel::~ColorModel()
+{
+	delete cubo;
 }
 
 void ColorModel::setCube(const HSIRanges& ranges, Colors color)
@@ -69,7 +65,7 @@ void ColorModel::setCube(const WhiteThresholds& thresholds, Colors color)
 	for (int b = 0; b < 256;b++) {
 		for (int g = 0; g < 256; g++) {
 			for (int r = 0; r < 256; r++, dest++) {
-				if (b >= thresholds.minB && r >= thresholds.minR && g + r >= thresholds.minRB && !(cubo[dest].colors & 1 << (green -1))) {
+				if (b >= thresholds.minB && r >= thresholds.minR && b + r >= thresholds.minRB && !(cubo[dest].colors & 1 << (green -1))) {
 					cubo[dest].colors |= setColor;
 				}
 				else
@@ -90,15 +86,21 @@ void ColorModel::changeColor(const ColorModel::HSIRanges &range, unsigned char c
 	}
 }
 
-void ColorModel::changeColor(const ColorModel::WhiteThresholds &thresholds, unsigned char color)
+void ColorModel::changeColor(const ColorModel::WhiteThresholds &thresholds)
 {
 	if (thresholds != whiteThreshold) {
+		whiteThreshold = thresholds;
 		setCube(whiteThreshold, Colors(white));
 	}
 }
 void ColorModel::getColor(HSIRanges& range, unsigned char color)
 {
 	range = ranges[color];
+}
+
+void ColorModel::getColor(ColorModel::WhiteThresholds &threshold)
+{
+	threshold = whiteThreshold;
 }
 
 ColorModel::Colors ColorModel::getColor(cv::Vec3b point)
@@ -141,4 +143,47 @@ void ColorModel::segmentImage(const cv::Mat& source, cv::Mat& dest)
 			}
 		}
 	}
+}
+
+void ColorModel::readFile(std::string name)
+{
+	std::ifstream inputFile(name);
+	std::string line;
+	
+	if (!inputFile.is_open()) {
+		return;
+	}
+	
+	getline(inputFile, line);
+	int minR, minB, minRB;
+	std::istringstream sss(line);
+	sss >> minR >> minB >> minRB;
+	whiteThreshold = WhiteThresholds(minR, minB, minRB);
+	
+	int i = 2;
+	while (i < numOfColors)
+	{
+		getline(inputFile, line);
+		std::istringstream ss(line);
+		
+		int lowerH, upperH, lowerS, upperS, lowerI, upperI;
+		
+		ss >> lowerH >> upperH >> lowerS >> upperS >> lowerI >> upperI;
+		ranges[i] = HSIRanges(Range<int>(lowerH,upperH), Range<int>(lowerS,upperS), Range<int>(lowerI,upperI));
+		i++;
+	}
+	inputFile.close();
+}
+
+void ColorModel::writeFile(std::string name)
+{
+	std::ofstream outputFile(name);
+	
+	outputFile << whiteThreshold.minR << " "<< whiteThreshold.minB << " "<< whiteThreshold.minRB << " "<< std::endl;
+	
+	for (int i = 2; i < numOfColors; i++) {
+		outputFile << ranges[i].hue.min << " "<< ranges[i].hue.max << " "<< ranges[i].saturation.min << " "<< ranges[i].saturation.max << " "<< ranges[i].intensity.min << " "<< ranges[i].intensity.max << " "<< std::endl;
+	}
+	outputFile.close();
+	
 }

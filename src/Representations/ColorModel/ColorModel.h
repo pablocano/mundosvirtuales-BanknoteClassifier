@@ -73,8 +73,10 @@ public:
 	};
 
 	ColorModel();
+	
+	~ColorModel();
 
-	Colors* cubo;//[256][256][256];
+	Colors* cubo;
 	
 	WhiteThresholds whiteThreshold;
 	HSIRanges ranges[numOfColors];
@@ -85,11 +87,17 @@ public:
 	
 	void changeColor(const HSIRanges& range, unsigned char color);
 	
-	void changeColor(const WhiteThresholds& thresholds, unsigned char color);
+	void changeColor(const WhiteThresholds& thresholds);
 	
 	void getColor(HSIRanges& range, unsigned char color);
+	
+	void getColor(WhiteThresholds& whiteThreshold);
 
 	Colors getColor(cv::Vec3b point);
 
-	void segmentImage(const cv::Mat& source, cv::Mat& dest);	
+	void segmentImage(const cv::Mat& source, cv::Mat& dest);
+	
+	void readFile(std::string name);
+	
+	void writeFile(std::string name);
 };
