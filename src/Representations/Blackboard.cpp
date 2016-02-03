@@ -3,6 +3,7 @@
 #include "Blackboard.h"
 #include "Representations/ColorModel/ColorModel.h"
 #include "Representations/Image.h"
+#include "Representations/Regions.h"
 #include <cstdlib>
 #include <cstring>
 
@@ -10,7 +11,8 @@ Blackboard* Blackboard::theInstance = 0;
 
 Blackboard::Blackboard() :
 	theColorModel(new ColorModel()),
-	theImage(new Image()) {}
+	theImage(new Image()),
+	theRegions(new Regions()){}
 
 void Blackboard::operator=(const Blackboard& other)
 {

@@ -3,6 +3,7 @@
 
 class Image;
 class ColorModel;
+class Regions;
 
 class Blackboard {
 	
@@ -16,4 +17,5 @@ public:
 	
 	ColorModel* theColorModel;
 	Image* theImage;
+	Regions* theRegions;
 };

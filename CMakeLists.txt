@@ -23,6 +23,8 @@ set( GROUNDTRUTH_SRC
 	src/Representations/ColorModel/ColorModel.cpp
 	src/Representations/ColorModel/ColorModel.h
 	src/Representations/Image.h
+	src/Representations/Regions.cpp
+	src/Representations/Regions.h
 	src/Tools/ColorModelConversions.h
 	src/Tools/ModuleManager/Module.h
 	src/Tools/Range.h
