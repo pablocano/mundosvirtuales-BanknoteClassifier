@@ -17,9 +17,13 @@ END_MODULE
 class Regionizer : public RegionizerBase
 {
 public:
+    
+    Regionizer() : step(10) {}
 	
 	void update(Regions* regions);
     
-    void findLowerBound(const Vector2& initPoint, Vector2& result);
+    void findRightBound(const Vector2& initPoint, Vector2& result, ColorModel::Colors color);
+    
+    int step;
 
 };

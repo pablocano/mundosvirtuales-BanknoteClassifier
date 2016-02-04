@@ -8,20 +8,21 @@
 #include <cv.h>
 #include <highgui.h>
 #include "Representations/ColorModel/ColorModel.h"
+#include "Representations/Blackboard.h"
+#include "Modules/Camera.h"
+#include "Modules/Segmentator.h"
 #include "Tools/ColorRangeCreator.h"
 
 /* Main del programa*/
 int main(int argc,char** argv)
 {
-	
-	ColorModel color;
-	ColorRangeCreator::colorModel = &color;
+    Blackboard blackBoard;
+    Blackboard::theInstance = &blackBoard;
+    Camera camera;
+    Segmentator segmentator;
+	ColorRangeCreator::colorModel = &(*blackBoard.theColorModel);
 	
 	cv::namedWindow( "Segmented", CV_WINDOW_AUTOSIZE );
-	cv::VideoCapture video(0);
-	
-	video.set(CV_CAP_PROP_FRAME_HEIGHT, 180);
-	video.set(CV_CAP_PROP_FRAME_WIDTH, 270);
 	
 	cv::createTrackbar("Color", "Segmented", &ColorRangeCreator::color, 7, ColorRangeCreator::setColor);
 	cv::createTrackbar( "Min H", "Segmented", &ColorRangeCreator::lowerH, 255, ColorRangeCreator::setColorRange);
@@ -30,24 +31,19 @@ int main(int argc,char** argv)
 	cv::createTrackbar( "Max I", "Segmented", &ColorRangeCreator::upperI, 255, ColorRangeCreator::setColorRange );
 	cv::createTrackbar( "Min S", "Segmented", &ColorRangeCreator::lowerS, 255, ColorRangeCreator::setColorRange );
 	cv::createTrackbar( "Max S", "Segmented", &ColorRangeCreator::upperS, 255, ColorRangeCreator::setColorRange );
-	
-	cv::Mat frameColor, segment;
-	
-	video >> frameColor;
-	
-	while (!frameColor.empty()){
-		cv::Mat sub;
-		
-		color.segmentImage(frameColor, segment);
-		cv::imshow("", frameColor);
-		cv::imshow("Segmented",segment);
-		if(cv::waitKey(1) >= 0)
-			break;
-		video >> frameColor;
-	}
-	
-	color.writeFile("cubo.txt");
-	
-	return 0;
+
+    camera.update(blackBoard.theImage);
+    while (!blackBoard.theImage->empty()){
+        
+        segmentator.update(blackBoard.theSegmentedImage);
+        
+        cv::imshow("", *blackBoard.theImage);
+        cv::imshow("Segmented",*blackBoard.theSegmentedImage);
+        if(cv::waitKey(1) >= 0)
+            break;
+        camera.update(blackBoard.theImage);
+    }
+    
+    blackBoard.theColorModel->writeFile("cubo.txt");
 }
 

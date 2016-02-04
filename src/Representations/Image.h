@@ -5,4 +5,13 @@
 class Image : public cv::Mat {
 public:
 	Image() : cv::Mat() {}
+    
+    Image(const cv::Mat& m) : cv::Mat(m) {}
+};
+
+class SegmentedImage : public Image {
+public:
+    SegmentedImage() : Image() {}
+    
+    SegmentedImage(const cv::Mat& m) : Image(m) {}
 };

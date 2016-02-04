@@ -25,12 +25,14 @@ int main(int argc,char** argv)
 	camera.update(blackBoard.theImage);
 	while (!blackBoard.theImage->empty()){
 		
-		//regionizer.update(blackBoard.theRegions);
-		
+		regionizer.update(blackBoard.theRegions);
+        blackBoard.theRegions->draw(blackBoard.theImage);
+        
 		cv::imshow("", *blackBoard.theImage);
 		if(cv::waitKey(1) >= 0)
 			break;
 		camera.update(blackBoard.theImage);
+        cv::imshow("original", *blackBoard.theImage);
 	}
 	
 	return 0;

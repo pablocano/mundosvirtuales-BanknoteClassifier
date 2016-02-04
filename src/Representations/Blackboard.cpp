@@ -12,7 +12,8 @@ Blackboard* Blackboard::theInstance = 0;
 Blackboard::Blackboard() :
 	theColorModel(new ColorModel()),
 	theImage(new Image()),
-	theRegions(new Regions()){}
+	theRegions(new Regions()),
+    theSegmentedImage(new SegmentedImage()){}
 
 void Blackboard::operator=(const Blackboard& other)
 {

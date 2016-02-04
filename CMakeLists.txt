@@ -5,10 +5,18 @@ find_package(OpenCV REQUIRED )
 
 set( SEGMENT_SRC
     src/Processes/Segmentation.cpp
+    src/Modules/Camera.cpp
+    src/Modules/Camera.h
+    src/Modules/Segmentator.cpp
+    src/Modules/Segmentator.h
+    src/Representations/Blackboard.cpp
+    src/Representations/Blackboard.h
     src/Representations/ColorModel/ColorModel.cpp
     src/Representations/ColorModel/ColorModel.h
+    src/Representations/Image.h
     src/Tools/ColorModelConversions.h
     src/Tools/ColorRangeCreator.h
+	src/Tools/ModuleManager/Module.h
     src/Tools/Range.h
 )
 

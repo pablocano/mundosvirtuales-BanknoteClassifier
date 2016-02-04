@@ -12,5 +12,6 @@ Camera::Camera(): video(0)
 void Camera::update(Image *image)
 {
 	video >> *image;
+    //*image = cv::imread("team.jpg", CV_LOAD_IMAGE_COLOR);;
 }
 
