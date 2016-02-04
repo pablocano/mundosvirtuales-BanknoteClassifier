@@ -10,7 +10,8 @@ class Regions {
 public:
 	struct Line {
 		Vector2 left;
-		Vector2 rigth;
+		Vector2 right;
+        Line(Vector2 left, Vector2 right) : left(left), right(right) {}
 	};
 	
 	std::vector<Line> regions;

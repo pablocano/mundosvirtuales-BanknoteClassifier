@@ -25,7 +25,7 @@ int main(int argc,char** argv)
 	camera.update(blackBoard.theImage);
 	while (!blackBoard.theImage->empty()){
 		
-		regionizer.update(blackBoard.theColorModel);
+		//regionizer.update(blackBoard.theRegions);
 		
 		cv::imshow("", *blackBoard.theImage);
 		if(cv::waitKey(1) >= 0)
