@@ -5,8 +5,8 @@
  * @author Pablo Cano Montecinos
  */
 
-#include "Representations/ColorModel/ColorModel.h"
 #include "Representations/Blackboard.h"
+#include "Modules/BallPerceptor.h"
 #include "Modules/Camera.h"
 #include "Modules/Regionizer.h"
 
@@ -16,23 +16,24 @@
 /* Main del programa*/
 int main(int argc,char** argv)
 {
-	
 	Blackboard blackBoard;
 	Blackboard::theInstance = &blackBoard;
 	Regionizer regionizer;
 	Camera camera;
+    BallPerceptor ballPerceptor;
 
 	camera.update(blackBoard.theImage);
 	while (!blackBoard.theImage->empty()){
 		
 		regionizer.update(blackBoard.theRegions);
-        blackBoard.theRegions->draw(blackBoard.theImage);
+        //blackBoard.theRegions->draw(blackBoard.theImage);
+        ballPerceptor.update(blackBoard.theBallPerception);
+        blackBoard.theBallPerception->draw(blackBoard.theImage);
         
-		cv::imshow("", *blackBoard.theImage);
+        cv::imshow("", *blackBoard.theImage);
 		if(cv::waitKey(1) >= 0)
 			break;
 		camera.update(blackBoard.theImage);
-        cv::imshow("original", *blackBoard.theImage);
 	}
 	
 	return 0;

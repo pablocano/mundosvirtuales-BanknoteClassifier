@@ -22,7 +22,7 @@ public:
 	
 	void update(Regions* regions);
     
-    void findRightBound(const Vector2& initPoint, Vector2& result, ColorModel::Colors color);
+    void findRightBound(const Vector2<int>& initPoint, Vector2<int>& result, ColorModel::Colors color);
     
     int step;
 

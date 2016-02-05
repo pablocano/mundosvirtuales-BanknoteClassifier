@@ -12,10 +12,15 @@ class Regions {
 public:
     using Color = ColorModel::Colors;
 	struct Line {
-		Vector2 left;
-		Vector2 right;
+		Vector2<int> left;
+		Vector2<int> right;
         Color color;
-        Line(Vector2 left, Vector2 right, Color color) : left(left), right(right), color(color) {}
+        Line(Vector2<int> left, Vector2<int> right, Color color) : left(left), right(right), color(color) {}
+        
+        Vector2<int> getCenter()
+        {
+            return (left + right)/2.f;
+        }
 	};
     
     void draw(Image* image) const;
