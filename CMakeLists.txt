@@ -1,35 +1,35 @@
-cmake_minimum_required(VERSION 2.8) 
+cmake_minimum_required(VERSION 3.1.0)
 
 PROJECT (GroundTruth)
 find_package(OpenCV REQUIRED )
 
 set( SEGMENT_SRC
-    src/Processes/Segmentation.cpp
-    src/Modules/Camera.cpp
-    src/Modules/Camera.h
-    src/Modules/Segmentator.cpp
-    src/Modules/Segmentator.h
-    src/Representations/Blackboard.cpp
-    src/Representations/Blackboard.h
-    src/Representations/ColorModel/ColorModel.cpp
-    src/Representations/ColorModel/ColorModel.h
-    src/Representations/Image.h
-    src/Tools/ColorModelConversions.h
-    src/Tools/ColorRangeCreator.h
+	src/Processes/Segmentation.cpp
+  src/Modules/Camera.cpp
+  src/Modules/Camera.h
+  src/Modules/Segmentator.cpp
+  src/Modules/Segmentator.h
+	src/Representations/Blackboard.cpp
+  src/Representations/Blackboard.h
+  src/Representations/ColorModel/ColorModel.cpp
+	src/Representations/ColorModel/ColorModel.h
+	src/Representations/Image.h
+  src/Tools/ColorModelConversions.h
+  src/Tools/ColorRangeCreator.h
 	src/Tools/ModuleManager/Module.h
-    src/Tools/Range.h
+	src/Tools/Range.h
 )
 
 set( GROUNDTRUTH_SRC
 	src/Processes/GroundTruth.cpp
 	src/Modules/Camera.cpp
 	src/Modules/Camera.h
-    src/Modules/BallPerceptor.cpp
-    src/Modules/BallPerceptor.h
+	src/Modules/BallPerceptor.cpp
+  src/Modules/BallPerceptor.h
 	src/Modules/Regionizer.cpp
 	src/Modules/Regionizer.h
-    src/Representations/BallPerception.cpp
-    src/Representations/BallPerception.h
+  src/Representations/BallPerception.cpp
+  src/Representations/BallPerception.h
 	src/Representations/Blackboard.cpp
 	src/Representations/Blackboard.h
 	src/Representations/ColorModel/ColorModel.cpp
