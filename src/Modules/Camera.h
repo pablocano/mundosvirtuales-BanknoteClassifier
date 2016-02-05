@@ -17,5 +17,5 @@ public:
 	Camera();
 	
 	void update(Image* image);
-	cv::VideoCapture video;
+	//cv::VideoCapture video;
 };

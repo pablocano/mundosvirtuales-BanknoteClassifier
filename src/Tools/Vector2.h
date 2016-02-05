@@ -7,32 +7,32 @@
 #pragma once
 #include <math.h>
 
-class Vector2 {
-    
+template <class T = float> class Vector2
+{
 public:
     
     /**
      * Constructor vacio.
      */
-    inline Vector2(): x(float()),y(float()) {}
+    inline Vector2<T>(): x(T()),y(T()) {}
     
     /**
      * Constructor
      */
-    inline Vector2(float x, float y): x(x), y(y) {}
+    inline Vector2<T>(T x, T y): x(x), y(y) {}
     
     /**
      * Constructor copia
      * @param other El otro vector que es copiado a este
      */
-    inline Vector2 (const Vector2 &other): x(other.x), y(other.y) {}
+    inline Vector2<T> (const Vector2<T>& other): x(other.x), y(other.y) {}
     
     /**
      * Constructor de Asignacion
      * @param other El otro vector que es asignado a este.
      * @return Una referencia a este objeto despues de la asignacion.
      */
-    inline Vector2 operator=(const Vector2 &other)
+    inline Vector2<T> operator=(const Vector2<T>& other)
     {
         x = other.x;
         y = other.y;
@@ -44,7 +44,7 @@ public:
      * @param other El otro vector que se sumara a este.
      * @return Una referencia a este objeto despues del calculo.
      */
-    inline Vector2 operator+=(const Vector2 &other)
+    inline Vector2<T> operator+=(const Vector2<T>& other)
     {
         x += other.x;
         y += other.y;
@@ -56,7 +56,7 @@ public:
      * @param other El otro vector que se restara a este.
      * @return Una referencia a este objeto despues del calculo.
      */
-    inline Vector2 operator-=(const Vector2 &other)
+    inline Vector2<T> operator-=(const Vector2<T>& other)
     {
         x -= other.x;
         y -= other.y;
@@ -68,7 +68,7 @@ public:
      * @param factor El factor por el cual se multiplicara este vector.
      * @return Una referencia a este objeto despues del calculo.
      */
-    inline Vector2 operator*=(const float &factor)
+    inline Vector2<T> operator*=(const T& factor)
     {
         x *= factor;
         y *= factor;
@@ -80,9 +80,9 @@ public:
      * @param factor El factor por el cual se dividira este vector.
      * @return Una referencia a este objeto despues del calculo.
      */
-    inline Vector2 operator/=(const float &factor)
+    inline Vector2<T> operator/=(const T& factor)
     {
-        if (factor == float()) {
+        if (factor == T()) {
             return *this;
         }
         x /= factor;
@@ -95,9 +95,9 @@ public:
      * @param other El otro que se sumara a este.
      * @return Un nuevo objeto que contiene el resultado del calculo.
      */
-    inline Vector2 operator+(const Vector2 &other) const
+    inline Vector2<T> operator+(const Vector2<T>& other) const
     {
-        return Vector2(*this) += other;
+        return Vector2<T>(*this) += other;
     }
     
     /**
@@ -105,9 +105,9 @@ public:
      * @param other El otro que se restara a este.
      * @return Un nuevo objeto que contiene el resultado del calculo.
      */
-    inline Vector2 operator-(const Vector2 &other) const
+    inline Vector2<T> operator-(const Vector2<T>& other) const
     {
-        return Vector2(*this) -= other;
+        return Vector2<T>(*this) -= other;
     }
     
     /**
@@ -116,7 +116,7 @@ public:
      */
     inline Vector2 operator-() const
     {
-        return Vector2 (-x,-y);
+        return Vector2<T>(-x,-y);
     }
     
     /**
@@ -124,7 +124,7 @@ public:
      * @param other El otro vector con el cual este se multiplicara
      * @return El producto interno.
      */
-    inline float operator*(const Vector2 &other) const
+    inline T operator*(const Vector2<T>& other) const
     {
         return x * other.x + y*other.y;
     }
@@ -134,9 +134,9 @@ public:
      * @param factor El factor por el cual se multiplicara este vector.
      * @return Un nuevo objeto que contiene el resultado del calculo.
      */
-    inline Vector2 operator*(const float &factor) const
+    inline Vector2<T> operator*(const float &factor) const
     {
-        return Vector2(*this) *= factor;
+        return Vector2<T>(*this) *= factor;
     }
     
     /**
@@ -144,16 +144,16 @@ public:
      * @param factor El factor por el cual se dividira este vector.
      * @return Un nuevo objeto que contiene el resultado del calculo.
      */
-    inline Vector2 operator/(const float &factor) const
+    inline Vector2<T> operator/(const T &factor) const
     {
-        return Vector2(*this) /= factor;
+        return Vector2<T>(*this) /= factor;
     }
     
     /** Comparison of another vector with this one.
      *@param other The other vector that will be compared to this one
      *@return Whether the two vectors are equal.
      */
-    inline bool operator==(const Vector2 &other) const
+    inline bool operator==(const Vector2<T>& other) const
     {
         return x == other.x && y == other.y;
     }
@@ -162,7 +162,7 @@ public:
      *@param other The other vector that will be compared to this one.
      *@return Whether the two vectors are unequal.
      */
-    inline bool operator!=(const Vector2 &other) const
+    inline bool operator!=(const Vector2<T>& other) const
     {
         return x != other.x || y != other.y;
     }
@@ -171,26 +171,26 @@ public:
      * @function abs Calculo del largo de este vector.
      * @return El largo.
      */
-    inline float abs() const
+    inline T abs() const
     {
-        return sqrt(x*x + y*y);
+        return (T) sqrt(x*x + y*y);
     }
     
-    inline Vector2 t() const
+    inline Vector2<T> t() const
     {
-        return Vector2(y,x);
+        return Vector2<T>(y,x);
     }
     
-    inline Vector2 p() const
+    inline Vector2<T> p() const
     {
-        return Vector2(y,-x);
+        return Vector2<T>(y,-x);
     }
     
     /**
      * @function normalize Normalizacion de este vector.
      * @return El vector normalizado
      */
-    Vector2 normalize()
+    Vector2<T> normalize()
     {
         return *this/= abs();
     }
@@ -204,6 +204,6 @@ public:
     }
     
     /* Los valoes del vector*/
-    float x, y;
+    T x, y;
     
 };

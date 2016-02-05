@@ -8,6 +8,7 @@
 #include "Tools/ModuleManager/Module.h"
 
 MODULE(Regionizer)
+    REQUIRES(ColorModel)
 	REQUIRES(Image)
 	PROVIDES(Regions)
 END_MODULE
@@ -16,7 +17,13 @@ END_MODULE
 class Regionizer : public RegionizerBase
 {
 public:
+    
+    Regionizer() : step(10) {}
 	
 	void update(Regions* regions);
+    
+    void findRightBound(const Vector2<int>& initPoint, Vector2<int>& result, ColorModel::Colors color);
+    
+    int step;
 
 };
