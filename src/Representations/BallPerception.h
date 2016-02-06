@@ -15,5 +15,6 @@ public:
     void draw(Image* image) const;
 	
     Vector2<int> position;
+    int radius;
     bool wasSeen;
 };

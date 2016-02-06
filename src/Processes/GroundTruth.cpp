@@ -31,8 +31,9 @@ int main(int argc,char** argv)
         blackBoard.theBallPerception->draw(blackBoard.theImage);
         
         cv::imshow("", *blackBoard.theImage);
-		if(cv::waitKey(1) >= 0)
-			break;
+        if(cv::waitKey(1) >= 0)
+            break;
+        //cv::waitKey(-1);
 		camera.update(blackBoard.theImage);
 	}
 	

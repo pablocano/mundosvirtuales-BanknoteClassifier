@@ -4,43 +4,43 @@ PROJECT (GroundTruth)
 find_package(OpenCV REQUIRED )
 
 set( SEGMENT_SRC
-	src/Processes/Segmentation.cpp
-  src/Modules/Camera.cpp
-  src/Modules/Camera.h
-  src/Modules/Segmentator.cpp
-  src/Modules/Segmentator.h
-	src/Representations/Blackboard.cpp
-  src/Representations/Blackboard.h
-  src/Representations/ColorModel/ColorModel.cpp
-	src/Representations/ColorModel/ColorModel.h
-	src/Representations/Image.h
-  src/Tools/ColorModelConversions.h
-  src/Tools/ColorRangeCreator.h
-	src/Tools/ModuleManager/Module.h
-	src/Tools/Range.h
+    src/Processes/Segmentation.cpp
+    src/Modules/Camera.cpp
+    src/Modules/Camera.h
+    src/Modules/Segmentator.cpp
+    src/Modules/Segmentator.h
+    src/Representations/Blackboard.cpp
+    src/Representations/Blackboard.h
+    src/Representations/ColorModel/ColorModel.cpp
+    src/Representations/ColorModel/ColorModel.h
+    src/Representations/Image.h
+    src/Tools/ColorModelConversions.h
+    src/Tools/ColorRangeCreator.h
+    src/Tools/ModuleManager/Module.h
+    src/Tools/Range.h
 )
 
 set( GROUNDTRUTH_SRC
-	src/Processes/GroundTruth.cpp
-	src/Modules/Camera.cpp
-	src/Modules/Camera.h
-	src/Modules/BallPerceptor.cpp
-  src/Modules/BallPerceptor.h
-	src/Modules/Regionizer.cpp
-	src/Modules/Regionizer.h
-  src/Representations/BallPerception.cpp
-  src/Representations/BallPerception.h
-	src/Representations/Blackboard.cpp
-	src/Representations/Blackboard.h
-	src/Representations/ColorModel/ColorModel.cpp
-	src/Representations/ColorModel/ColorModel.h
-	src/Representations/Image.h
-	src/Representations/Regions.cpp
-	src/Representations/Regions.h
-	src/Tools/ColorModelConversions.h
-	src/Tools/ModuleManager/Module.h
-	src/Tools/Range.h
-	src/Tools/Vector2.h
+    src/Processes/GroundTruth.cpp
+    src/Modules/Camera.cpp
+    src/Modules/Camera.h
+    src/Modules/BallPerceptor.cpp
+    src/Modules/BallPerceptor.h
+    src/Modules/Regionizer.cpp
+    src/Modules/Regionizer.h
+    src/Representations/BallPerception.cpp
+    src/Representations/BallPerception.h
+    src/Representations/Blackboard.cpp
+    src/Representations/Blackboard.h
+    src/Representations/ColorModel/ColorModel.cpp
+    src/Representations/ColorModel/ColorModel.h
+    src/Representations/Image.h
+    src/Representations/Regions.cpp
+    src/Representations/Regions.h
+    src/Tools/ColorModelConversions.h
+    src/Tools/ModuleManager/Module.h
+    src/Tools/Range.h
+    src/Tools/Vector2.h
 )
 source_group(src REGULAR_EXPRESSION "src/Processes/*")
 source_group(src\\Modules REGULAR_EXPRESSION "Modules/*")
@@ -48,6 +48,8 @@ source_group(src\\Representations REGULAR_EXPRESSION "Representations/*")
 source_group(src\\Representations\\ColorModel REGULAR_EXPRESSION "Representations/ColorModel/*")
 source_group(src\\Tools REGULAR_EXPRESSION "Tools/*")
 source_group(src\\Tools\\ModuleManager REGULAR_EXPRESSION "Tools/ModuleManager/*")
+
+set(CMAKE_CXX_FLAGS "-std=c++11")
 
 include_directories(${CMAKE_INSTALL_PREFIX}/include ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_executable( createColorTable ${SEGMENT_SRC} ${OpenCV_INCLUDE})
