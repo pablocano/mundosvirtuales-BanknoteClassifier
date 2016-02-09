@@ -3,6 +3,7 @@
 
 class BackgroundImage;
 class BallPerception;
+class ImageBGR;
 class Image;
 class ColorModel;
 class Regions;
@@ -21,7 +22,8 @@ public:
     BackgroundImage* theBackgroundImage;
     BallPerception* theBallPerception;
 	ColorModel* theColorModel;
-	Image* theImage;
+    ImageBGR* theImageBGR;
+    Image* theImage;
 	Regions* theRegions;
     SegmentedImage* theSegmentedImage;
 };

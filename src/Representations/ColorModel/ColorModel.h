@@ -76,7 +76,7 @@ public:
 	
 	~ColorModel();
 
-	Colors* cubo;
+    Colors cubo[32][256][256];
 	
 	WhiteThresholds whiteThreshold;
 	HSIRanges ranges[numOfColors];

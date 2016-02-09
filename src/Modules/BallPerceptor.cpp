@@ -135,5 +135,6 @@ bool BallPerceptor::getBallFromBallPoints(Vector2<int>& center, int& radius) con
 
 bool BallPerceptor::isOtherColor(const cv::Vec3f &other)
 {
-    return std::abs(pixel[0] - other[0]) > 100 || std::abs(pixel[1] - other[1]) > 100 || std::abs(pixel[2] - other[2]) > 60;
+    float weigth = 0.1f;
+    return std::abs(pixel[1] - other[1])*(1.f - weigth) + std::abs(pixel[2] - other[2])*weigth > 30;
 }

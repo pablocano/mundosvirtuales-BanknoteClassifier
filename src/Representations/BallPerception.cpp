@@ -1,8 +1,9 @@
 
 
 #include "BallPerception.h"
+#include <opencv2/imgproc/imgproc.hpp>
 
-void BallPerception::draw(Image* image) const
+void BallPerception::draw(ImageBGR *image) const
 {
     if (wasSeen)
     {

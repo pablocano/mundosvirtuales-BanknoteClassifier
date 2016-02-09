@@ -23,7 +23,7 @@ public:
         }
 	};
     
-    void draw(Image* image) const;
+    void draw(ImageBGR* image) const;
 	
 	std::vector<Line> regions;
 };

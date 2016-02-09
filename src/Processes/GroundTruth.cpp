@@ -22,20 +22,24 @@ int main(int argc,char** argv)
 	Camera camera;
     BallPerceptor ballPerceptor;
 
+    camera.update(blackBoard.theImageBGR);
 	camera.update(blackBoard.theImage);
 	while (!blackBoard.theImage->empty()){
 		
-		regionizer.update(blackBoard.theRegions);
-        //blackBoard.theRegions->draw(blackBoard.theImage);
+        regionizer.update(blackBoard.theRegions);
+        //blackBoard.theRegions->draw(blackBoard.theImageBGR);
         ballPerceptor.update(blackBoard.theBallPerception);
-        blackBoard.theBallPerception->draw(blackBoard.theImage);
-        
-        cv::imshow("", *blackBoard.theImage);
+        blackBoard.theBallPerception->draw(blackBoard.theImageBGR);
+
+        cv::imshow("", *blackBoard.theImageBGR);
+
         if(cv::waitKey(1) >= 0)
             break;
         //cv::waitKey(-1);
+        camera.update(blackBoard.theImageBGR);
 		camera.update(blackBoard.theImage);
 	}
+
 	
 	return 0;
 }

@@ -1,7 +1,7 @@
 
 
 #include "Camera.h"
-
+#include <opencv2/imgproc/imgproc.hpp>
 
 Camera::Camera() :video("GroundTruthVideo3.avi")//: video(0)
 {
@@ -9,7 +9,7 @@ Camera::Camera() :video("GroundTruthVideo3.avi")//: video(0)
 	//video.set(CV_CAP_PROP_FRAME_WIDTH, 270);
 }
 
-void Camera::update(Image *image)
+void Camera::update(ImageBGR *image)
 {
 	video >> *image;
 	if (image->empty()) {
@@ -17,5 +17,10 @@ void Camera::update(Image *image)
 		video >> *image;
 	}
     //*image = cv::imread("team.jpg", CV_LOAD_IMAGE_COLOR);;
+}
+
+void Camera::update(Image *image)
+{
+    cv::cvtColor(*theImageBGR, *image, CV_BGR2YCrCb);
 }
 

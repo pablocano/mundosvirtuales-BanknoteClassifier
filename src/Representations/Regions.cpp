@@ -1,8 +1,9 @@
 
 
 #include "Regions.h"
+#include <opencv2/imgproc/imgproc.hpp>
 
-void Regions::draw(Image* image) const
+void Regions::draw(ImageBGR *image) const
 {
     for (auto& region : regions) {
         cv::Point pt1 = cv::Point(region.right.y, region.right.x);

@@ -3,11 +3,13 @@
 #include "Representations/Blackboard.h"
 #include "Representations/Image.h"
 #include "Tools/ModuleManager/Module.h"
-#include <cv.h>
-#include <highgui.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 MODULE(Camera)
-	PROVIDES(Image)
+    PROVIDES(ImageBGR)
+    REQUIRES(ImageBGR)
+    PROVIDES(Image)
 END_MODULE
 
 
@@ -17,5 +19,7 @@ public:
 	Camera();
 	
 	void update(Image* image);
+
+    void update(ImageBGR* image);
 	cv::VideoCapture video;
 };

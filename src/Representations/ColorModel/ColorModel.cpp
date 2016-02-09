@@ -7,20 +7,34 @@
 static class ColorSpaceMapper
 {
 public:
+    struct RB
+    {
+        unsigned char r;
+        unsigned char b;
+        unsigned short rb;
+    };
 	
-	cv::Vec3b hsi[256][256][256];
+    cv::Vec3b hsi[32][256][256];
+    RB rb[32][256][256];
 	
 	ColorSpaceMapper()
 	{
 		cv::Vec3b* p = &hsi[0][0][0];
-		for(int b = 0; b < 256; ++b)
-			for(int g = 0; g < 256; ++g)
-				for(int r = 0; r < 256; ++r, ++p)
+        RB* q = &rb[0][0][0];
+        unsigned char g;
+        for(int y = 0; y < 256; y += 8)
+            for(int cb = 0; cb < 256; ++cb)
+                for(int cr = 0; cr < 256; ++cr, ++p, ++q)
 				{
-					ColorModelConversions::fromBGRToHSI((unsigned char) b,
-																								(unsigned char) g,
-																								(unsigned char) r,
-																								(*p)[0], (*p)[1], (*p)[2]);
+                    ColorModelConversions::fromYCbCrToHSI((unsigned char) y,
+                                                            (unsigned char) cb,
+                                                            (unsigned char) cr,
+                                                            (*p)[0], (*p)[1], (*p)[2]);
+                    ColorModelConversions::fromYCbCrToRGB((unsigned char) y,
+                                                          (unsigned char) cb,
+                                                          (unsigned char) cr,
+                                                          q->r, g, q->b);
+                    q->rb = (unsigned short) q->r + q->b;
 				}
 	}
 } colorSpaceMapper;
@@ -28,7 +42,6 @@ public:
 ColorModel::ColorModel()
 {
 	readFile("cubo.txt");
-	cubo = new Colors[256*256*256];
 	for (unsigned char i = 2; i < numOfColors; i++) {
 		setCube(ranges[i], Colors((Color)i));
 	}
@@ -42,17 +55,17 @@ ColorModel::~ColorModel()
 
 void ColorModel::setCube(const HSIRanges& ranges, Colors color)
 {
+    Colors* dest = &cubo[0][0][0];
 	unsigned char setColor = color.colors;
-	int dest = 0;
-	for (int b = 0; b < 256; b++) {
-		for (int g = 0; g < 256; g++) {
-			for (int r = 0; r < 256; r++, dest++) {
-				cv::Vec3b hsi = colorSpaceMapper.hsi[b][g][r];
+    for (int y = 0; y < 32; y++) {
+        for (int cb = 0; cb < 256; cb++) {
+            for (int cr = 0; cr < 256; cr++, dest++) {
+                cv::Vec3b hsi = colorSpaceMapper.hsi[y][cb][cr];
 				if (ranges.hue.isInside(hsi[0]) && ranges.saturation.isInside(hsi[1]) && ranges.intensity.isInside(hsi[2])) {
-					cubo[dest].colors |= setColor;
+                    dest->colors |= setColor;
 				}
 				else
-					cubo[dest].colors &= ~setColor;
+                    dest->colors &= ~setColor;
 			}
 		}
 	}
@@ -60,16 +73,17 @@ void ColorModel::setCube(const HSIRanges& ranges, Colors color)
 
 void ColorModel::setCube(const WhiteThresholds& thresholds, Colors color)
 {
-	unsigned char setColor = color.colors;
-	int dest = 0;
-	for (int b = 0; b < 256;b++) {
-		for (int g = 0; g < 256; g++) {
-			for (int r = 0; r < 256; r++, dest++) {
-				if (b >= thresholds.minB && r >= thresholds.minR && b + r >= thresholds.minRB && !(cubo[dest].colors & 1 << (green -1))) {
-					cubo[dest].colors |= setColor;
+    Colors* dest = &cubo[0][0][0];
+    unsigned char setColor = color.colors;
+    for (int y = 0; y < 32; y++) {
+        for (int cb = 0; cb < 256; cb++) {
+            for (int cr = 0; cr < 256; cr++, dest++) {
+                ColorSpaceMapper::RB rb = colorSpaceMapper.rb[y][cb][cr];
+                if (rb.b >= thresholds.minB && rb.r >= thresholds.minR && rb.b + rb.r >= thresholds.minRB && !(dest->colors & 1 << (green -1))) {
+                    dest->colors |= setColor;
 				}
 				else
-					cubo[dest].colors &= ~setColor;
+                    dest->colors &= ~setColor;
 			}
 		}
 	}
@@ -105,7 +119,7 @@ void ColorModel::getColor(ColorModel::WhiteThresholds &threshold)
 
 ColorModel::Colors ColorModel::getColor(cv::Vec3b point)
 {
-	return cubo[point[0]*256*256 + point[1]*256 + point[2]];
+    return cubo[point[0] >> 3][point[2]][point[1]];
 }
 
 void ColorModel::segmentImage(const cv::Mat& source, cv::Mat& dest)

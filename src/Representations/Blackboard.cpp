@@ -15,6 +15,7 @@ Blackboard::Blackboard() :
     theBallPerception(new BallPerception()),
 	theColorModel(new ColorModel()),
 	theImage(new Image()),
+    theImageBGR(new ImageBGR()),
 	theRegions(new Regions()),
     theSegmentedImage(new SegmentedImage()){}
 
