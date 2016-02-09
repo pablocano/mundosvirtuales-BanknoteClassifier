@@ -9,20 +9,26 @@ void Regionizer::update(Regions	*regions)
 	for (int i = step; i < theImage->rows; i += step) {
         ColorModel::Colors color = theColorModel->getColor(theImage->at<cv::Vec3b>(i,step));
         Vector2<int> left = Vector2<int>(i, step);
-		for (int j = 2*step; j < theImage->cols; j += step) {
+        float movementPixels = theMovementImage->at<u_int8_t>(i,step) ? 1.f : 0.f;
+        for (int j = 2*step; j < theImage->cols; j += step) {
             if (j >= theImage->cols - step) {
                 if (left.y != j) {
                     Vector2<int> right(i,j);
-                    regions->regions.push_back(Regions::Line(left,right,color));
+                    if((color.is(ColorModel::white) && movementPixels/((right - left).y/step) > 0.7) || color.is(ColorModel::orange))
+                        regions->regions.push_back(Regions::Line(left,right,color));
+                    movementPixels = 0;
                 }
             }
             ColorModel::Colors color2 = theColorModel->getColor(theImage->at<cv::Vec3b>(i,j));
+            movementPixels += theMovementImage->at<u_int8_t>(i,j) ? 1 : 0;
             if (color.colors != color2.colors) {
                 Vector2<int> right;
                 findRightBound(Vector2<int>(i, j), right, color);
-                regions->regions.push_back(Regions::Line(left,right,color));
+                if((color.is(ColorModel::white) && movementPixels/((right - left).y/step) > 0.7) || color.is(ColorModel::orange))
+                    regions->regions.push_back(Regions::Line(left,right,color));
                 left = Vector2<int>(i,right.y+1);
                 color = theColorModel->getColor(theImage->at<cv::Vec3b>(i,left.y));
+                movementPixels = theMovementImage->at<u_int8_t>(i,j) ? 1.f : 0.f;
             }
 		}
 	}

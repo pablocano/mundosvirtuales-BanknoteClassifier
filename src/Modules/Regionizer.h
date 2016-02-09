@@ -10,6 +10,7 @@
 MODULE(Regionizer)
     REQUIRES(ColorModel)
 	REQUIRES(Image)
+    REQUIRES(MovementImage)
 	PROVIDES(Regions)
 END_MODULE
 

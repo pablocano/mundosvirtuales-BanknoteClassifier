@@ -11,6 +11,11 @@ public:
     SegmentedImage(const cv::Mat& m) : cv::Mat(m) {}
 };
 
-class BackgroundImage : public cv::Mat {};
+class MovementImage : public cv::Mat {
+public:
+    MovementImage() : cv::Mat() {}
+
+    MovementImage(const cv::Mat& m) : cv::Mat(m) {}
+};
 
 class ImageBGR: public cv::Mat{};

@@ -1,11 +1,11 @@
 
 #pragma once
 
-class BackgroundImage;
 class BallPerception;
+class ColorModel;
 class ImageBGR;
 class Image;
-class ColorModel;
+class MovementImage;
 class Regions;
 class SegmentedImage;
 
@@ -19,11 +19,11 @@ public:
 	
 	void operator=(const Blackboard& other);
 	
-    BackgroundImage* theBackgroundImage;
     BallPerception* theBallPerception;
 	ColorModel* theColorModel;
     ImageBGR* theImageBGR;
     Image* theImage;
+    MovementImage* theMovementImage;
 	Regions* theRegions;
     SegmentedImage* theSegmentedImage;
 };
