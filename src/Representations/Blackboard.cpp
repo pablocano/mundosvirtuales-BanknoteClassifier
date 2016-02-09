@@ -11,6 +11,7 @@
 Blackboard* Blackboard::theInstance = 0;
 
 Blackboard::Blackboard() :
+    theBackgroundImage(new BackgroundImage()),
     theBallPerception(new BallPerception()),
 	theColorModel(new ColorModel()),
 	theImage(new Image()),

@@ -15,3 +15,8 @@ public:
     
     SegmentedImage(const cv::Mat& m) : Image(m) {}
 };
+
+class BackgroundImage : public cv::Mat {
+public:
+    BackgroundImage() : cv::Mat() {}
+};

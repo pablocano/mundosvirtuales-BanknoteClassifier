@@ -24,6 +24,8 @@ set( GROUNDTRUTH_SRC
     src/Processes/GroundTruth.cpp
     src/Modules/Camera.cpp
     src/Modules/Camera.h
+    src/Modules/BackgroundModel.cpp
+    src/Modules/BackgroundModel.h
     src/Modules/BallPerceptor.cpp
     src/Modules/BallPerceptor.h
     src/Modules/Regionizer.cpp
