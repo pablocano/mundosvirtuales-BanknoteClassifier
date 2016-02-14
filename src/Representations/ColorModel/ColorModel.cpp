@@ -41,7 +41,7 @@ public:
 
 ColorModel::ColorModel()
 {
-	readFile("cubo.txt");
+    readFile("../../Config/cubo.txt");
 	for (unsigned char i = 2; i < numOfColors; i++) {
 		setCube(ranges[i], Colors((Color)i));
 	}

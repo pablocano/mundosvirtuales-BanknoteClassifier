@@ -30,6 +30,8 @@ set( GROUNDTRUTH_SRC
     src/Modules/BallPerceptor.h
     src/Modules/Regionizer.cpp
     src/Modules/Regionizer.h
+    src/Modules/RobotPerceptor.cpp
+    src/Modules/RobotPerceptor.h
     src/Representations/BallPerception.cpp
     src/Representations/BallPerception.h
     src/Representations/Blackboard.cpp
@@ -52,6 +54,8 @@ source_group(src\\Tools REGULAR_EXPRESSION "Tools/*")
 source_group(src\\Tools\\ModuleManager REGULAR_EXPRESSION "Tools/ModuleManager/*")
 
 set(CMAKE_CXX_FLAGS "-std=c++11")
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 include_directories(${CMAKE_INSTALL_PREFIX}/include ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_executable( createColorTable ${SEGMENT_SRC} ${OpenCV_INCLUDE})
