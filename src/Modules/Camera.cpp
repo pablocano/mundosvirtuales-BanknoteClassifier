@@ -24,3 +24,6 @@ void Camera::update(Image *image)
     cv::cvtColor(*theImageBGR, *image, CV_BGR2YCrCb);
 }
 
+/*el pablo es un gordo*/
+/*muy gordo*/
+/*se comio todos los tuits*/

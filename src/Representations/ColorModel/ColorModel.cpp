@@ -49,9 +49,7 @@ ColorModel::ColorModel()
 }
 
 ColorModel::~ColorModel()
-{
-	delete cubo;
-}
+{}
 
 void ColorModel::setCube(const HSIRanges& ranges, Colors color)
 {

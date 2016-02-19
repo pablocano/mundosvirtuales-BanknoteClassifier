@@ -11,10 +11,10 @@ public:\
 	module##Base() : Blackboard(*Blackboard::theInstance) {}
 
 #define PROVIDES(representation)\
-	virtual void update(representation* the##representation) = 0;
+    virtual void update(representation* the##representation) = 0;
 
 #define REQUIRES(representation)\
-	protected: using Blackboard::the##representation;
+    protected: using Blackboard::the##representation;
 
 #define END_MODULE \
 };

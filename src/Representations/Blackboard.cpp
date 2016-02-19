@@ -5,6 +5,7 @@
 #include "Representations/ColorModel/ColorModel.h"
 #include "Representations/Image.h"
 #include "Representations/Regions.h"
+#include "Representations/RobotPercept.h"
 #include <cstdlib>
 #include <cstring>
 
@@ -17,6 +18,7 @@ Blackboard::Blackboard() :
     theImageBGR(new ImageBGR()),
     theMovementImage(new MovementImage()),
 	theRegions(new Regions()),
+    theRobotPercept(new RobotPercept()),
     theSegmentedImage(new SegmentedImage()){}
 
 void Blackboard::operator=(const Blackboard& other)

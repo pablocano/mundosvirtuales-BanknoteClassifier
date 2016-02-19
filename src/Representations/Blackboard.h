@@ -7,6 +7,7 @@ class ImageBGR;
 class Image;
 class MovementImage;
 class Regions;
+class RobotPercept;
 class SegmentedImage;
 
 class Blackboard {
@@ -14,16 +15,17 @@ class Blackboard {
 public:
 	
 	static Blackboard* theInstance;
-	
-	Blackboard();
-	
-	void operator=(const Blackboard& other);
+
+    Blackboard();
+
+    void operator=(const Blackboard& other);
 	
     BallPerception* theBallPerception;
 	ColorModel* theColorModel;
     ImageBGR* theImageBGR;
     Image* theImage;
     MovementImage* theMovementImage;
-	Regions* theRegions;
+    Regions* theRegions;
+    RobotPercept* theRobotPercept;
     SegmentedImage* theSegmentedImage;
 };

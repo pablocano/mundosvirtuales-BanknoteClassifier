@@ -41,6 +41,8 @@ set( GROUNDTRUTH_SRC
     src/Representations/Image.h
     src/Representations/Regions.cpp
     src/Representations/Regions.h
+    src/Representations/RobotPercept.cpp
+    src/Representations/RobotPercept.h
     src/Tools/ColorModelConversions.h
     src/Tools/ModuleManager/Module.h
     src/Tools/Range.h

@@ -14,8 +14,9 @@ public:
 	struct Line {
 		Vector2<int> left;
 		Vector2<int> right;
+        int depth;
         Color color;
-        Line(Vector2<int> left, Vector2<int> right, Color color) : left(left), right(right), color(color) {}
+        Line(Vector2<int> left, Vector2<int> right,int depth, Color color) : left(left), right(right), depth(depth), color(color) {}
         
         Vector2<int> getCenter()
         {

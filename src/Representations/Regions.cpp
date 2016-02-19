@@ -30,6 +30,6 @@ void Regions::draw(ImageBGR *image) const
         else if (region.color.is(ColorModel::black)) {
             paint = cv::Scalar(0,0,0);
         }
-        cv::line(*image, pt1, pt2, paint,5);
+        cv::line(*image, pt1, pt2, paint);
     }
 }
