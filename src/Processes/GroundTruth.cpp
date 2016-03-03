@@ -11,6 +11,7 @@
 #include "Modules/Camera.h"
 #include "Modules/Regionizer.h"
 #include "Modules/RobotPerceptor.h"
+#include "Modules/RobotPoseProvider.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
@@ -26,6 +27,7 @@ int main()
     BallPerceptor ballPerceptor;
     BackgroundModel backgroundModel;
     RobotPerceptor robotPerceptor;
+    RobotPoseProvider robotPoseProvider;
 
     camera.update(blackBoard.theImageBGR);
 	camera.update(blackBoard.theImage);
@@ -35,15 +37,17 @@ int main()
 	while (!blackBoard.theImage->empty()){
         backgroundModel.update(blackBoard.theMovementImage);
         regionizer.update(blackBoard.theRegions);
-        blackBoard.theRegions->draw(blackBoard.theImageBGR);
+        blackBoard.theRegions->draw(*blackBoard.theImageBGR);
         ballPerceptor.update(blackBoard.theBallPerception);
-        blackBoard.theBallPerception->draw(blackBoard.theImageBGR);
+        blackBoard.theBallPerception->draw(*blackBoard.theImageBGR);
         robotPerceptor.update(blackBoard.theRobotPercept);
-        blackBoard.theRobotPercept->draw(blackBoard.theImageBGR);
+        blackBoard.theRobotPercept->draw(*blackBoard.theImageBGR);
+        robotPoseProvider.update(blackBoard.theRobotPose);
+        blackBoard.theRobotPose->draw(*blackBoard.theImageBGR);
 
         cv::imshow("", *blackBoard.theImageBGR);
 
-        cv::imshow("sub", *blackBoard.theMovementImage);
+        //cv::imshow("sub", *blackBoard.theMovementImage);
 
         char key;
         if(pause)
@@ -55,7 +59,7 @@ int main()
         else
         {
             key = cv::waitKey(1);
-            if(key == 'p')
+            if(key > 0 && key != 27)
                 pause = true;
         }
         if(key == 27)

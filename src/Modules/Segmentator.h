@@ -4,8 +4,6 @@
 #include "Representations/Image.h"
 #include "Representations/ColorModel/ColorModel.h"
 #include "Tools/ModuleManager/Module.h"
-#include <cv.h>
-#include <highgui.h>
 
 MODULE(Segmentator)
     REQUIRES(Image)

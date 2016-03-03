@@ -32,6 +32,8 @@ set( GROUNDTRUTH_SRC
     src/Modules/Regionizer.h
     src/Modules/RobotPerceptor.cpp
     src/Modules/RobotPerceptor.h
+    src/Modules/RobotPoseProvider.cpp
+    src/Modules/RobotPoseProvider.h
     src/Representations/BallPerception.cpp
     src/Representations/BallPerception.h
     src/Representations/Blackboard.cpp
@@ -43,8 +45,12 @@ set( GROUNDTRUTH_SRC
     src/Representations/Regions.h
     src/Representations/RobotPercept.cpp
     src/Representations/RobotPercept.h
+    src/Representations/RobotPose.cpp
+    src/Representations/RobotPose.h
     src/Tools/ColorModelConversions.h
     src/Tools/ModuleManager/Module.h
+    src/Tools/Line.cpp
+    src/Tools/Line.h
     src/Tools/Range.h
     src/Tools/Vector2.h
 )

@@ -3,7 +3,6 @@
 
 #include "Tools/Range.h"
 #include "Tools/Vector2.h"
-#include "Representations/Image.h"
 #include "Representations/ColorModel/ColorModel.h"
 
 class BallPerception {
@@ -11,7 +10,7 @@ class BallPerception {
 public:
     using Color = ColorModel::Colors;
     
-    void draw(ImageBGR* image) const;
+    void draw(cv::Mat& image) const;
 	
     Vector2<int> position;
     int radius;

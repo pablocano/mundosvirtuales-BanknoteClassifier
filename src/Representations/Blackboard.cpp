@@ -6,6 +6,7 @@
 #include "Representations/Image.h"
 #include "Representations/Regions.h"
 #include "Representations/RobotPercept.h"
+#include "Representations/RobotPose.h"
 #include <cstdlib>
 #include <cstring>
 
@@ -19,6 +20,7 @@ Blackboard::Blackboard() :
     theMovementImage(new MovementImage()),
 	theRegions(new Regions()),
     theRobotPercept(new RobotPercept()),
+    theRobotPose(new RobotPose()),
     theSegmentedImage(new SegmentedImage()){}
 
 void Blackboard::operator=(const Blackboard& other)

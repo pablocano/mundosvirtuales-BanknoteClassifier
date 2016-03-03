@@ -3,7 +3,7 @@
 #include "Regions.h"
 #include <opencv2/imgproc/imgproc.hpp>
 
-void Regions::draw(ImageBGR *image) const
+void Regions::draw(cv::Mat &image) const
 {
     for (auto& region : regions) {
         cv::Point pt1 = cv::Point(region.right.y, region.right.x);
@@ -30,6 +30,6 @@ void Regions::draw(ImageBGR *image) const
         else if (region.color.is(ColorModel::black)) {
             paint = cv::Scalar(0,0,0);
         }
-        cv::line(*image, pt1, pt2, paint);
+        cv::line(image, pt1, pt2, paint);
     }
 }

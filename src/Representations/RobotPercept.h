@@ -14,7 +14,7 @@ public:
         Vector2<int> rightBottom;
     };
 
-    void draw(ImageBGR* image) const;
+    void draw(cv::Mat& image) const;
 
     std::vector<Robot> robots;
 };

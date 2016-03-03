@@ -3,7 +3,6 @@
 
 #include "Tools/Range.h"
 #include "Tools/Vector2.h"
-#include "Representations/Image.h"
 #include "Representations/ColorModel/ColorModel.h"
 #include <cv.h>
 
@@ -24,7 +23,7 @@ public:
         }
 	};
     
-    void draw(ImageBGR* image) const;
+    void draw(cv::Mat& image) const;
 	
 	std::vector<Line> regions;
 };

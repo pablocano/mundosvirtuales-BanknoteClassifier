@@ -8,6 +8,7 @@ class Image;
 class MovementImage;
 class Regions;
 class RobotPercept;
+class RobotPose;
 class SegmentedImage;
 
 class Blackboard {
@@ -27,5 +28,6 @@ public:
     MovementImage* theMovementImage;
     Regions* theRegions;
     RobotPercept* theRobotPercept;
+    RobotPose* theRobotPose;
     SegmentedImage* theSegmentedImage;
 };

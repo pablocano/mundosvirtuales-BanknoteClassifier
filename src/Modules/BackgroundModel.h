@@ -28,7 +28,7 @@ public:
      */
     BackgroundModel():
         model(),
-        thrld(0.09f),
+        thrld(0.13f),
         alpha(0.001f),
         beta(0.8f),
         gamma(0.05f),

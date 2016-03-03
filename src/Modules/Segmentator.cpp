@@ -1,7 +1,8 @@
 
 
 #include "Segmentator.h"
-
+#include <cv.h>
+#include <highgui.h>
 
 void Segmentator::update(SegmentedImage *image)
 {
