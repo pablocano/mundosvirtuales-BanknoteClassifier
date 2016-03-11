@@ -43,7 +43,7 @@ int main()
 
         cv::imshow("", *blackBoard.theImageBGR);
 
-        cv::imshow("sub", *blackBoard.theMovementImage);
+        //cv::imshow("sub", *blackBoard.theMovementImage);
 
         char key;
         if(pause)
