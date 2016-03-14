@@ -46,6 +46,6 @@ int main(int argc,char** argv)
         camera.update(blackBoard.theImage);
     }
     
-    blackBoard.theColorModel->writeFile("cubo.txt");
+    blackBoard.theColorModel->writeFile("../../Config/cubo.txt");
 }
 
