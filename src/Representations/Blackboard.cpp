@@ -2,6 +2,7 @@
 
 #include "Blackboard.h"
 #include "Representations/BallPerception.h"
+#include "Representations/CameraInfo.h"
 #include "Representations/ColorModel/ColorModel.h"
 #include "Representations/Image.h"
 #include "Representations/Regions.h"
@@ -14,6 +15,7 @@ Blackboard* Blackboard::theInstance = 0;
 
 Blackboard::Blackboard() :
     theBallPerception(new BallPerception()),
+    theCameraInfo(new CameraInfo()),
 	theColorModel(new ColorModel()),
 	theImage(new Image()),
     theImageBGR(new ImageBGR()),

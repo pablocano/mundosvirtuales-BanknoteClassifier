@@ -1,4 +1,5 @@
 #include "RobotPerceptor.h"
+#include "Tools/Transformation.h"
 
 void RobotPerceptor::update(RobotPercept *robotPercept)
 {
@@ -7,7 +8,11 @@ void RobotPerceptor::update(RobotPercept *robotPercept)
     for(auto& blob : blobs)
     {
         if(blob.segments.size() > 5)
-            robotPercept->robots.push_back(RobotPercept::Robot(blob.getCenter(),blob.getLeftUpper(),blob.getRightBottom()));
+        {
+            Vector2<int> center = blob.getCenter();
+            Vector2<> pos = Transformation::imageToField(Vector2<>(center.x,center.y));
+            robotPercept->robots.push_back(RobotPercept::Robot(center,blob.getLeftUpper(),blob.getRightBottom(),pos));
+        }
     }
 
 }

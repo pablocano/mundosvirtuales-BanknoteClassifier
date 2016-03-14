@@ -8,9 +8,11 @@
 #include "Representations/Image.h"
 #include "Tools/ModuleManager/Module.h"
 #include "Representations/Blackboard.h"
+#include "Representations/CameraInfo.h"
 #include <cv.h>
 
 MODULE(BackgroundModel)
+    REQUIRES(CameraInfo)
     REQUIRES(ImageBGR)
     PROVIDES(MovementImage)
 END_MODULE
@@ -27,7 +29,8 @@ public:
      * que se mueven.
      */
     BackgroundModel():
-        model(),
+        modelUpper(),
+        modelLower(),
         thrld(0.13f),
         alpha(0.001f),
         beta(0.8f),
@@ -45,7 +48,10 @@ public:
     void update(MovementImage* movementImage);
     
     /* Modelo de fondo*/
-    cv::Mat model;
+    cv::Mat modelUpper;
+    cv::Mat modelLower;
+
+    cv::Mat* currentModel;
 
     cv::Mat frame;
     

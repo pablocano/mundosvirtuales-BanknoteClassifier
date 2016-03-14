@@ -2,6 +2,7 @@
 #pragma once
 
 class BallPerception;
+class CameraInfo;
 class ColorModel;
 class ImageBGR;
 class Image;
@@ -22,6 +23,7 @@ public:
     void operator=(const Blackboard& other);
 	
     BallPerception* theBallPerception;
+    CameraInfo *theCameraInfo;
 	ColorModel* theColorModel;
     ImageBGR* theImageBGR;
     Image* theImage;

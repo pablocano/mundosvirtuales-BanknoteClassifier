@@ -29,6 +29,7 @@ int main()
     RobotPerceptor robotPerceptor;
     RobotPoseProvider robotPoseProvider;
 
+    camera.update(blackBoard.theCameraInfo);
     camera.update(blackBoard.theImageBGR);
 	camera.update(blackBoard.theImage);
 
@@ -37,17 +38,17 @@ int main()
 	while (!blackBoard.theImage->empty()){
         backgroundModel.update(blackBoard.theMovementImage);
         regionizer.update(blackBoard.theRegions);
-        blackBoard.theRegions->draw(*blackBoard.theImageBGR);
+        //blackBoard.theRegions->draw(*blackBoard.theImageBGR);
         ballPerceptor.update(blackBoard.theBallPerception);
         blackBoard.theBallPerception->draw(*blackBoard.theImageBGR);
         robotPerceptor.update(blackBoard.theRobotPercept);
         blackBoard.theRobotPercept->draw(*blackBoard.theImageBGR);
-        robotPoseProvider.update(blackBoard.theRobotPose);
-        blackBoard.theRobotPose->draw(*blackBoard.theImageBGR);
+        //robotPoseProvider.update(blackBoard.theRobotPose);
+        //blackBoard.theRobotPose->draw(*blackBoard.theImageBGR);
 
-        cv::imshow("", *blackBoard.theImageBGR);
+        cv::imshow(blackBoard.theCameraInfo->name, *blackBoard.theImageBGR);
 
-        //cv::imshow("sub", *blackBoard.theMovementImage);
+        cv::imshow(blackBoard.theCameraInfo->name + "sub", *blackBoard.theMovementImage);
 
         char key;
         if(pause)
@@ -64,6 +65,7 @@ int main()
         }
         if(key == 27)
             break;
+        camera.update(blackBoard.theCameraInfo);
         camera.update(blackBoard.theImageBGR);
 		camera.update(blackBoard.theImage);
 	}

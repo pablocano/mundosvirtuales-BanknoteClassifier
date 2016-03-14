@@ -38,6 +38,7 @@ set( GROUNDTRUTH_SRC
     src/Representations/BallPerception.h
     src/Representations/Blackboard.cpp
     src/Representations/Blackboard.h
+    src/Representations/CameraInfo.h
     src/Representations/ColorModel/ColorModel.cpp
     src/Representations/ColorModel/ColorModel.h
     src/Representations/Image.h
@@ -52,6 +53,8 @@ set( GROUNDTRUTH_SRC
     src/Tools/Line.cpp
     src/Tools/Line.h
     src/Tools/Range.h
+    src/Tools/Transformation.cpp
+    src/Tools/Transformation.h
     src/Tools/Vector2.h
 )
 source_group(src REGULAR_EXPRESSION "src/Processes/*")
