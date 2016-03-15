@@ -1,5 +1,3 @@
-
-
 #include "ColorModel.h"
 #include "Tools/ColorModelConversions.h"
 #include <fstream>

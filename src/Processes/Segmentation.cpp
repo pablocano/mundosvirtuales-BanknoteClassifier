@@ -32,16 +32,18 @@ int main(int argc,char** argv)
 	cv::createTrackbar( "Min S", "Segmented", &ColorRangeCreator::lowerS, 255, ColorRangeCreator::setColorRange );
 	cv::createTrackbar( "Max S", "Segmented", &ColorRangeCreator::upperS, 255, ColorRangeCreator::setColorRange );
 
+    camera.update(blackBoard.theCameraInfo);
     camera.update(blackBoard.theImageBGR);
     camera.update(blackBoard.theImage);
     while (!blackBoard.theImage->empty()){
         
         segmentator.update(blackBoard.theSegmentedImage);
         
-        cv::imshow("", *blackBoard.theImageBGR);
-        cv::imshow("Segmented",*blackBoard.theSegmentedImage);
+        cv::imshow(blackBoard.theCameraInfo->name, *blackBoard.theImageBGR);
+        cv::imshow(blackBoard.theCameraInfo->name + "Segmented",*blackBoard.theSegmentedImage);
         if(cv::waitKey(1) >= 0)
             break;
+        camera.update(blackBoard.theCameraInfo);
         camera.update(blackBoard.theImageBGR);
         camera.update(blackBoard.theImage);
     }

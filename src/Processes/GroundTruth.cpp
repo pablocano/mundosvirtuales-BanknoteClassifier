@@ -48,7 +48,7 @@ int main()
 
         cv::imshow(blackBoard.theCameraInfo->name, *blackBoard.theImageBGR);
 
-        cv::imshow(blackBoard.theCameraInfo->name + "sub", *blackBoard.theMovementImage);
+        //cv::imshow(blackBoard.theCameraInfo->name + "sub", *blackBoard.theMovementImage);
 
         char key;
         if(pause)
