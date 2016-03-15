@@ -28,6 +28,8 @@ set( GROUNDTRUTH_SRC
     src/Modules/BackgroundModel.h
     src/Modules/BallPerceptor.cpp
     src/Modules/BallPerceptor.h
+    src/Modules/MapRecorder.cpp
+    src/Modules/MapRecorder.h
     src/Modules/Regionizer.cpp
     src/Modules/Regionizer.h
     src/Modules/RobotPerceptor.cpp
@@ -38,9 +40,11 @@ set( GROUNDTRUTH_SRC
     src/Representations/BallPerception.h
     src/Representations/Blackboard.cpp
     src/Representations/Blackboard.h
+    src/Representations/CameraInfo.cpp
     src/Representations/CameraInfo.h
     src/Representations/ColorModel/ColorModel.cpp
     src/Representations/ColorModel/ColorModel.h
+    src/Representations/FrameInfo.h
     src/Representations/Image.h
     src/Representations/Regions.cpp
     src/Representations/Regions.h

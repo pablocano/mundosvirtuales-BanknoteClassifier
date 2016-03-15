@@ -10,7 +10,7 @@ void RobotPerceptor::update(RobotPercept *robotPercept)
         if(blob.segments.size() > 5)
         {
             Vector2<int> center = blob.getCenter();
-            Vector2<> pos = Transformation::imageToField(Vector2<>(center.x,center.y));
+            Vector2<> pos = Transformation::imageToField(Vector2<>(center.x,center.y),*theCameraInfo);
             robotPercept->robots.push_back(RobotPercept::Robot(center,blob.getLeftUpper(),blob.getRightBottom(),pos));
         }
     }

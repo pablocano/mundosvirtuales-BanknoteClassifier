@@ -9,6 +9,7 @@
 #include "Modules/BackgroundModel.h"
 #include "Modules/BallPerceptor.h"
 #include "Modules/Camera.h"
+#include "Modules/MapRecorder.h"
 #include "Modules/Regionizer.h"
 #include "Modules/RobotPerceptor.h"
 #include "Modules/RobotPoseProvider.h"
@@ -27,15 +28,19 @@ int main()
     BallPerceptor ballPerceptor;
     BackgroundModel backgroundModel;
     RobotPerceptor robotPerceptor;
-    RobotPoseProvider robotPoseProvider;
-
-    camera.update(blackBoard.theCameraInfo);
-    camera.update(blackBoard.theImageBGR);
-	camera.update(blackBoard.theImage);
+    //RobotPoseProvider robotPoseProvider;
+    MapRecorder mapRecorder;
 
     bool pause = false;
 
-	while (!blackBoard.theImage->empty()){
+    while (true){
+
+        camera.update(blackBoard.theFrameInfo);
+        camera.update(blackBoard.theCameraInfo);
+        camera.update(blackBoard.theImageBGR);
+        camera.update(blackBoard.theImage);
+
+        blackBoard.theCameraInfo->draw(*blackBoard.theImageBGR);
         backgroundModel.update(blackBoard.theMovementImage);
         regionizer.update(blackBoard.theRegions);
         //blackBoard.theRegions->draw(*blackBoard.theImageBGR);
@@ -45,6 +50,8 @@ int main()
         blackBoard.theRobotPercept->draw(*blackBoard.theImageBGR);
         //robotPoseProvider.update(blackBoard.theRobotPose);
         //blackBoard.theRobotPose->draw(*blackBoard.theImageBGR);
+
+        mapRecorder.record();
 
         cv::imshow(blackBoard.theCameraInfo->name, *blackBoard.theImageBGR);
 
@@ -65,9 +72,6 @@ int main()
         }
         if(key == 27)
             break;
-        camera.update(blackBoard.theCameraInfo);
-        camera.update(blackBoard.theImageBGR);
-		camera.update(blackBoard.theImage);
 	}
 
 	

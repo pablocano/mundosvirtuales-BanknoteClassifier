@@ -1,10 +1,10 @@
 #pragma once
 #include "Vector2.h"
 
-//class CameraInfo;
+class CameraInfo;
 
 class Transformation
 {
 public:
-    static Vector2<> imageToField(const Vector2<> &positionInImage);
+    static Vector2<> imageToField(const Vector2<> &positionInImage, const CameraInfo& cameraInfo);
 };

@@ -8,7 +8,6 @@ void RobotPercept::draw(cv::Mat &image) const
     int fontFace = cv::FONT_HERSHEY_SCRIPT_SIMPLEX;
     double fontScale = 0.3f;
     int thickness = 0.5;
-    cv::circle(image, cv::Point(306,466), 5, cv::Scalar(255,0,0));
     for(auto& robot : robots)
     {
         std::stringstream textStream;

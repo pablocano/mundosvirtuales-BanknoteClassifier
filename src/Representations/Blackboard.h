@@ -4,6 +4,7 @@
 class BallPerception;
 class CameraInfo;
 class ColorModel;
+class FrameInfo;
 class ImageBGR;
 class Image;
 class MovementImage;
@@ -25,6 +26,7 @@ public:
     BallPerception* theBallPerception;
     CameraInfo *theCameraInfo;
 	ColorModel* theColorModel;
+    FrameInfo* theFrameInfo;
     ImageBGR* theImageBGR;
     Image* theImage;
     MovementImage* theMovementImage;
