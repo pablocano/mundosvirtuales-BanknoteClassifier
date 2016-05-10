@@ -32,7 +32,7 @@ int main()
     MapRecorder mapRecorder;
 
     bool pause = false;
-
+    cv::namedWindow("Camera 1",cv::WINDOW_NORMAL);
     while (true){
 
         camera.update(blackBoard.theFrameInfo);

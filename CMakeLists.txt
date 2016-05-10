@@ -61,6 +61,12 @@ set( GROUNDTRUTH_SRC
     src/Tools/Transformation.h
     src/Tools/Vector2.h
 )
+
+
+set( CAMERA_CALIBRATION
+   Utils/CameraCalibration/calibration.cpp
+)
+
 source_group(src REGULAR_EXPRESSION "src/Processes/*")
 source_group(src\\Modules REGULAR_EXPRESSION "Modules/*")
 source_group(src\\Representations REGULAR_EXPRESSION "Representations/*")
@@ -78,3 +84,6 @@ target_link_libraries( createColorTable ${OpenCV_LIBS} )
 
 add_executable( groundTruth ${GROUNDTRUTH_SRC} ${OpenCV_INCLUDE})
 target_link_libraries( groundTruth ${OpenCV_LIBS} )
+
+add_executable( calibration ${CAMERA_CALIBRATION} ${OpenCV_INCLUDE})
+target_link_libraries( calibration ${OpenCV_LIBS} )
