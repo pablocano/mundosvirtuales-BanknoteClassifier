@@ -39,7 +39,11 @@ public:
 
 ColorModel::ColorModel()
 {
-    readFile("../../Config/cubo.txt");
+#ifdef __APPLE__
+  readFile("../../../Config/cubo.txt");
+#else
+  readFile("../../Config/cubo.txt");
+#endif
 	for (unsigned char i = 2; i < numOfColors; i++) {
 		setCube(ranges[i], Colors((Color)i));
 	}

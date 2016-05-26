@@ -35,7 +35,7 @@ Camera::Camera(): index(0),
     }
 
     numCameras = (cam1.available? 1 : 0) + (cam2.available? 1 : 0);
-    std::cout << "numCameras: " << numCameras << std::endl;
+    // std::cout << "numCameras: " << numCameras << std::endl;
 
     // fill the arrays
     cameras[0] = &video0;
@@ -43,7 +43,6 @@ Camera::Camera(): index(0),
     camerasInfo[0] = &cam1;
     camerasInfo[1] = &cam2;
     last = std::chrono::steady_clock::now();
-
 }
 
 void Camera::update(FrameInfo *frameInfo)
