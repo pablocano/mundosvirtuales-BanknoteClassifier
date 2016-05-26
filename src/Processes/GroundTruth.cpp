@@ -1,7 +1,6 @@
 /**
- * @file main.cpp
- * Programa que implementa un algoritmo de deteccion de genero utilizando
- * histogramas LBP y un clasificador SVM.
+ * @file GroundTruth.cpp
+ * Programa que implementa el proceso principal de la aplicacion GroundTruth
  * @author Pablo Cano Montecinos
  */
 
@@ -37,6 +36,7 @@ int main()
 
         camera.update(blackBoard.theFrameInfo);
         camera.update(blackBoard.theCameraInfo);
+
         camera.update(blackBoard.theImageBGR);
         camera.update(blackBoard.theImage);
 
@@ -52,8 +52,8 @@ int main()
         //blackBoard.theRobotPose->draw(*blackBoard.theImageBGR);
 
         mapRecorder.record();
-
         cv::imshow(blackBoard.theCameraInfo->name, *blackBoard.theImageBGR);
+
 
         //cv::imshow(blackBoard.theCameraInfo->name + "sub", *blackBoard.theMovementImage);
 
