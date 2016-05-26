@@ -6,7 +6,6 @@
 #include "Tools/ModuleManager/Module.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <chrono>
 
 MODULE(Camera)
     PROVIDES(FrameInfo)
@@ -38,5 +37,5 @@ public:
     CameraInfo lower;
     CameraInfo* camerasInfo[2];
 
-    std::chrono::time_point<std::chrono::steady_clock> last;
+    unsigned last;
 };

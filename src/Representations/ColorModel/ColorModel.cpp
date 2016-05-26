@@ -39,7 +39,7 @@ public:
 
 ColorModel::ColorModel()
 {
-#ifdef __APPLE__
+#ifdef OSX
   readFile("../../../Config/cubo.txt");
 #else
   readFile("../../Config/cubo.txt");

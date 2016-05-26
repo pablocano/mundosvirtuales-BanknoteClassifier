@@ -60,6 +60,13 @@ set( GROUNDTRUTH_SRC
     src/Tools/Transformation.cpp
     src/Tools/Transformation.h
     src/Tools/Vector2.h
+    src/Tools/Comm/UdpComm.cpp
+    src/Tools/Comm/UdpComm.h
+    src/Tools/Comm/SPLStandardMessage.h
+    src/Tools/Comm/SPLStandardMessageWrapper.cpp
+    src/Tools/Comm/SPLStandardMessageWrapper.h
+    src/Tools/SystemCall.cpp
+    src/Tools/SystemCall.h
 )
 
 
@@ -73,10 +80,19 @@ source_group(src\\Representations REGULAR_EXPRESSION "Representations/*")
 source_group(src\\Representations\\ColorModel REGULAR_EXPRESSION "Representations/ColorModel/*")
 source_group(src\\Tools REGULAR_EXPRESSION "Tools/*")
 source_group(src\\Tools\\ModuleManager REGULAR_EXPRESSION "Tools/ModuleManager/*")
+source_group(src\\Tools\\Comm REGULAR_EXPRESSION "Tools/Comm/*")
 
 set(CMAKE_CXX_FLAGS "-std=c++11")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+add_definitions(-DOSX)
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+add_definitions(-DLINUX)
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+add_definitions(-DWINDOWS)
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 include_directories(${CMAKE_INSTALL_PREFIX}/include ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_executable( createColorTable ${SEGMENT_SRC} ${OpenCV_INCLUDE})

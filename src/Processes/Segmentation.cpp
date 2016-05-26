@@ -22,7 +22,7 @@ int main(int argc,char** argv)
   Segmentator segmentator;
   ColorRangeCreator::colorModel = &(*blackBoard.theColorModel);
   
-  cv::namedWindow( "Segmented", CV_WINDOW_AUTOSIZE );
+  cv::namedWindow( "Segmented", CV_WINDOW_NORMAL );
   
   cv::createTrackbar("Color", "Segmented", &ColorRangeCreator::color, 7, ColorRangeCreator::setColor);
   cv::createTrackbar( "Min H", "Segmented", &ColorRangeCreator::lowerH, 255, ColorRangeCreator::setColorRange);
