@@ -7,8 +7,8 @@ class CameraInfo
 {
 public:
     enum Type{
-        upper,
-        lower
+        cam1,
+        cam2
     };
 
     CameraInfo() = default;
@@ -24,8 +24,11 @@ public:
     }
 
     void draw(cv::Mat& image) const;
-    Type type;
-    std::string name;
-    Vector2<> position;
-    float factor;
+
+    // variables
+    Type type;              // Cam 1 or Cam 2
+    bool available;         // If the camera is connected or not
+    std::string name;       // The name of the camera
+    Vector2<> position;     // The position (?)
+    float factor;           // A temporal correcting factor
 };

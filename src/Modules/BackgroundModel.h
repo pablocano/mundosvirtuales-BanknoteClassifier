@@ -29,8 +29,8 @@ public:
      * que se mueven.
      */
     BackgroundModel():
-        modelUpper(),
-        modelLower(),
+        model1(),
+        model2(),
         thrld(0.13f),
         alpha(0.001f),
         beta(0.8f),
@@ -48,8 +48,8 @@ public:
     void update(MovementImage* movementImage);
     
     /* Modelo de fondo*/
-    cv::Mat modelUpper;
-    cv::Mat modelLower;
+    cv::Mat model1;
+    cv::Mat model2;
 
     cv::Mat* currentModel;
 
