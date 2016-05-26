@@ -9,10 +9,10 @@
 
 void BackgroundModel::update(MovementImage *movementImage)
 {
-    if(theCameraInfo->type == CameraInfo::upper)
-        currentModel = &modelUpper;
+    if(theCameraInfo->type == CameraInfo::cam1)
+        currentModel = &model1;
     else
-        currentModel = &modelLower;
+        currentModel = &model2;
     cv::cvtColor(*theImageBGR,frame,CV_BGR2GRAY);
     frame.convertTo(frame, CV_32F);
     frame = frame/255.f;

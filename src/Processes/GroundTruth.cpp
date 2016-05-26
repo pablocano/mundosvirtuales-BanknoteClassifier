@@ -1,7 +1,6 @@
 /**
- * @file main.cpp
- * Programa que implementa un algoritmo de deteccion de genero utilizando
- * histogramas LBP y un clasificador SVM.
+ * @file GroundTruth.cpp
+ * Programa que implementa el proceso principal de la aplicacion GroundTruth
  * @author Pablo Cano Montecinos
  */
 

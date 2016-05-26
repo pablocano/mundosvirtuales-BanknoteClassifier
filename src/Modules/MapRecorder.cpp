@@ -13,7 +13,7 @@ MapRecorder::MapRecorder()
 
 void MapRecorder::record()
 {
-    if(theCameraInfo->type == CameraInfo::upper)
+    if(theCameraInfo->type == CameraInfo::cam1)
     {
         file << "t\t" <<theFrameInfo->time << "\n";
     }

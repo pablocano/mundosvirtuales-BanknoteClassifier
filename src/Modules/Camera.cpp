@@ -1,6 +1,7 @@
 #include "Camera.h"
 #include "Tools/SystemCall.h"
 #include <opencv2/imgproc/imgproc.hpp>
+#include <sstream>
 
 Camera::Camera(): video0(0),video1(1),index(0),
 upper(CameraInfo::upper, "Camera 1",Vector2<>(428.f,302.f),3300.f),

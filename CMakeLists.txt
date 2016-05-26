@@ -72,6 +72,7 @@ set( GROUNDTRUTH_SRC
 
 set( CAMERA_CALIBRATION
    Utils/CameraCalibration/calibration.cpp
+   Utils/CameraCalibration/settings.h
 )
 
 source_group(src REGULAR_EXPRESSION "src/Processes/*")
