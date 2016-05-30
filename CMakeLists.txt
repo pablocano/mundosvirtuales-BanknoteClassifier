@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.1.0)
 PROJECT (GroundTruth)
 find_package(OpenCV REQUIRED )
 
+set( MessageIDsPath ${CMAKE_CURRENT_SOURCE_DIR}/../uchile-robotics-team/Src/Tools/MessageQueue CACHE PATH "Path to MessageIDs file used by BHuman code")
+
+set( MessageIDsPath)
+
 set( SEGMENT_SRC
     src/Processes/Segmentation.cpp
     src/Modules/Camera.cpp
@@ -54,6 +58,8 @@ set( GROUNDTRUTH_SRC
     src/Representations/RobotPose.h
     src/Tools/ColorModelConversions.h
     src/Tools/ModuleManager/Module.h
+    src/Tools/Enum.cpp
+    src/Tools/Enum.h
     src/Tools/Line.cpp
     src/Tools/Line.h
     src/Tools/Range.h
@@ -67,6 +73,7 @@ set( GROUNDTRUTH_SRC
     src/Tools/Comm/SPLStandardMessageWrapper.h
     src/Tools/SystemCall.cpp
     src/Tools/SystemCall.h
+    ${MessageIDsPath}/MessageIDs.h
 )
 
 
@@ -95,7 +102,7 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_definitions(-DWINDOWS)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-include_directories(${CMAKE_INSTALL_PREFIX}/include ${CMAKE_CURRENT_SOURCE_DIR}/src)
+include_directories(${CMAKE_INSTALL_PREFIX}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${MessageIDsPath})
 add_executable( createColorTable ${SEGMENT_SRC} ${OpenCV_INCLUDE})
 target_link_libraries( createColorTable ${OpenCV_LIBS} )
 

@@ -12,7 +12,7 @@ public:
     };
 
     CameraInfo() = default;
-    CameraInfo(Type type, std::string name, Vector2<> position,float size) : type(type), name(name), position(position), factor(size/640.f)
+    CameraInfo(Type type, std::string name, Vector2<> position,float size) : type(type), available(true), name(name), position(position), factor(size/640.f)
     {}
 
     void operator=(const CameraInfo& other)
