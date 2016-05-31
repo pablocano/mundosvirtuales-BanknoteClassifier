@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.1.0)
 PROJECT (GroundTruth)
 find_package(OpenCV REQUIRED )
 
+set(CMAKE_BUILD_TYPE Release)
+
 set( SEGMENT_SRC
     src/Processes/Segmentation.cpp
     src/Modules/Camera.cpp
@@ -45,6 +47,8 @@ set( GROUNDTRUTH_SRC
     src/Representations/ColorModel/ColorModel.cpp
     src/Representations/ColorModel/ColorModel.h
     src/Representations/FrameInfo.h
+    src/Representations/FieldDimensions.h
+    src/Representations/FieldDimensions.cpp
     src/Representations/Image.h
     src/Representations/Regions.cpp
     src/Representations/Regions.h
@@ -68,6 +72,12 @@ set( CAMERA_CALIBRATION
    Utils/CameraCalibration/settings.h
 )
 
+set( FIELD_CALIBRATOR
+   Utils/FieldCalibrator/fieldCalibrator.cpp
+   src/Representations/FieldDimensions.h
+   src/Representations/FieldDimensions.cpp
+)
+
 source_group(src REGULAR_EXPRESSION "src/Processes/*")
 source_group(src\\Modules REGULAR_EXPRESSION "Modules/*")
 source_group(src\\Representations REGULAR_EXPRESSION "Representations/*")
@@ -80,6 +90,7 @@ set(CMAKE_CXX_FLAGS "-std=c++11")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 include_directories(${CMAKE_INSTALL_PREFIX}/include ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
 add_executable( createColorTable ${SEGMENT_SRC} ${OpenCV_INCLUDE})
 target_link_libraries( createColorTable ${OpenCV_LIBS} )
 
@@ -88,3 +99,6 @@ target_link_libraries( groundTruth ${OpenCV_LIBS} )
 
 add_executable( calibration ${CAMERA_CALIBRATION} ${OpenCV_INCLUDE})
 target_link_libraries( calibration ${OpenCV_LIBS} )
+
+add_executable( fieldCalibrator ${FIELD_CALIBRATOR} ${OpenCV_INCLUDE})
+target_link_libraries( fieldCalibrator ${OpenCV_LIBS} )

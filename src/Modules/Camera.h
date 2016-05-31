@@ -19,24 +19,6 @@ END_MODULE
 
 class Camera : public CameraBase
 {
-    class Settings
-    {
-      public:
-      Settings()
-    {
-        cv::FileStorage file("../../Config/cameraConfig.xml", cv::FileStorage::READ);
-        if(!file.isOpened())
-        {
-          std::cout << "Could not open the camera configuration file"<< std::endl;
-        }
-        file["imgWidth" ] >> width;
-        file["imgHeight"] >> height;
-        file.release();
-    }
-      int height;
-      int width;
-    };
-
 public:
 	Camera();
 
@@ -56,7 +38,9 @@ public:
     CameraInfo cam1;        // the first camera
     CameraInfo cam2;        // the second camera
     CameraInfo* camerasInfo[2];
-    Settings settings;
+
+    int height;
+    int width;
 
     std::chrono::time_point<std::chrono::steady_clock> last;
 };

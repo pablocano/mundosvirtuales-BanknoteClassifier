@@ -2,12 +2,23 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <sstream>
 
-Camera::Camera(): index(0),
+Camera::Camera(): index(1),
     cam1(CameraInfo::cam1, "Camera 1",Vector2<>(428.f,302.f),3300.f),
     cam2(CameraInfo::cam2, "Camera 2",Vector2<>(52.f,317.f),3300.f) //video("GroundTruthVideo3.avi")//: video(0)
 {
+    // Read image configuration
+    cv::FileStorage file("../../Config/cameraConfig.xml", cv::FileStorage::READ);
+    if(!file.isOpened())
+    {
+      std::cout << "Could not open the camera configuration file"<< std::endl;
+    }
+    file["imgWidth" ] >> width;
+    file["imgHeight"] >> height;
+    file.release();
+
+
     // open first camera
-    video0 = cv::VideoCapture(0);
+    video0 = cv::VideoCapture(2);
     if(!video0.isOpened())  // check if we succeeded
     {
         cam1.available = false;
@@ -16,12 +27,13 @@ Camera::Camera(): index(0),
     else // the camera is available
     {
         std::cout << "Camera 1 was successfully opened"<< std::endl;
-        video0.set(CV_CAP_PROP_FRAME_HEIGHT, settings.height);
-        video0.set(CV_CAP_PROP_FRAME_WIDTH, settings.width);
+        cam1.available = true;
+        video0.set(CV_CAP_PROP_FRAME_HEIGHT, height);
+        video0.set(CV_CAP_PROP_FRAME_WIDTH, width);
     }
 
     // open second camera
-    video1 = cv::VideoCapture(1);
+    video1 = cv::VideoCapture(3);
     if(!video1.isOpened())  // check if we succeeded
     {
         cam2.available = false;
@@ -29,9 +41,10 @@ Camera::Camera(): index(0),
     }
     else // the camera is available
     {
-        std::cout << "The Camera 2 was successfully opened"<< std::endl;
-        video1.set(CV_CAP_PROP_FRAME_HEIGHT, settings.height);
-        video1.set(CV_CAP_PROP_FRAME_WIDTH, settings.width);
+        std::cout << "Camera 2 was successfully opened"<< std::endl;
+        cam2.available = true;
+        video1.set(CV_CAP_PROP_FRAME_HEIGHT, height);
+        video1.set(CV_CAP_PROP_FRAME_WIDTH, width);
     }
 
     numCameras = (cam1.available? 1 : 0) + (cam2.available? 1 : 0);

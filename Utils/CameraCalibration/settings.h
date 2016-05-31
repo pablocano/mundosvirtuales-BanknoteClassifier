@@ -96,8 +96,8 @@ public:
             if (inputType == CAMERA){
                 inputCapture.open(cameraID);
                 cout << "Camera /dev/video" << cameraID << " opened" << endl;
-                inputCapture.set(CV_CAP_PROP_FRAME_HEIGHT, 640);
-                inputCapture.set(CV_CAP_PROP_FRAME_WIDTH, 480);
+                inputCapture.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
+                inputCapture.set(CV_CAP_PROP_FRAME_WIDTH, 640);
             }
             if (inputType == VIDEO_FILE)
                 inputCapture.open(input);
@@ -140,6 +140,7 @@ public:
         else if( atImageList < (int)imageList.size() )
             result = imread(imageList[atImageList++], CV_LOAD_IMAGE_COLOR);
 
+        cout << result.rows << "x" << result.cols << endl;
         return result;
     }
 

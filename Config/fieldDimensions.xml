@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<opencv_storage>
+  <!-- Field limits -->
+  <xLimit>3000</xLimit>
+  <yLimit>2000</yLimit>
+  <!-- Other values -->
+  <lineWidth>50</lineWidth>
+  <circleRadius>580</circleRadius>
+  <xPenaltyAreaLimit>2380</xPenaltyAreaLimit>
+  <yPenaltyAreaLimit>1080</yPenaltyAreaLimit>
+</opencv_storage>
+
+<!---
+// This is the field configuration for the
+// Laboratorio Field 2015
+
+xPosOpponentFieldBorder = 3660;
+xPosOpponentGoal = 3560;
+xPosOpponentGoalPost = 3000;
+xPosOpponentGroundline = 3000;
+xPosOpponentPenaltyArea = 2380;
+xPosOpponentDropInLine = 1940;
+xPosOpponentPenaltyMark = 1200;
+xPosPenaltyStrikerStartPosition = 2200;
+xPosHalfWayLine = 0;
+xPosOwnPenaltyMark = -xPosOpponentPenaltyMark;
+xPosOwnDropInLine = -xPosOpponentDropInLine;
+xPosOwnPenaltyArea = -xPosOpponentPenaltyArea;
+xPosOwnGroundline = -xPosOpponentGroundline;
+xPosOwnGoalPost = -xPosOpponentGoalPost;
+xPosOwnGoal = -xPosOpponentGoal;
+xPosOwnFieldBorder = -xPosOpponentFieldBorder;
+
+yPosLeftFieldBorder = 2445;
+yPosLeftSideline = 2000;
+yPosLeftDropInLine = 1600;
+yPosLeftPenaltyArea = 1080;
+yPosLeftGoal = 800;
+yPosCenterGoal = 0;
+yPosRightGoal = -yPosLeftGoal;
+yPosRightPenaltyArea = -yPosLeftPenaltyArea;
+yPosRightDropInLine = -yPosLeftDropInLine;
+yPosRightSideline = -yPosLeftSideline;
+yPosRightFieldBorder = -yPosLeftFieldBorder;
+
+fieldLinesWidth = 50;
+centerCircleRadius = 580;
+-->
