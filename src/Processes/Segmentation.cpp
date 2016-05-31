@@ -47,10 +47,6 @@ int main(int argc,char** argv)
     camera.update(blackBoard.theImageBGR);
     camera.update(blackBoard.theImage);
   }
-#ifdef __APPLE__
-  blackBoard.theColorModel->writeFile("../../../Config/cubo.txt");
-#else
-  blackBoard.theColorModel->writeFile("../../Config/cubo.txt");
-#endif
+  blackBoard.theColorModel->writeFile(std::string(File::getGTDir())+"/Config/cubo.txt");
 }
 

@@ -1,5 +1,6 @@
 #include "ColorModel.h"
 #include "Tools/ColorModelConversions.h"
+#include "Tools/File.h"
 #include <fstream>
 
 static class ColorSpaceMapper
@@ -39,11 +40,8 @@ public:
 
 ColorModel::ColorModel()
 {
-#ifdef OSX
-  readFile("../../../Config/cubo.txt");
-#else
-  readFile("../../Config/cubo.txt");
-#endif
+
+  readFile(std::string(File::getGTDir())+"/Config/cubo.txt");
 	for (unsigned char i = 2; i < numOfColors; i++) {
 		setCube(ranges[i], Colors((Color)i));
 	}

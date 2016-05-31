@@ -23,7 +23,7 @@ class Camera : public CameraBase
       public:
       Settings()
     {
-        cv::FileStorage file("../../Config/cameraConfig.xml", cv::FileStorage::READ);
+      cv::FileStorage file(std::string(File::getGTDir())+"/Config/cameraConfig.xml", cv::FileStorage::READ);
         if(!file.isOpened())
         {
           std::cout << "Could not open the camera configuration file"<< std::endl;

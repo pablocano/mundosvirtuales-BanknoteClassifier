@@ -21,7 +21,11 @@ set( SEGMENT_SRC
     src/Tools/ColorModelConversions.h
     src/Tools/ColorRangeCreator.h
     src/Tools/ModuleManager/Module.h
+    src/Tools/File.cpp
+    src/Tools/File.h
     src/Tools/Range.h
+    src/Tools/SystemCall.cpp
+    src/Tools/SystemCall.h
 )
 
 set( GROUNDTRUTH_SRC
@@ -60,6 +64,8 @@ set( GROUNDTRUTH_SRC
     src/Tools/ModuleManager/Module.h
     src/Tools/Enum.cpp
     src/Tools/Enum.h
+    src/Tools/File.cpp
+    src/Tools/File.h
     src/Tools/Line.cpp
     src/Tools/Line.h
     src/Tools/Range.h
@@ -80,6 +86,8 @@ set( GROUNDTRUTH_SRC
 set( CAMERA_CALIBRATION
    Utils/CameraCalibration/calibration.cpp
    Utils/CameraCalibration/settings.h
+   src/Tools/File.cpp
+   src/Tools/File.h
 )
 
 source_group(src REGULAR_EXPRESSION "src/Processes/*")
