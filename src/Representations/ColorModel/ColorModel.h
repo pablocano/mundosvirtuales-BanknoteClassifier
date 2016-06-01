@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Tools/Range.h"
+#include "Tools/Math/Range.h"
 #include <cv.h>
 
 class ColorModel

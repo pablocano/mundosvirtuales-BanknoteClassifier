@@ -1,5 +1,5 @@
 #include "RobotPoseProvider.h"
-#include "Tools/Line.h"
+#include "Tools/Math/Line.h"
 
 void RobotPoseProvider::update(RobotPose *robotPose)
 {
@@ -8,7 +8,7 @@ void RobotPoseProvider::update(RobotPose *robotPose)
     {
         Line l1(robot.leftUpper,robot.rightBottom);
         Line l2(Vector2<int>(robot.leftUpper.x,robot.rightBottom.y),Vector2<int>(robot.rightBottom.x,robot.leftUpper.y));
-        float whiteRatioL1;
+        float whiteRatioL1 = 0;
         Vector2<float> point = l1.init;
         while(point.x <= l1.point2.x)
         {
@@ -24,7 +24,7 @@ void RobotPoseProvider::update(RobotPose *robotPose)
         }
         whiteRatioL1 /= (l1.point2 - l1.point1).abs();
 
-        float whiteRatioL2;
+        float whiteRatioL2 = 0;
         point = l2.init;
         while(point.x <= l2.point2.x)
         {

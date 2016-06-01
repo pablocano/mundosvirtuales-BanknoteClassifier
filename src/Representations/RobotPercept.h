@@ -1,6 +1,6 @@
 #pragma once
 #include "Representations/Image.h"
-#include "Tools/Vector2.h"
+#include "Tools/Math/Vector2.h"
 
 class RobotPercept
 {

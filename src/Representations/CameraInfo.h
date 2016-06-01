@@ -1,5 +1,5 @@
 #pragma once
-#include "Tools/Vector2.h"
+#include "Tools/Math/Vector2.h"
 #include <opencv2/core/core.hpp>
 #include <string>
 
@@ -12,7 +12,7 @@ public:
     };
 
     CameraInfo() = default;
-    CameraInfo(Type type, std::string name, Vector2<> position,float size) : type(type), name(name), position(position), factor(size/640.f)
+    CameraInfo(Type type, std::string name, Vector2<> position,float size) : type(type), available(true), name(name), position(position), factor(size/640.f)
     {}
 
     void operator=(const CameraInfo& other)

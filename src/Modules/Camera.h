@@ -6,7 +6,6 @@
 #include "Tools/ModuleManager/Module.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <chrono>
 
 MODULE(Camera)
     PROVIDES(FrameInfo)
@@ -24,7 +23,7 @@ class Camera : public CameraBase
       public:
       Settings()
     {
-        cv::FileStorage file("../../Config/cameraConfig.xml", cv::FileStorage::READ);
+      cv::FileStorage file(std::string(File::getGTDir())+"/Config/cameraConfig.xml", cv::FileStorage::READ);
         if(!file.isOpened())
         {
           std::cout << "Could not open the camera configuration file"<< std::endl;
@@ -58,5 +57,5 @@ public:
     CameraInfo* camerasInfo[2];
     Settings settings;
 
-    std::chrono::time_point<std::chrono::steady_clock> last;
+    unsigned last;
 };
