@@ -5,6 +5,7 @@ class BallPerception;
 class CameraInfo;
 class ColorModel;
 class FrameInfo;
+class GroundTruthMessageOutput;
 class ImageBGR;
 class Image;
 class MovementImage;
@@ -12,7 +13,6 @@ class Regions;
 class RobotPercept;
 class RobotPose;
 class SegmentedImage;
-class SendInformation;
 
 class Blackboard {
   
@@ -28,6 +28,7 @@ public:
   CameraInfo *theCameraInfo;
   ColorModel* theColorModel;
   FrameInfo* theFrameInfo;
+  GroundTruthMessageOutput* theGroundTruthMessageOutput;
   Image* theImage;
   ImageBGR* theImageBGR;
   MovementImage* theMovementImage;
@@ -35,5 +36,4 @@ public:
   RobotPercept* theRobotPercept;
   RobotPose* theRobotPose;
   SegmentedImage* theSegmentedImage;
-  SendInformation* theSendInformation;
 };

@@ -5,7 +5,7 @@
  */
 
 #pragma once
-#include "Tools/Vector2.h"
+#include "Tools/Math/Vector2.h"
 #include <cv.h>
 
 class Line {

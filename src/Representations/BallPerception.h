@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "Tools/Range.h"
-#include "Tools/Vector2.h"
+#include "Tools/Math/Range.h"
+#include "Tools/Math/Vector2.h"
 #include "Representations/ColorModel/ColorModel.h"
 
 class BallPerception {

@@ -9,7 +9,7 @@
 #include "Representations/Regions.h"
 #include "Representations/RobotPercept.h"
 #include "Representations/RobotPose.h"
-#include "Representations/SendInformation.h"
+#include "Representations/GroundTruthMessages.h"
 #include <cstdlib>
 #include <cstring>
 
@@ -20,14 +20,14 @@ theBallPerception(new BallPerception()),
 theCameraInfo(new CameraInfo()),
 theColorModel(new ColorModel()),
 theFrameInfo(new FrameInfo()),
+theGroundTruthMessageOutput(new GroundTruthMessageOutput()),
 theImage(new Image()),
 theImageBGR(new ImageBGR()),
 theMovementImage(new MovementImage()),
 theRegions(new Regions()),
 theRobotPercept(new RobotPercept()),
 theRobotPose(new RobotPose()),
-theSegmentedImage(new SegmentedImage()),
-theSendInformation(new SendInformation()){}
+theSegmentedImage(new SegmentedImage()){}
 
 void Blackboard::operator=(const Blackboard& other)
 {

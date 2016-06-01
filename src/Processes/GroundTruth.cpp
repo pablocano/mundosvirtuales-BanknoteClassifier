@@ -8,12 +8,13 @@
 #include "Modules/BackgroundModel.h"
 #include "Modules/BallPerceptor.h"
 #include "Modules/Camera.h"
-#include "Modules/MapRecorder.h"
+#include "Modules/GroundTruthProvider.h"
 #include "Modules/Regionizer.h"
 #include "Modules/RobotPerceptor.h"
 #include "Modules/RobotPoseProvider.h"
 #include "Tools/Comm/UdpComm.h"
 #include "Tools/Comm/SPLStandardMessageWrapper.h"
+#include "Tools/Comm/GroundTruthMessageHandler.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
@@ -30,20 +31,8 @@ int main()
   BackgroundModel backgroundModel;
   RobotPerceptor robotPerceptor;
   //RobotPoseProvider robotPoseProvider;
-  MapRecorder mapRecorder;
-  
-  UdpComm socket;
-  int port = 10021;
-  std::string bcastAddr = UdpComm::getWifiBroadcastAddress();
-  socket.setBlocking(false);
-  socket.setBroadcast(true);
-  socket.bind("0.0.0.0", port);
-  socket.setTarget(bcastAddr.c_str(), port);
-  socket.setLoopback(false);
-  
-  SPLStandardMessageWrapper message;
-  
-  char buf[sizeof(SPLStandardMessage)];
+  GroundTruthProvider groundTruthProvider;
+  GroundTruthMessageHandler groundTruthMessageHandler;
   
   bool pause = false;
   cv::namedWindow("Camera 1",cv::WINDOW_NORMAL);
@@ -64,20 +53,14 @@ int main()
     blackBoard.theRobotPercept->draw(*blackBoard.theImageBGR);
     //robotPoseProvider.update(blackBoard.theRobotPose);
     //blackBoard.theRobotPose->draw(*blackBoard.theImageBGR);
+    groundTruthProvider.update(blackBoard.theGroundTruthMessageOutput);
     
-    mapRecorder.record();
+    
+    groundTruthMessageHandler.send();
     
     cv::imshow(blackBoard.theCameraInfo->name, *blackBoard.theImageBGR);
     
     //cv::imshow(blackBoard.theCameraInfo->name + "sub", *blackBoard.theMovementImage);
-    
-    unsigned size = message.fromMessageQueue();
-    memcpy(buf, (char*)&message, size);
-    
-    if(!socket.write(buf, size))
-    {
-      return 1;
-    }
     
     char key;
     if(pause)
