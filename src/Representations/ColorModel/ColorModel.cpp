@@ -49,7 +49,9 @@ ColorModel::ColorModel()
 }
 
 ColorModel::~ColorModel()
-{}
+{
+  
+}
 
 void ColorModel::setCube(const HSIRanges& ranges, Colors color)
 {
@@ -115,7 +117,7 @@ void ColorModel::getColor(ColorModel::WhiteThresholds &threshold)
 	threshold = whiteThreshold;
 }
 
-ColorModel::Colors ColorModel::getColor(cv::Vec3b point)
+ColorModel::Colors ColorModel::getColor(cv::Vec3b point) const
 {
     return cubo[point[0] >> 3][point[2]][point[1]];
 }

@@ -8,19 +8,27 @@ set( MessageIDsPath ${CMAKE_CURRENT_SOURCE_DIR}/../uchile-robotics-team/Src/Tool
 set( MessageIDsPath)
 
 set( SEGMENT_SRC
-    src/Processes/Segmentation.cpp
     src/Modules/Camera.cpp
     src/Modules/Camera.h
+    src/Modules/GroundTruthConfiguration.cpp
+    src/Modules/GroundTruthConfiguration.h
     src/Modules/Segmentator.cpp
     src/Modules/Segmentator.h
-    src/Representations/Blackboard.cpp
-    src/Representations/Blackboard.h
+    src/Processes/Segmentation.cpp
+    src/Processes/Segmentation.h
     src/Representations/ColorModel/ColorModel.cpp
     src/Representations/ColorModel/ColorModel.h
     src/Representations/Image.h
     src/Tools/ColorModelConversions.h
     src/Tools/ColorRangeCreator.h
+    src/Tools/ModuleManager/Blackboard.cpp
+    src/Tools/ModuleManager/Blackboard.h
+    src/Tools/ModuleManager/Module.cpp
     src/Tools/ModuleManager/Module.h
+    src/Tools/ModuleManager/ModuleManager.cpp
+    src/Tools/ModuleManager/ModuleManager.h
+    src/Tools/Process.cpp
+    src/Tools/Process.h
     src/Tools/File.cpp
     src/Tools/File.h
     src/Tools/Math/Range.h
@@ -29,25 +37,24 @@ set( SEGMENT_SRC
 )
 
 set( GROUNDTRUTH_SRC
-    src/Processes/GroundTruth.cpp
     src/Modules/Camera.cpp
     src/Modules/Camera.h
     src/Modules/BackgroundModel.cpp
     src/Modules/BackgroundModel.h
     src/Modules/BallPerceptor.cpp
     src/Modules/BallPerceptor.h
+    src/Modules/GroundTruthConfiguration.cpp
+    src/Modules/GroundTruthConfiguration.h
     src/Modules/GroundTruthProvider.cpp
     src/Modules/GroundTruthProvider.h
     src/Modules/Regionizer.cpp
     src/Modules/Regionizer.h
     src/Modules/RobotPerceptor.cpp
     src/Modules/RobotPerceptor.h
-    src/Modules/RobotPoseProvider.cpp
-    src/Modules/RobotPoseProvider.h
+    src/Processes/GroundTruth.cpp
+    src/Processes/GroundTruth.h
     src/Representations/BallPerception.cpp
     src/Representations/BallPerception.h
-    src/Representations/Blackboard.cpp
-    src/Representations/Blackboard.h
     src/Representations/CameraInfo.cpp
     src/Representations/CameraInfo.h
     src/Representations/ColorModel/ColorModel.cpp
@@ -59,8 +66,6 @@ set( GROUNDTRUTH_SRC
     src/Representations/Regions.h
     src/Representations/RobotPercept.cpp
     src/Representations/RobotPercept.h
-    src/Representations/RobotPose.cpp
-    src/Representations/RobotPose.h
     src/Tools/ColorModelConversions.h
     src/Tools/Comm/GroundTruthMessageHandler.cpp
     src/Tools/Comm/GroundTruthMessageHandler.h
@@ -82,7 +87,15 @@ set( GROUNDTRUTH_SRC
     src/Tools/Math/Vector2.h
     src/Tools/Messages/MessageQueue.cpp
     src/Tools/Messages/MessageQueue.h
+    src/Tools/ModuleManager/Blackboard.cpp
+    src/Tools/ModuleManager/Blackboard.h
+    src/Tools/ModuleManager/Module.cpp
     src/Tools/ModuleManager/Module.h
+    src/Tools/ModuleManager/ModuleManager.cpp
+    src/Tools/ModuleManager/ModuleManager.h
+    src/Tools/Process.cpp
+    src/Tools/Process.h
+    src/Tools/Streamable.h
     src/Tools/SystemCall.cpp
     src/Tools/SystemCall.h
     

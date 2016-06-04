@@ -3,6 +3,8 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <sstream>
 
+MAKE_MODULE(Camera, Common)
+
 Camera::Camera(): index(0),
 cam1(CameraInfo::cam1, "Camera 1",Vector2<>(428.f,302.f),3300.f),
 cam2(CameraInfo::cam2, "Camera 2",Vector2<>(52.f,317.f),3300.f) //video("GroundTruthVideo3.avi")//: video(0)
@@ -46,28 +48,28 @@ cam2(CameraInfo::cam2, "Camera 2",Vector2<>(52.f,317.f),3300.f) //video("GroundT
   last = SystemCall::getCurrentSystemTime();
 }
 
-void Camera::update(FrameInfo *frameInfo)
+void Camera::update(FrameInfo& frameInfo)
 {
-  frameInfo->time += SystemCall::getTimeSince(last);
+  frameInfo.time += SystemCall::getTimeSince(last);
   last = SystemCall::getCurrentSystemTime();
 }
 
-void Camera::update(CameraInfo *cameraInfo)
+void Camera::update(CameraInfo& cameraInfo)
 {
   index = (index + 1)%numCameras;
-  *cameraInfo = *camerasInfo[index];
+  cameraInfo = *camerasInfo[index];
 }
 
-void Camera::update(ImageBGR *image)
+void Camera::update(ImageBGR& image)
 {
-  *cameras[index] >> *image;
-  if (image->empty()) {
+  *cameras[index] >> image;
+  if (image.empty()) {
     //cameras[index]->set(CV_CAP_PROP_POS_AVI_RATIO , 0);
-    *cameras[index] >> *image;
+    *cameras[index] >> image;
   }
 }
 
-void Camera::update(Image *image)
+void Camera::update(Image& image)
 {
-  cv::cvtColor(*theImageBGR, *image, CV_BGR2YCrCb);
+  cv::cvtColor(theImageBGR, image, CV_BGR2YCrCb);
 }

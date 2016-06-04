@@ -1,9 +1,10 @@
 #pragma once
 #include "Tools/Math/Vector2.h"
+#include "Tools/Streamable.h"
 #include <opencv2/core/core.hpp>
 #include <string>
 
-class CameraInfo
+class CameraInfo : public Streamable
 {
 public:
     enum Type{

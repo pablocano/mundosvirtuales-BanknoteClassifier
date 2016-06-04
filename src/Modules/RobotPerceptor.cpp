@@ -1,17 +1,19 @@
 #include "RobotPerceptor.h"
 #include "Tools/Math/Transformation.h"
 
-void RobotPerceptor::update(RobotPercept *robotPercept)
+MAKE_MODULE(RobotPerceptor, GroundTruth)
+
+void RobotPerceptor::update(RobotPercept& robotPercept)
 {
-    robotPercept->robots.clear();
+    robotPercept.robots.clear();
     createBlobs();
     for(auto& blob : blobs)
     {
         if(blob.segments.size() > 5)
         {
             Vector2<int> center = blob.getCenter();
-            Vector2<> pos = Transformation::imageToField(Vector2<>(center.x,center.y),*theCameraInfo);
-            robotPercept->robots.push_back(RobotPercept::Robot(center,blob.getLeftUpper(),blob.getRightBottom(),pos));
+            Vector2<> pos = Transformation::imageToField(Vector2<>(center.x,center.y),theCameraInfo);
+            robotPercept.robots.push_back(RobotPercept::Robot(center,blob.getLeftUpper(),blob.getRightBottom(),pos));
         }
     }
 
@@ -20,7 +22,7 @@ void RobotPerceptor::update(RobotPercept *robotPercept)
 void RobotPerceptor::createBlobs()
 {
     segments.clear();
-    for(auto const& segment: theRegions->regions)
+    for(auto const& segment: theRegions.regions)
         if(segment.color.is(ColorModel::white))
             segments.push_back(Segment(segment));
 
