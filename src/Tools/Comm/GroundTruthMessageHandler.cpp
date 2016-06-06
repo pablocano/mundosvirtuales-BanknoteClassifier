@@ -1,5 +1,6 @@
 #include "GroundTruthMessageHandler.h"
 #include "Tools/Comm/SPLStandardMessageWrapper.h"
+#include <string.h>
 
 GroundTruthMessageHandler* GroundTruthMessageHandler::theInstance = 0;
 

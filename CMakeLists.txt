@@ -3,24 +3,33 @@ cmake_minimum_required(VERSION 3.1.0)
 PROJECT (GroundTruth)
 find_package(OpenCV REQUIRED )
 
+set(CMAKE_BUILD_TYPE Debug)
 set( MessageIDsPath ${CMAKE_CURRENT_SOURCE_DIR}/../uchile-robotics-team/Src/Tools/MessageQueue CACHE PATH "Path to MessageIDs file used by BHuman code")
 
 set( MessageIDsPath)
 
 set( SEGMENT_SRC
-    src/Processes/Segmentation.cpp
     src/Modules/Camera.cpp
     src/Modules/Camera.h
+    src/Modules/GroundTruthConfiguration.cpp
+    src/Modules/GroundTruthConfiguration.h
     src/Modules/Segmentator.cpp
     src/Modules/Segmentator.h
-    src/Representations/Blackboard.cpp
-    src/Representations/Blackboard.h
+    src/Processes/Segmentation.cpp
+    src/Processes/Segmentation.h
     src/Representations/ColorModel/ColorModel.cpp
     src/Representations/ColorModel/ColorModel.h
     src/Representations/Image.h
     src/Tools/ColorModelConversions.h
     src/Tools/ColorRangeCreator.h
+    src/Tools/ModuleManager/Blackboard.cpp
+    src/Tools/ModuleManager/Blackboard.h
+    src/Tools/ModuleManager/Module.cpp
     src/Tools/ModuleManager/Module.h
+    src/Tools/ModuleManager/ModuleManager.cpp
+    src/Tools/ModuleManager/ModuleManager.h
+    src/Tools/Process.cpp
+    src/Tools/Process.h
     src/Tools/File.cpp
     src/Tools/File.h
     src/Tools/Math/Range.h
@@ -29,38 +38,37 @@ set( SEGMENT_SRC
 )
 
 set( GROUNDTRUTH_SRC
-    src/Processes/GroundTruth.cpp
     src/Modules/Camera.cpp
     src/Modules/Camera.h
     src/Modules/BackgroundModel.cpp
     src/Modules/BackgroundModel.h
     src/Modules/BallPerceptor.cpp
     src/Modules/BallPerceptor.h
+    src/Modules/GroundTruthConfiguration.cpp
+    src/Modules/GroundTruthConfiguration.h
     src/Modules/GroundTruthProvider.cpp
     src/Modules/GroundTruthProvider.h
     src/Modules/Regionizer.cpp
     src/Modules/Regionizer.h
     src/Modules/RobotPerceptor.cpp
     src/Modules/RobotPerceptor.h
-    src/Modules/RobotPoseProvider.cpp
-    src/Modules/RobotPoseProvider.h
+    src/Processes/GroundTruth.cpp
+    src/Processes/GroundTruth.h
     src/Representations/BallPerception.cpp
     src/Representations/BallPerception.h
-    src/Representations/Blackboard.cpp
-    src/Representations/Blackboard.h
     src/Representations/CameraInfo.cpp
     src/Representations/CameraInfo.h
     src/Representations/ColorModel/ColorModel.cpp
     src/Representations/ColorModel/ColorModel.h
     src/Representations/FrameInfo.h
+    src/Representations/FieldDimensions.h
+    src/Representations/FieldDimensions.cpp
     src/Representations/GroundTruthMessages.h
     src/Representations/Image.h
     src/Representations/Regions.cpp
     src/Representations/Regions.h
     src/Representations/RobotPercept.cpp
     src/Representations/RobotPercept.h
-    src/Representations/RobotPose.cpp
-    src/Representations/RobotPose.h
     src/Tools/ColorModelConversions.h
     src/Tools/Comm/GroundTruthMessageHandler.cpp
     src/Tools/Comm/GroundTruthMessageHandler.h
@@ -82,7 +90,15 @@ set( GROUNDTRUTH_SRC
     src/Tools/Math/Vector2.h
     src/Tools/Messages/MessageQueue.cpp
     src/Tools/Messages/MessageQueue.h
+    src/Tools/ModuleManager/Blackboard.cpp
+    src/Tools/ModuleManager/Blackboard.h
+    src/Tools/ModuleManager/Module.cpp
     src/Tools/ModuleManager/Module.h
+    src/Tools/ModuleManager/ModuleManager.cpp
+    src/Tools/ModuleManager/ModuleManager.h
+    src/Tools/Process.cpp
+    src/Tools/Process.h
+    src/Tools/Streamable.h
     src/Tools/SystemCall.cpp
     src/Tools/SystemCall.h
     
@@ -95,6 +111,12 @@ set( CAMERA_CALIBRATION
    Utils/CameraCalibration/settings.h
    src/Tools/File.cpp
    src/Tools/File.h
+)
+
+set( FIELD_CALIBRATOR
+   Utils/FieldCalibrator/fieldCalibrator.cpp
+   src/Representations/FieldDimensions.h
+   src/Representations/FieldDimensions.cpp
 )
 
 source_group(src REGULAR_EXPRESSION "src/Processes/*")
@@ -120,6 +142,7 @@ add_definitions(-DWINDOWS)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 include_directories(${CMAKE_INSTALL_PREFIX}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${MessageIDsPath})
+
 add_executable( createColorTable ${SEGMENT_SRC} ${OpenCV_INCLUDE})
 target_link_libraries( createColorTable ${OpenCV_LIBS} )
 
@@ -128,3 +151,6 @@ target_link_libraries( groundTruth ${OpenCV_LIBS} )
 
 add_executable( calibration ${CAMERA_CALIBRATION} ${OpenCV_INCLUDE})
 target_link_libraries( calibration ${OpenCV_LIBS} )
+
+add_executable( fieldCalibrator ${FIELD_CALIBRATOR} ${OpenCV_INCLUDE})
+target_link_libraries( fieldCalibrator ${OpenCV_LIBS} )

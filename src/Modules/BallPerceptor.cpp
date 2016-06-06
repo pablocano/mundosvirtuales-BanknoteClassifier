@@ -1,12 +1,14 @@
 #include "BallPerceptor.h"
 
-void BallPerceptor::update(BallPerception *ballPerception)
+MAKE_MODULE(BallPerceptor, GroundTruth)
+
+void BallPerceptor::update(BallPerception& ballPerception)
 {
-    if(ballPerception->wasSeen)
-        if(findBall(ballPerception->position, ballPerception))
+    if(ballPerception.wasSeen)
+        if(findBall(ballPerception.position, ballPerception))
             return;
-    ballPerception->wasSeen = false;
-    for (auto& region : theRegions->regions) {
+    ballPerception.wasSeen = false;
+    for (auto& region : theRegions.regions) {
         if (region.color.is(ColorModel::orange)) {
             if(findBall(region.getCenter(), ballPerception))
                 break;
@@ -14,9 +16,9 @@ void BallPerceptor::update(BallPerception *ballPerception)
     }
 }
 
-bool BallPerceptor::findBall(const Vector2<int>& position, BallPerception *ballPerception)
+bool BallPerceptor::findBall(const Vector2<int>& position, BallPerception& ballPerception)
 {
-    pixel = theImage->at<cv::Vec3b>(position.x,position.y);
+    pixel = theImage.at<cv::Vec3b>(position.x,position.y);
     numOfPixel = 1;
     Vector2<int> upper, lower;
     bool asdf;
@@ -48,10 +50,10 @@ bool BallPerceptor::findBall(const Vector2<int>& position, BallPerception *ballP
     ballPoints[3].isValid = getBound(center,Vector2<int>(1,-1),ballPoints[3].point,limit,tolerance,ballPoints[3].border);
     ballPoints[7].isValid = getBound(center,Vector2<int>(-1,1),ballPoints[7].point,limit,tolerance,ballPoints[7].border);
 
-    ballPerception->wasSeen = getBallFromBallPoints(ballPerception->position,ballPerception->radius);
-    if(ballPerception->radius > 10)
-        ballPerception->wasSeen = false;
-    return ballPerception->wasSeen;
+    ballPerception.wasSeen = getBallFromBallPoints(ballPerception.position,ballPerception.radius);
+    if(ballPerception.radius > 10)
+        ballPerception.wasSeen = false;
+    return ballPerception.wasSeen;
 }
 
 bool BallPerceptor::getBound(const Vector2<int> &initPoint, const Vector2<int> &step, Vector2<int> &result,int limit, int tolerance, bool& border)
@@ -61,9 +63,9 @@ bool BallPerceptor::getBound(const Vector2<int> &initPoint, const Vector2<int> &
     result = initPoint;
     point += step;
     int steps = 0;
-    while (point.x > 0 && point.x < theImage->rows && point.y > 0 && point.y < theImage->cols) {
+    while (point.x > 0 && point.x < theImage.rows && point.y > 0 && point.y < theImage.cols) {
         //if (!theColorModel->getColor(theImage->at<cv::Vec3b>(point.x,point.y)).is(ColorModel::orange)) {
-        cv::Vec3f otherColor = theImage->at<cv::Vec3b>(point.x,point.y);
+        cv::Vec3f otherColor = theImage.at<cv::Vec3b>(point.x,point.y);
         if (isOtherColor(otherColor)) {
             badDetection++;
             if (badDetection > tolerance) {
@@ -81,7 +83,7 @@ bool BallPerceptor::getBound(const Vector2<int> &initPoint, const Vector2<int> &
             return false;
         point += step;
     }
-    if (point.x < 0 || point.x > theImage->rows || point.y < 0 || point.y > theImage->cols) {
+    if (point.x < 0 || point.x > theImage.rows || point.y < 0 || point.y > theImage.cols) {
         border = true;
     }
     else

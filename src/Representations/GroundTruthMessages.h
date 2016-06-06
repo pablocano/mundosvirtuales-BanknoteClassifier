@@ -1,5 +1,6 @@
 #pragma once
 #include "Tools/Math/Pose2D.h"
+#include "Tools/Streamable.h"
 
 struct GroundTruthRobot
 {
@@ -12,5 +13,5 @@ struct GroundTruthBall {
   Vector2<> ballPosition;
 };
 
-class GroundTruthMessageOutput {
+class GroundTruthMessageOutput : public Streamable {
 };

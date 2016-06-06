@@ -57,6 +57,7 @@ unsigned SystemCall::getRealSystemTime()
   return time - base;
 }
 
+/*
 unsigned long long SystemCall::getCurrentThreadTime()
 {
 #if defined(WINDOWS)
@@ -74,8 +75,8 @@ unsigned long long SystemCall::getCurrentThreadTime()
   clockid_t cid;
   struct timespec ts;
   
-  VERIFY(pthread_getcpuclockid(pthread_self(), &cid) == 0);
-  VERIFY(clock_gettime(cid, &ts) == 0);
+  //pthread_getcpuclockid(pthread_self(), &cid);
+  clock_gettime(cid, &ts);
   
   unsigned long long time = ts.tv_sec * 1000000ll + ts.tv_nsec / 1000;
   
@@ -85,6 +86,7 @@ unsigned long long SystemCall::getCurrentThreadTime()
   return time - base;
 #endif
 }
+*/
 
 const char* SystemCall::getHostName()
 {

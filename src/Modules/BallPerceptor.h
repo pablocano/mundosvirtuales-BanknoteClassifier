@@ -1,20 +1,20 @@
 
 #pragma once
-#include "Representations/Blackboard.h"
+//#include "Representations/Blackboard.h"
 #include "Representations/BallPerception.h"
+#include "Representations/ColorModel/ColorModel.h"
 #include "Representations/Image.h"
 #include "Representations/Regions.h"
-#include "Representations/ColorModel/ColorModel.h"
 #include "Tools/ModuleManager/Module.h"
-#include <cv.h>
-#include <highgui.h>
+#include <opencv2/core/core.hpp>
 
-MODULE(BallPerceptor)
-    REQUIRES(Image)
-    REQUIRES(ColorModel)
-    REQUIRES(Regions)
-	PROVIDES(BallPerception)
-END_MODULE
+MODULE(BallPerceptor,
+{,
+  REQUIRES(Image),
+  REQUIRES(ColorModel),
+  REQUIRES(Regions),
+	PROVIDES(BallPerception),
+});
 
 
 class BallPerceptor : public BallPerceptorBase
@@ -27,9 +27,9 @@ public:
     };
 
     using Colors = ColorModel::Colors;
-	void update(BallPerception* ballPerception);
+    void update(BallPerception& ballPerception);
     
-    bool findBall(const Vector2<int>& position,BallPerception* ballPerception);
+    bool findBall(const Vector2<int>& position,BallPerception& ballPerception);
     bool getBound(const Vector2<int>& initPoint,const Vector2<int>& step, Vector2<int>& result,int limit, int tolerance, bool& boder);
 
     bool getBallFromBallPoints(Vector2<int>& center, int& radius) const;

@@ -27,7 +27,7 @@ public:
    * The function returns the thread cpu time of the calling thread in microseconds.
    * return thread cpu time of the calling thread
    */
-  static unsigned long long getCurrentThreadTime();
+  //static unsigned long long getCurrentThreadTime();
   
   /** returns the time since aTime*/
   static int getTimeSince(unsigned aTime)

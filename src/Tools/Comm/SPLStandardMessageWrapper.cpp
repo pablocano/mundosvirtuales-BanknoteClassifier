@@ -10,6 +10,13 @@
 #include "Tools/SystemCall.h"
 #include <algorithm>
 
+#ifndef WINDOWS
+  #ifdef LINUX
+    #include <stddef.h>
+    #include <cstring>
+  #endif
+#endif
+
 /** Sorry, offsetof cannot be used in constants with Microsoft's compiler */
 #define uchrtHeaderSize offsetof(uchrtHeader, sizeMarker)
 

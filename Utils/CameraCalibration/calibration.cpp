@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
         }
 
         //------------------------------ Show image and check for input commands -------------------
-        namedWindow("Image View", WINDOW_NORMAL | CV_GUI_EXPANDED);
+        namedWindow("Image View", WINDOW_NORMAL);
         imshow("Image View", view);
         char key = (char)waitKey(s.inputCapture.isOpened() ? 50 : s.delay);
 
@@ -208,12 +208,9 @@ int main(int argc, char* argv[])
 
 static void help(Settings& s)
 {
-    ostringstream height, width;
-    height << s.boardSize.height;
-    width << s.boardSize.width;
     cout <<  "Camera Calibration" << endl
          <<  "Current cheessboard configuration:"  << endl
-         <<  "Board size: " << height.str() << " x " << width.str() << endl
+         <<  "Board size: " << s.boardSize.height << " x " << s.boardSize.width << endl
          <<  "Square size (mm): " << s.squareSize << endl;
 }
 

@@ -8,6 +8,7 @@
 
 #include "MessageQueue.h"
 #include <cstdlib>
+#include <string.h>
 
 MessageQueue::MessageQueue()
 : maxSize(780 - queueHeaderSize),
