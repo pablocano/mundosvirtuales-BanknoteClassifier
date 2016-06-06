@@ -16,6 +16,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include "Tools/File.h"
 
 #ifndef _CRT_SECURE_NO_WARNINGS
 # define _CRT_SECURE_NO_WARNINGS
@@ -25,7 +26,7 @@ using namespace cv;
 using namespace std;
 
 // global variables
-const string configPath = "../../Config/";
+const string configPath = string(File::getGTDir())+"/Config/";
 enum { DETECTION = 0, CAPTURING = 1, CALIBRATED = 2 };
 
 // some functions definitions

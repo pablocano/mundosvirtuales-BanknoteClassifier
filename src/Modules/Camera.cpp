@@ -1,13 +1,14 @@
 #include "Camera.h"
+#include "Tools/SystemCall.h"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <sstream>
 
-Camera::Camera(): index(1),
-    cam1(CameraInfo::cam1, "Camera 1",Vector2<>(428.f,302.f),3300.f),
-    cam2(CameraInfo::cam2, "Camera 2",Vector2<>(52.f,317.f),3300.f) //video("GroundTruthVideo3.avi")//: video(0)
+Camera::Camera(): index(0)
 {
-    // Read image configuration
-    cv::FileStorage file("../../Config/cameraConfig.xml", cv::FileStorage::READ);
+    /**
+     * Read image configuration
+     * */
+    cv::FileStorage file( std::string(File::getGTDir())+"/Config/cameraConfig.xml", cv::FileStorage::READ);
     if(!file.isOpened())
     {
       std::cout << "Could not open the camera configuration file"<< std::endl;
@@ -17,8 +18,10 @@ Camera::Camera(): index(1),
     file.release();
 
 
-    // open first camera
-    video0 = cv::VideoCapture(2);
+    /**
+     * Prepare cameras
+    */
+    video0 = cv::VideoCapture(0);
     if(!video0.isOpened())  // check if we succeeded
     {
         cam1.available = false;
@@ -33,7 +36,7 @@ Camera::Camera(): index(1),
     }
 
     // open second camera
-    video1 = cv::VideoCapture(3);
+    video1 = cv::VideoCapture(1);
     if(!video1.isOpened())  // check if we succeeded
     {
         cam2.available = false;
@@ -50,38 +53,96 @@ Camera::Camera(): index(1),
     numCameras = (cam1.available? 1 : 0) + (cam2.available? 1 : 0);
     // std::cout << "numCameras: " << numCameras << std::endl;
 
+    /**
+     * Prepare Camera Info
+     * */
+    cv::Mat K, d;
+    cv::Point fieldCenter;
+    float pix2World;
+    // Load Camera 1 config
+    cv::FileStorage file1( std::string(File::getGTDir()) + "/Config/cameraCalibration1.yml", cv::FileStorage::READ);
+    if(!file1.isOpened())
+    {
+      std::cout << "Could not open the camera 1 calibration file"<< std::endl;
+    }
+    file1["Camera_Matrix" ] >> K;
+    file1["Distortion_Coefficients"] >> d;
+    file1["Pixel_to_World"] >> pix2World;
+    file1["Field_Center"] >> fieldCenter;
+    file1.release();
+    cam1 = CameraInfo(CameraInfo::cam1, "Camera 1", K, d, fieldCenter, pix2World);
+
+
+    // Load Camera 2 config
+    cv::FileStorage file2( std::string(File::getGTDir()) + "/Config/cameraCalibration2.yml", cv::FileStorage::READ);
+    if(!file2.isOpened())
+    {
+      std::cout << "Could not open the camera 2 calibration file"<< std::endl;
+    }
+    file2["Camera_Matrix" ] >> K;
+    file2["Distortion_Coefficients"] >> d;
+    file2["Pixel_to_World"] >> pix2World;
+    file2["Field_Center"] >> fieldCenter;
+    file2.release();
+    cam2 = CameraInfo(CameraInfo::cam2, "Camera 2", K, d, fieldCenter, pix2World);
+
     // fill the arrays
     cameras[0] = &video0;
     cameras[1] = &video1;
     camerasInfo[0] = &cam1;
     camerasInfo[1] = &cam2;
-    last = std::chrono::steady_clock::now();
+    last = SystemCall::getCurrentSystemTime();
 }
 
 void Camera::update(FrameInfo *frameInfo)
 {
-    std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
-    auto int_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - last);
-    last = now;
-    frameInfo->time += int(int_ms.count());
+  frameInfo->time += SystemCall::getTimeSince(last);
+  last = SystemCall::getCurrentSystemTime();
 }
 
 void Camera::update(CameraInfo *cameraInfo)
 {
-    index = (index + 1)%numCameras;
-    *cameraInfo = *camerasInfo[index];
+  index = (index + 1)%numCameras;
+  *cameraInfo = *camerasInfo[index];
 }
 
 void Camera::update(ImageBGR *image)
 {
-    *cameras[index] >> *image;
-    if (image->empty()) {
-        //cameras[index]->set(CV_CAP_PROP_POS_AVI_RATIO , 0);
-        *cameras[index] >> *image;
-    }
+  cv::Mat tmp, undistorted, rotated;
+  *cameras[index] >> tmp;
+  if (image->empty()) {
+    //cameras[index]->set(CV_CAP_PROP_POS_AVI_RATIO , 0);
+    *cameras[index] >> tmp;
+  }
+  // correct and rotate images
+  cv::undistort(tmp, undistorted, camerasInfo[index]->K, camerasInfo[index]->d);
+  rotateImage90(undistorted, rotated, index == 0? ANGLES::CLOCKWISE : ANGLES::COUNTERCLOCKWISE);
+  *image = ImageBGR(rotated);
 }
 
 void Camera::update(Image *image)
 {
-    cv::cvtColor(*theImageBGR, *image, CV_BGR2YCrCb);
+  cv::cvtColor(*theImageBGR, *image, CV_BGR2YCrCb);
+}
+
+
+void Camera::rotateImage90(cv::Mat &src, cv::Mat &dst, int angle)
+{
+    dst.create(src.size(), src.type());
+    if(angle == 270 || angle == -90){
+        // Rotate clockwise 270 degrees
+        cv::transpose(src, dst);
+        cv::flip(dst, dst, 0);
+    }else if(angle == 180 || angle == -180){
+        // Rotate clockwise 180 degrees
+        cv::flip(src, dst, -1);
+    }else if(angle == 90 || angle == -270){
+        // Rotate clockwise 90 degrees
+        cv::transpose(src, dst);
+        cv::flip(dst, dst, 1);
+    }else if(angle == 360 || angle == 0){
+        if(src.data != dst.data){
+            src.copyTo(dst);
+        }
+    }
 }

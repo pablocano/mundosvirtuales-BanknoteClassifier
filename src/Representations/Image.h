@@ -18,4 +18,9 @@ public:
     MovementImage(const cv::Mat& m) : cv::Mat(m) {}
 };
 
-class ImageBGR: public cv::Mat{};
+class ImageBGR : public cv::Mat {
+public:
+    ImageBGR() : cv::Mat() {}
+
+    ImageBGR(const cv::Mat& m) : cv::Mat(m) {}
+};

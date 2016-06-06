@@ -6,7 +6,6 @@
 #include "Tools/ModuleManager/Module.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <chrono>
 
 MODULE(Camera)
     PROVIDES(FrameInfo)
@@ -42,5 +41,9 @@ public:
     int height;
     int width;
 
-    std::chrono::time_point<std::chrono::steady_clock> last;
+    unsigned last;
+
+  private:
+    enum ANGLES { CLOCKWISE = 90, COUNTERCLOCKWISE = -90 };
+    void rotateImage90(cv::Mat &src, cv::Mat &dst, int angle);
 };

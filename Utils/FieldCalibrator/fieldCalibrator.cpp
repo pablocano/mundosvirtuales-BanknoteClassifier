@@ -16,7 +16,7 @@
 #include "Representations/FieldDimensions.h"
 
 #define CAM1 1
-#define CAM2 0
+#define CAM2 2
 
 using namespace cv;
 using namespace std;
@@ -227,11 +227,14 @@ void onMouseRuler2( int event, int x, int y, int flags, void* userdata)
 
 void computeImageFieldRatiosAndSave()
 {
-    Point d1 = img1_P1-img1_P2;
-    Point d2 = img2_P1-img2_P2;
+    Point dist1 = img1_P1-img1_P2;
+    Point dist2 = img2_P1-img2_P2;
 
-    float distImg1 = sqrt(d1.dot(d1));
-    float distImg2 = sqrt(d2.dot(d2));
+    Point fieldCenter1 = (img1_P1+img1_P2) * 0.5f;
+    Point fieldCenter2 = (img2_P1+img2_P2) * 0.5f;
+
+    float distImg1 = sqrt(dist1.dot(dist1));
+    float distImg2 = sqrt(dist2.dot(dist2));
 
     float fieldDist = 2*fieldDimensions.yLimit;
 
@@ -249,10 +252,12 @@ void computeImageFieldRatiosAndSave()
     fs1 << "Camera_Matrix" << K1;
     fs1 << "Distortion_Coefficients" << d1;
     fs1 << "Pixel_to_World" << pix2World1;
+    fs1 << "Field_Center" << fieldCenter1;
 
     fs2 << "Camera_Matrix" << K2;
     fs2 << "Distortion_Coefficients" << d2;
     fs2 << "Pixel_to_World" << pix2World2;
+    fs2 << "Field_Center" << fieldCenter2;
 }
 
 // main program

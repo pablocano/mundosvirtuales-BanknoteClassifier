@@ -5,5 +5,11 @@ Camera_Matrix: !!opencv-matrix
    dt: d
    data: [ 3.3513433890205255e+02, 0., 3.1950000000000000e+02, 0.,
        3.3513433890205255e+02, 2.3950000000000000e+02, 0., 0., 1. ]
-Distortion_Coefficients: [ 8, -448 ]
-Pixel_to_World: 8.9271488189697266e+00
+Distortion_Coefficients: !!opencv-matrix
+   rows: 5
+   cols: 1
+   dt: d
+   data: [ -1.1649925128118530e-02, 5.5650346299707380e-02, 0., 0.,
+       -6.6263173520786089e-02 ]
+Pixel_to_World: 8.6955699920654297e+00
+Field_Center: [ 396, 307 ]

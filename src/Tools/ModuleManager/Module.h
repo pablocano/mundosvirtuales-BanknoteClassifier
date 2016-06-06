@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "Tools/File.h"
+
 #define MODULE(module) \
 \
 class module##Base : private Blackboard {\

@@ -3,7 +3,10 @@ cmake_minimum_required(VERSION 3.1.0)
 PROJECT (GroundTruth)
 find_package(OpenCV REQUIRED )
 
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
+set( MessageIDsPath ${CMAKE_CURRENT_SOURCE_DIR}/../uchile-robotics-team/Src/Tools/MessageQueue CACHE PATH "Path to MessageIDs file used by BHuman code")
+
+set( MessageIDsPath)
 
 set( SEGMENT_SRC
     src/Processes/Segmentation.cpp
@@ -19,7 +22,11 @@ set( SEGMENT_SRC
     src/Tools/ColorModelConversions.h
     src/Tools/ColorRangeCreator.h
     src/Tools/ModuleManager/Module.h
+    src/Tools/File.cpp
+    src/Tools/File.h
     src/Tools/Range.h
+    src/Tools/SystemCall.cpp
+    src/Tools/SystemCall.h
 )
 
 set( GROUNDTRUTH_SRC
@@ -58,18 +65,32 @@ set( GROUNDTRUTH_SRC
     src/Representations/RobotPose.h
     src/Tools/ColorModelConversions.h
     src/Tools/ModuleManager/Module.h
+    src/Tools/Enum.cpp
+    src/Tools/Enum.h
+    src/Tools/File.cpp
+    src/Tools/File.h
     src/Tools/Line.cpp
     src/Tools/Line.h
     src/Tools/Range.h
     src/Tools/Transformation.cpp
     src/Tools/Transformation.h
     src/Tools/Vector2.h
+    src/Tools/Comm/UdpComm.cpp
+    src/Tools/Comm/UdpComm.h
+    src/Tools/Comm/SPLStandardMessage.h
+    src/Tools/Comm/SPLStandardMessageWrapper.cpp
+    src/Tools/Comm/SPLStandardMessageWrapper.h
+    src/Tools/SystemCall.cpp
+    src/Tools/SystemCall.h
+    ${MessageIDsPath}/MessageIDs.h
 )
 
 
 set( CAMERA_CALIBRATION
    Utils/CameraCalibration/calibration.cpp
    Utils/CameraCalibration/settings.h
+   src/Tools/File.cpp
+   src/Tools/File.h
 )
 
 set( FIELD_CALIBRATOR
@@ -84,12 +105,21 @@ source_group(src\\Representations REGULAR_EXPRESSION "Representations/*")
 source_group(src\\Representations\\ColorModel REGULAR_EXPRESSION "Representations/ColorModel/*")
 source_group(src\\Tools REGULAR_EXPRESSION "Tools/*")
 source_group(src\\Tools\\ModuleManager REGULAR_EXPRESSION "Tools/ModuleManager/*")
+source_group(src\\Tools\\Comm REGULAR_EXPRESSION "Tools/Comm/*")
 
 set(CMAKE_CXX_FLAGS "-std=c++11")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-include_directories(${CMAKE_INSTALL_PREFIX}/include ${CMAKE_CURRENT_SOURCE_DIR}/src)
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+add_definitions(-DOSX)
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+add_definitions(-DLINUX)
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+add_definitions(-DWINDOWS)
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+include_directories(${CMAKE_INSTALL_PREFIX}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${MessageIDsPath})
 
 add_executable( createColorTable ${SEGMENT_SRC} ${OpenCV_INCLUDE})
 target_link_libraries( createColorTable ${OpenCV_LIBS} )
