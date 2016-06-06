@@ -1,11 +1,11 @@
 #pragma once
-//#include "Representations/Blackboard.h"
 #include "Representations/Image.h"
 #include "Representations/CameraInfo.h"
 #include "Representations/FrameInfo.h"
 #include "Tools/ModuleManager/Module.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <iostream>
 
 MODULE(Camera,
 {,

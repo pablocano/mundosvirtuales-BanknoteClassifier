@@ -2,7 +2,6 @@
 
 #include "Representations/ColorModel/ColorModel.h"
 #include "Tools/ModuleManager/Module.h"
-#include <fstream>
 
 MODULE(GroundTruthConfiguration,
 {,

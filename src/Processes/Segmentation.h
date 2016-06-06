@@ -4,7 +4,6 @@
  * @author Pablo Cano Montecinos
  */
 
-#include "Tools/ModuleManager/Blackboard.h"
 #include "Tools/ModuleManager/ModuleManager.h"
 #include "Tools/Process.h"
 
@@ -18,10 +17,8 @@ public:
   
   int main();
   
-  bool handleKey();
-  
   ModuleManager moduleManager;
   
-  bool pause, trackBarInitialized;
+  bool trackBarInitialized;
 };
 

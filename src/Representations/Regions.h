@@ -1,11 +1,11 @@
 
 #pragma once
 
+#include "Representations/ColorModel/ColorModel.h"
 #include "Tools/Math/Range.h"
 #include "Tools/Math/Vector2.h"
 #include "Tools/Streamable.h"
-#include "Representations/ColorModel/ColorModel.h"
-#include <cv.h>
+#include <opencv2/core/core.hpp>
 
 class Regions : public Streamable
 {

@@ -3,7 +3,7 @@
 
 #include "Tools/Math/Range.h"
 #include "Tools/Streamable.h"
-#include <cv.h>
+#include <opencv2/core/core.hpp>
 
 class ColorModel : public Streamable
 {

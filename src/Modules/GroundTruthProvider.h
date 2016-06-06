@@ -6,7 +6,6 @@
 #include "Representations/FrameInfo.h"
 #include "Representations/RobotPercept.h"
 #include "Tools/ModuleManager/Module.h"
-#include <fstream>
 
 MODULE(GroundTruthProvider,
 {,

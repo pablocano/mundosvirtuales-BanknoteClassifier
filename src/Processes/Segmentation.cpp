@@ -1,21 +1,13 @@
-/**
- * @file main.cpp
- * Programa que implementa un algoritmo de deteccion de genero utilizando
- * histogramas LBP y un clasificador SVM.
- * @author Pablo Cano Montecinos
- */
-
 #include "Segmentation.h"
-#include <cv.h>
-#include <highgui.h>
 #include "Representations/CameraInfo.h"
 #include "Representations/ColorModel/ColorModel.h"
 #include "Representations/Image.h"
 #include "Tools/ColorRangeCreator.h"
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 Segmentation::Segmentation() :
   moduleManager({"Segmentation","Common"}),
-  pause(false),
   trackBarInitialized(false)
 {}
 

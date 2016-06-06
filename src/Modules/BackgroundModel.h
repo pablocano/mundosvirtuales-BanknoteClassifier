@@ -5,10 +5,10 @@
  */
 
 #pragma once
+#include "Representations/CameraInfo.h"
 #include "Representations/Image.h"
 #include "Tools/ModuleManager/Module.h"
-#include "Representations/CameraInfo.h"
-#include <cv.h>
+#include <opencv2/core/core.hpp>
 
 MODULE(BackgroundModel,
 {,

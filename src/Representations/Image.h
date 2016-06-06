@@ -1,7 +1,7 @@
 
 #pragma once
 #include "Tools/Streamable.h"
-#include <cv.h>
+#include <opencv2/core/core.hpp>
 
 class Image : public cv::Mat, public Streamable {};
 

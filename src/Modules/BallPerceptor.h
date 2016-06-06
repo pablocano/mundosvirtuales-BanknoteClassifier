@@ -2,12 +2,11 @@
 #pragma once
 //#include "Representations/Blackboard.h"
 #include "Representations/BallPerception.h"
+#include "Representations/ColorModel/ColorModel.h"
 #include "Representations/Image.h"
 #include "Representations/Regions.h"
-#include "Representations/ColorModel/ColorModel.h"
 #include "Tools/ModuleManager/Module.h"
-#include <cv.h>
-#include <highgui.h>
+#include <opencv2/core/core.hpp>
 
 MODULE(BallPerceptor,
 {,

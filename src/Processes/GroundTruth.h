@@ -5,7 +5,6 @@
  */
 
 #include "Tools/Comm/GroundTruthMessageHandler.h"
-#include "Tools/ModuleManager/Blackboard.h"
 #include "Tools/ModuleManager/ModuleManager.h"
 #include "Tools/Process.h"
 

@@ -7,7 +7,6 @@
 #pragma once
 
 #include "Module.h"
-#include "Representations/Representation.h"
 #include <list>
 #include <map>
 #include <set>
