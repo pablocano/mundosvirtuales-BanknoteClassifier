@@ -7,25 +7,27 @@
 #include "BackgroundModel.h"
 #include <opencv2/imgproc/imgproc.hpp>
 
-void BackgroundModel::update(MovementImage *movementImage)
+MAKE_MODULE(BackgroundModel, GroundTruth)
+
+void BackgroundModel::update(MovementImage& movementImage)
 {
-    if(theCameraInfo->type == CameraInfo::cam1)
+    if(theCameraInfo.type == CameraInfo::cam1)
         currentModel = &model1;
     else
         currentModel = &model2;
-    cv::cvtColor(*theImageBGR,frame,CV_BGR2GRAY);
+    cv::cvtColor(theImageBGR,frame,CV_BGR2GRAY);
     frame.convertTo(frame, CV_32F);
     frame = frame/255.f;
     if(currentModel->empty())
     {
         frame.copyTo(*currentModel);
         cv::Mat empty = cv::Mat::zeros(currentModel->size(),CV_32F);
-        *movementImage = empty;
+        movementImage = empty;
         return;
     }
     for (unsigned i = 0; i < currentModel->rows; i++) {
         for (unsigned j = 0; j < currentModel->cols; j++) {
-            if (!movementImage->at<u_int8_t>(i,j)) {
+            if (!movementImage.at<u_int8_t>(i,j)) {
                 updatePixel(i, j,alpha);
             }
             else
@@ -37,7 +39,7 @@ void BackgroundModel::update(MovementImage *movementImage)
     beta = beta - beta*gamma;
 
     cv::Mat empty = abs(frame - *currentModel) > thrld;
-    *movementImage = empty;
+    movementImage = empty;
 }
 
 void BackgroundModel::updatePixel(int i, int j,float alpha)

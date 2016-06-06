@@ -5,17 +5,17 @@
  */
 
 #pragma once
+#include "Representations/CameraInfo.h"
 #include "Representations/Image.h"
 #include "Tools/ModuleManager/Module.h"
-#include "Representations/Blackboard.h"
-#include "Representations/CameraInfo.h"
-#include <cv.h>
+#include <opencv2/core/core.hpp>
 
-MODULE(BackgroundModel)
-    REQUIRES(CameraInfo)
-    REQUIRES(ImageBGR)
-    PROVIDES(MovementImage)
-END_MODULE
+MODULE(BackgroundModel,
+{,
+  REQUIRES(CameraInfo),
+  REQUIRES(ImageBGR),
+  PROVIDES(MovementImage),
+});
 
 class BackgroundModel: public BackgroundModelBase {
 public:
@@ -45,7 +45,7 @@ public:
      * @param sub Matriz logica que indica que pixeles son fondo y
      * cuales no.
      */
-    void update(MovementImage* movementImage);
+    void update(MovementImage& movementImage);
     
     /* Modelo de fondo*/
     cv::Mat model1;

@@ -2,6 +2,7 @@
 #include "Tools/SystemCall.h"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <sstream>
+MAKE_MODULE(Camera, Common)
 
 Camera::Camera(): index(0)
 {
@@ -94,35 +95,35 @@ Camera::Camera(): index(0)
     last = SystemCall::getCurrentSystemTime();
 }
 
-void Camera::update(FrameInfo *frameInfo)
+void Camera::update(FrameInfo& frameInfo)
 {
-  frameInfo->time += SystemCall::getTimeSince(last);
+  frameInfo.time += SystemCall::getTimeSince(last);
   last = SystemCall::getCurrentSystemTime();
 }
 
-void Camera::update(CameraInfo *cameraInfo)
+void Camera::update(CameraInfo& cameraInfo)
 {
   index = (index + 1)%numCameras;
-  *cameraInfo = *camerasInfo[index];
+  cameraInfo = *camerasInfo[index];
 }
 
-void Camera::update(ImageBGR *image)
+void Camera::update(ImageBGR& image)
 {
   cv::Mat tmp, undistorted, rotated;
   *cameras[index] >> tmp;
-  if (image->empty()) {
+  if (image.empty()) {
     //cameras[index]->set(CV_CAP_PROP_POS_AVI_RATIO , 0);
     *cameras[index] >> tmp;
   }
   // correct and rotate images
   cv::undistort(tmp, undistorted, camerasInfo[index]->K, camerasInfo[index]->d);
   rotateImage90(undistorted, rotated, index == 0? ANGLES::CLOCKWISE : ANGLES::COUNTERCLOCKWISE);
-  *image = ImageBGR(rotated);
+  image = ImageBGR(rotated);
 }
 
-void Camera::update(Image *image)
+void Camera::update(Image& image)
 {
-  cv::cvtColor(*theImageBGR, *image, CV_BGR2YCrCb);
+  cv::cvtColor(theImageBGR, image, CV_BGR2YCrCb);
 }
 
 

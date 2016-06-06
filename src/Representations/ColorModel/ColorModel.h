@@ -1,10 +1,11 @@
 
 #pragma once
 
-#include "Tools/Range.h"
-#include <cv.h>
+#include "Tools/Math/Range.h"
+#include "Tools/Streamable.h"
+#include <opencv2/core/core.hpp>
 
-class ColorModel
+class ColorModel : public Streamable
 {
 public:
 	
@@ -76,7 +77,7 @@ public:
 	
 	~ColorModel();
 
-    Colors cubo[32][256][256];
+  Colors cubo[32][256][256];
 	
 	WhiteThresholds whiteThreshold;
 	HSIRanges ranges[numOfColors];
@@ -93,7 +94,7 @@ public:
 	
 	void getColor(WhiteThresholds& whiteThreshold);
 
-	Colors getColor(cv::Vec3b point);
+	Colors getColor(const cv::Vec3b point) const;
 
 	void segmentImage(const cv::Mat& source, cv::Mat& dest);
 	

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "SPLStandardMessage.h"
+#include "Tools/Messages/MessageQueue.h"
 
 class SPLStandardMessageWrapper : public SPLStandardMessage
 {
@@ -28,5 +29,5 @@ private:
 public:
   SPLStandardMessageWrapper();
   
-  unsigned fromMessageQueue();
+  unsigned fromMessageQueue(MessageQueue& out);
 };

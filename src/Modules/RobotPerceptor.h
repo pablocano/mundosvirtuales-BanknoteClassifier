@@ -1,23 +1,22 @@
 
 #pragma once
-#include "Representations/Blackboard.h"
 #include "Representations/CameraInfo.h"
 #include "Representations/Regions.h"
 #include "Representations/RobotPercept.h"
 #include "Tools/ModuleManager/Module.h"
 
-
-MODULE(RobotPerceptor)
-    REQUIRES(CameraInfo)
-    REQUIRES(Regions)
-    PROVIDES(RobotPercept)
-END_MODULE
+MODULE(RobotPerceptor,
+{,
+  REQUIRES(CameraInfo),
+  REQUIRES(Regions),
+  PROVIDES(RobotPercept),
+});
 
 
 class RobotPerceptor : public RobotPerceptorBase
 {
 public:
-    void update(RobotPercept *robotPercept);
+    void update(RobotPercept& robotPercept);
 
 private:
     struct Segment : public Regions::Line

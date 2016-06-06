@@ -1,9 +1,10 @@
 
 #pragma once
 
-#include "Tools/Range.h"
+#include "Tools/Math/Range.h"
 #include "Representations/ColorModel/ColorModel.h"
-#include <cv.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 class ColorRangeCreator
 {
