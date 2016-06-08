@@ -2,6 +2,7 @@
 #include "Tools/SystemCall.h"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <sstream>
+
 MAKE_MODULE(Camera, Common)
 
 Camera::Camera(): index(0)
@@ -35,7 +36,6 @@ Camera::Camera(): index(0)
         video0.set(CV_CAP_PROP_FRAME_HEIGHT, height);
         video0.set(CV_CAP_PROP_FRAME_WIDTH, width);
     }
-
     // open second camera
     video1 = cv::VideoCapture(1);
     if(!video1.isOpened())  // check if we succeeded

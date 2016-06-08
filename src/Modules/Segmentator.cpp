@@ -16,28 +16,28 @@ void Segmentator::update(SegmentedImage &image)
         {
             Colors color = theColorModel.getColor(theImage.at<cv::Vec3b>(i,j));
             
-            if (color.is(ColorModel::none)) {
+            if (color.is(none)) {
                 image.at<cv::Vec3b>(i,j) = cv::Vec3b(128,128,128);
             }
-            else if (color.is(ColorModel::white)) {
+            else if (color.is(white)) {
                 image.at<cv::Vec3b>(i,j) = cv::Vec3b(255,255,255);
             }
-            else if (color.is(ColorModel::green)) {
+            else if (color.is(green)) {
                 image.at<cv::Vec3b>(i,j) = cv::Vec3b(0,255,0);
             }
-            else if (color.is(ColorModel::blue)) {
+            else if (color.is(blue)) {
                 image.at<cv::Vec3b>(i,j) = cv::Vec3b(255,0,0);
             }
-            else if (color.is(ColorModel::red)) {
+            else if (color.is(red)) {
                 image.at<cv::Vec3b>(i,j) = cv::Vec3b(0,0,255);
             }
-            else if (color.is(ColorModel::orange)) {
+            else if (color.is(orange)) {
                 image.at<cv::Vec3b>(i,j) = cv::Vec3b(0,128,255);
             }
-            else if (color.is(ColorModel::yellow)) {
+            else if (color.is(yellow)) {
                 image.at<cv::Vec3b>(i,j) = cv::Vec3b(0,255,255);
             }
-            else if (color.is(ColorModel::black)) {
+            else if (color.is(black)) {
                 image.at<cv::Vec3b>(i,j) = cv::Vec3b(0,0,0);
             }
         }

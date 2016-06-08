@@ -17,9 +17,11 @@ set( SEGMENT_SRC
     src/Modules/Segmentator.h
     src/Processes/Segmentation.cpp
     src/Processes/Segmentation.h
+    src/Representations/ColorModel/ColorCalibration.h
     src/Representations/ColorModel/ColorModel.cpp
     src/Representations/ColorModel/ColorModel.h
     src/Representations/Image.h
+    src/Tools/ColorClasses.h
     src/Tools/ColorModelConversions.h
     src/Tools/ColorRangeCreator.h
     src/Tools/ModuleManager/Blackboard.cpp
@@ -58,6 +60,7 @@ set( GROUNDTRUTH_SRC
     src/Representations/BallPerception.h
     src/Representations/CameraInfo.cpp
     src/Representations/CameraInfo.h
+    src/Representations/ColorModel/ColorCalibration.h
     src/Representations/ColorModel/ColorModel.cpp
     src/Representations/ColorModel/ColorModel.h
     src/Representations/FrameInfo.h
@@ -69,6 +72,7 @@ set( GROUNDTRUTH_SRC
     src/Representations/Regions.h
     src/Representations/RobotPercept.cpp
     src/Representations/RobotPercept.h
+    src/Tools/ColorClasses.h
     src/Tools/ColorModelConversions.h
     src/Tools/Comm/GroundTruthMessageHandler.cpp
     src/Tools/Comm/GroundTruthMessageHandler.h

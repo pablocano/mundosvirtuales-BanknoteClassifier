@@ -3,6 +3,7 @@
 
 #include "Tools/Math/Range.h"
 #include "Representations/ColorModel/ColorModel.h"
+#include "Modules/GroundTruthConfiguration.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
@@ -12,26 +13,23 @@ public:
 	
 	static void setColor(int, void*)
 	{
-		if(color > ColorModel::white)
+    GroundTruthConfiguration::getColorCalibration(colorCalibration);
+		if(color > white)
 		{
-			ColorModel::HSIRanges range;
-			colorModel->getColor(range, color);
-			lowerH = range.hue.min;
-			upperH = range.hue.max;
-			lowerI = range.intensity.min;
-			upperI = range.intensity.max;
-			lowerS = range.saturation.min;
-			upperS = range.saturation.max;
+			lowerH = colorCalibration.ranges[color].hue.min;
+			upperH = colorCalibration.ranges[color].hue.max;
+			lowerI = colorCalibration.ranges[color].intensity.min;
+			upperI = colorCalibration.ranges[color].intensity.max;
+			lowerS = colorCalibration.ranges[color].saturation.min;
+			upperS = colorCalibration.ranges[color].saturation.max;
 		}
-		else if(color == ColorModel::white)
+		else if(color == white)
 		{
-			ColorModel::WhiteThresholds whiteThreshold;
-			colorModel->getColor(whiteThreshold);
-			lowerH = whiteThreshold.minR;
+			lowerH = colorCalibration.whiteThreshold.minR;
 			upperH = 0;
-			lowerI = whiteThreshold.minB;
+			lowerI = colorCalibration.whiteThreshold.minB;
 			upperI = 0;
-			lowerS = whiteThreshold.minRB;
+			lowerS = colorCalibration.whiteThreshold.minRB;
 			upperS = 0;
 		}
 		else
@@ -53,23 +51,24 @@ public:
 	
 	static void setColorRange(int, void*)
 	{
-		if(color == ColorModel::none)
+		if(color == none)
 		{
 			return;
 		}
-		else if (color != ColorModel::white)
+		else if (color != white)
 		{
-			ColorModel::HSIRanges range(Range<int>(lowerH, upperH), Range<int>(lowerS, upperS), Range<int>(lowerI, upperI));
-			colorModel->changeColor(range, color);
+			ColorCalibration::HSIRanges range(Range<int>(lowerH, upperH), Range<int>(lowerS, upperS), Range<int>(lowerI, upperI));
+      colorCalibration.ranges[color] = range;
+      GroundTruthConfiguration::setColorCalibration(colorCalibration);
 		}
 		else
 		{
-			ColorModel::WhiteThresholds whiteThreshold(lowerH,lowerI,lowerS);
-			colorModel->changeColor(whiteThreshold);
-		}
+			ColorCalibration::WhiteThresholds whiteThreshold(lowerH,lowerI,lowerS);
+      colorCalibration.whiteThreshold = whiteThreshold;
+    }
 	}
 	
-	static ColorModel* colorModel;
+	static ColorCalibration colorCalibration;
 	static int lowerH, lowerI, lowerS, upperH, upperI, upperS;
 	static int color;
 	
@@ -82,5 +81,6 @@ int ColorRangeCreator::lowerS = 0;
 int ColorRangeCreator::upperH = 0;
 int ColorRangeCreator::upperI = 0;
 int ColorRangeCreator::upperS = 0;
-ColorModel* ColorRangeCreator::colorModel = 0;
+
+ColorCalibration ColorRangeCreator::colorCalibration = ColorCalibration();
 
