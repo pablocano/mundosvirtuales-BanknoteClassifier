@@ -65,6 +65,7 @@ public:
 		{
 			ColorCalibration::WhiteThresholds whiteThreshold(lowerH,lowerI,lowerS);
       colorCalibration.whiteThreshold = whiteThreshold;
+      GroundTruthConfiguration::setColorCalibration(colorCalibration);
     }
 	}
 	

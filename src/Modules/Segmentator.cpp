@@ -6,8 +6,18 @@
 
 MAKE_MODULE(Segmentator, Segmentation)
 
+Segmentator* Segmentator::theInstance = 0;
+
+Segmentator::Segmentator() : segment(false)
+{
+  theInstance = this;
+}
+
 void Segmentator::update(SegmentedImage &image)
 {
+  if (!segment) {
+    return;
+  }
     cv::Mat empty = cv::Mat::zeros(theImage.size(),theImage.type());
     image = empty;
     for(int i = 0; i < theImage.rows; i++)
@@ -42,5 +52,12 @@ void Segmentator::update(SegmentedImage &image)
             }
         }
     }
+}
+
+void Segmentator::setSegmentation(bool set)
+{
+  if (theInstance) {
+    theInstance->segment = set;
+  }
 }
 
