@@ -8,37 +8,6 @@ include(${QT_USE_FILE})
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
 set( MessageIDsPath ${CMAKE_CURRENT_SOURCE_DIR}/../uchile-robotics-team/Src/Tools/MessageQueue CACHE PATH "Path to MessageIDs file used by BHuman code")
 
-set( SEGMENT_SRC
-    src/Modules/Camera.cpp
-    src/Modules/Camera.h
-    src/Modules/GroundTruthConfiguration.cpp
-    src/Modules/GroundTruthConfiguration.h
-    src/Modules/Segmentator.cpp
-    src/Modules/Segmentator.h
-    src/Processes/Segmentation.cpp
-    src/Processes/Segmentation.h
-    src/Representations/ColorModel/ColorCalibration.h
-    src/Representations/ColorModel/ColorModel.cpp
-    src/Representations/ColorModel/ColorModel.h
-    src/Representations/Image.h
-    src/Tools/ColorClasses.h
-    src/Tools/ColorModelConversions.h
-    src/Tools/ColorRangeCreator.h
-    src/Tools/ModuleManager/Blackboard.cpp
-    src/Tools/ModuleManager/Blackboard.h
-    src/Tools/ModuleManager/Module.cpp
-    src/Tools/ModuleManager/Module.h
-    src/Tools/ModuleManager/ModuleManager.cpp
-    src/Tools/ModuleManager/ModuleManager.h
-    src/Tools/Process.cpp
-    src/Tools/Process.h
-    src/Tools/File.cpp
-    src/Tools/File.h
-    src/Tools/Math/Range.h
-    src/Tools/SystemCall.cpp
-    src/Tools/SystemCall.h
-)
-
 set( GROUNDTRUTH_SRC
     src/Modules/Camera.cpp
     src/Modules/Camera.h
@@ -162,9 +131,6 @@ add_definitions(-DWINDOWS)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${MessageIDsPath})
-
-add_library( createColorTable ${SEGMENT_SRC} ${OpenCV_INCLUDE})
-target_link_libraries( createColorTable ${OpenCV_LIBS} )
 
 add_library( groundTruth SHARED ${GROUNDTRUTH_SRC} ${OpenCV_INCLUDE})
 target_link_libraries( groundTruth ${OpenCV_LIBS} )
