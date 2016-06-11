@@ -63,42 +63,56 @@ void MainWindow::closeEvent (QCloseEvent *event)
 void MainWindow::on_pushButton_clicked()
 {
   color = white;
+  uncheckButtons();
+  ui->pushButton->setChecked(true);
   setSliders(true);
 }
 
 void MainWindow::on_pushButton_2_clicked()
 {
   color = green;
+  uncheckButtons();
+  ui->pushButton_2->setChecked(true);
   setSliders(false);
 }
 
 void MainWindow::on_pushButton_3_clicked()
 {
   color = blue;
+  uncheckButtons();
+  ui->pushButton_3->setChecked(true);
   setSliders(false);
 }
 
 void MainWindow::on_pushButton_4_clicked()
 {
   color = red;
+  uncheckButtons();
+  ui->pushButton_4->setChecked(true);
   setSliders(false);
 }
 
 void MainWindow::on_pushButton_5_clicked()
 {
   color = orange;
+  uncheckButtons();
+  ui->pushButton_5->setChecked(true);
   setSliders(false);
 }
 
 void MainWindow::on_pushButton_6_clicked()
 {
   color = yellow;
+  uncheckButtons();
+  ui->pushButton_6->setChecked(true);
   setSliders(false);
 }
 
 void MainWindow::on_pushButton_7_clicked()
 {
   color = black;
+  uncheckButtons();
+  ui->pushButton_7->setChecked(true);
   setSliders(false);
 }
 
@@ -221,21 +235,39 @@ void MainWindow::activateSegmentation()
 {
   ui->pushButton->setEnabled(true);
   ui->pushButton->setVisible(true);
+  ui->pushButton->setCheckable(true);
   ui->pushButton_2->setEnabled(true);
   ui->pushButton_2->setVisible(true);
+  ui->pushButton_2->setCheckable(true);
   ui->pushButton_3->setEnabled(true);
   ui->pushButton_3->setVisible(true);
+  ui->pushButton_3->setCheckable(true);
   ui->pushButton_4->setEnabled(true);
   ui->pushButton_4->setVisible(true);
+  ui->pushButton_4->setCheckable(true);
   ui->pushButton_5->setEnabled(true);
   ui->pushButton_5->setVisible(true);
+  ui->pushButton_5->setCheckable(true);
   ui->pushButton_6->setEnabled(true);
   ui->pushButton_6->setVisible(true);
+  ui->pushButton_6->setCheckable(true);
   ui->pushButton_7->setEnabled(true);
   ui->pushButton_7->setVisible(true);
+  ui->pushButton_7->setCheckable(true);
   
   ui->label->setVisible(true);
   ui->label_2->setVisible(true);
+}
+
+void MainWindow::uncheckButtons()
+{
+  ui->pushButton->setChecked(false);
+  ui->pushButton_2->setChecked(false);
+  ui->pushButton_3->setChecked(false);
+  ui->pushButton_4->setChecked(false);
+  ui->pushButton_5->setChecked(false);
+  ui->pushButton_6->setChecked(false);
+  ui->pushButton_7->setChecked(false);
 }
 
 void MainWindow::setSliders(bool white)
