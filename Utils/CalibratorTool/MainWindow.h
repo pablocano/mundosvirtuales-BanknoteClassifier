@@ -70,6 +70,8 @@ private slots:
 
 private:
   
+  void uncheckButtons();
+  
   void setSliders(bool white);
   
   void deactivateSegmentation();
