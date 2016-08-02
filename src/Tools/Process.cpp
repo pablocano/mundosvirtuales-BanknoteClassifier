@@ -10,7 +10,9 @@
 
 int Process::procesMain()
 {
-  init();
+  if (!initialized) {
+    init();
+  }
   
   return main();
 }

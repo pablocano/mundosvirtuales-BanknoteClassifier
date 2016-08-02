@@ -4,25 +4,43 @@
  * @author Pablo Cano Montecinos
  */
 
+#pragma once
+
+#include "Representations/ColorModel/ColorCalibration.h"
 #include "Tools/Comm/GroundTruthMessageHandler.h"
 #include "Tools/ModuleManager/ModuleManager.h"
 #include "Tools/Process.h"
+#include <opencv2/core/core.hpp>
+#include <string>
 
 class GroundTruth : public Process{
   
-public:
-  
-  GroundTruth();
+protected:
   
   void init();
   
   int main();
   
-  bool handleKey();
-  
   ModuleManager moduleManager;
   GroundTruthMessageHandler groundTruthMessageHandler;
   
   bool pause;
+  
+public:
+  
+  GroundTruth();
+  
+  void setColorCalibration(const ColorCalibration& colorCalibration);
+  
+  cv::Mat image;
+  cv::Mat segmented;
+  
+  std::string imageName;
+  
+  ColorCalibration getColorCalibration();
+  
+  void saveColorCalibration();
+  
+  void setSegmentation(bool set);
 };
 

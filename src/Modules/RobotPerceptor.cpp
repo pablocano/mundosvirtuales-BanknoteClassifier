@@ -23,7 +23,7 @@ void RobotPerceptor::createBlobs()
 {
     segments.clear();
     for(auto const& segment: theRegions.regions)
-        if(segment.color.is(ColorModel::white))
+        if(segment.color.is(white))
             segments.push_back(Segment(segment));
 
     blobs.clear();

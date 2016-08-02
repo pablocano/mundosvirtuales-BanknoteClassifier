@@ -5,7 +5,7 @@ class Process {
   
 public:
   
-  Process()
+  Process() : initialized(false)
   {
     Blackboard::setInstance(blackboard);
   }
@@ -18,4 +18,5 @@ public:
   
   Blackboard blackboard;
   
+  bool initialized;
 };
