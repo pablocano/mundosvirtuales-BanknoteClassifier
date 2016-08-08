@@ -5,6 +5,7 @@
  */
 
 #include "GroundTruth.h"
+#include "Representations/RobotPose.h"
 #include "Representations/CameraInfo.h"
 #include "Representations/RobotPercept.h"
 #include "Representations/BallPerception.h"
@@ -27,6 +28,8 @@ int GroundTruth::main()
 {
   moduleManager.execute();
   groundTruthMessageHandler.send();
+  
+  ((const RobotsPoses&) Blackboard::getInstance()["RobotsPoses"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
   
   ((const RobotPercept&) Blackboard::getInstance()["RobotPercept"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
   
