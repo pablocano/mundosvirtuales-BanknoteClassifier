@@ -29,8 +29,8 @@ int main()
   
   bool pause = false;
   
-  cv::namedWindow("Camera 1",cv::WINDOW_NORMAL);
-  cv::namedWindow("Camera 2",cv::WINDOW_NORMAL);
+  cv::namedWindow("Camera 1",cv::WINDOW_AUTOSIZE);
+  cv::namedWindow("Camera 2",cv::WINDOW_AUTOSIZE);
   
   while(true)
   {
