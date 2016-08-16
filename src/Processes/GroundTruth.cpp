@@ -25,6 +25,7 @@ void GroundTruth::init()
   moduleManager.load();
 }
 
+
 /* Main del programa*/
 int GroundTruth::main()
 {
@@ -33,11 +34,11 @@ int GroundTruth::main()
   
   ((const Blobs&) Blackboard::getInstance()["Blobs"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
   
-  ((const Regions&) Blackboard::getInstance()["Regions"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
+  //((const Regions&) Blackboard::getInstance()["Regions"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
   
   ((const RobotsPoses&) Blackboard::getInstance()["RobotsPoses"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
   
-  ((const RobotPercept&) Blackboard::getInstance()["RobotPercept"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
+  //((const RobotPercept&) Blackboard::getInstance()["RobotPercept"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
   
   ((const BallPerception&) Blackboard::getInstance()["BallPerception"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
   
