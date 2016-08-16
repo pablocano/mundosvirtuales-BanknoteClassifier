@@ -10,6 +10,8 @@ GroundTruthConfiguration::GroundTruthConfiguration()
   theInstance = this;
   
   readFile(std::string(File::getGTDir())+"/Config/cubo.txt");
+  
+  readRobotsIdentifiers();
 }
 
 void GroundTruthConfiguration::update(ColorModel& colorModel)
@@ -18,6 +20,15 @@ void GroundTruthConfiguration::update(ColorModel& colorModel)
     colorModel.fromColorCalibration(*theColorCalibration, colorCalibration);
     delete theColorCalibration;
     theColorCalibration = 0;
+  }
+}
+
+void GroundTruthConfiguration::update(RobotsIdentifiers &robotsIdentifiers)
+{
+  if (theRobotsIdentifiers) {
+    robotsIdentifiers = *theRobotsIdentifiers;
+    delete theRobotsIdentifiers;
+    theRobotsIdentifiers = 0;
   }
 }
 
@@ -94,3 +105,24 @@ void GroundTruthConfiguration::getColorCalibration(ColorCalibration &newColorCal
   }
 }
 
+void GroundTruthConfiguration::readRobotsIdentifiers()
+{
+  cv::FileStorage file( std::string(File::getGTDir())+"/Config/robotsIdentifiers.xml", cv::FileStorage::READ);
+  
+  std::string teams[2] = {"teamBlue","teamRed"};
+  
+  theRobotsIdentifiers = new RobotsIdentifiers();
+  
+  theRobotsIdentifiers->identifiers.clear();
+  
+  for (int i = 0; i < 2; i++) {
+    for (int j = 0; j < 5; j++) {
+      std::string name = "robot";
+      name = name + std::to_string(j+1);
+      Color leftColor = (Color)((int)file[teams[i]][name]["leftShoulder"]);
+      Color rightColor = (Color)((int)file[teams[i]][name]["rightShoulder"]);
+      RobotsIdentifiers::Identifier robot = {leftColor,rightColor,i + 1,j + 1};
+      theRobotsIdentifiers->identifiers.push_back(robot);
+    }
+  }
+}
