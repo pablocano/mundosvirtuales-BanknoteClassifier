@@ -3,6 +3,16 @@
 template <class T = float> class Range
 {
 public:
+  void write(cv::FileStorage& fs) const
+  {
+    fs << "{" << "min" << min << "max" << max << "}";
+  }
+  
+  void read(const cv::FileNode& node)
+  {
+    min = (T)node["min"];
+    max = (T)node["max"];
+  }
 	
 	T min, max;
 	
@@ -38,3 +48,15 @@ public:
 	
 	bool operator==(const Range<T>& r) const {return min == r.min && max == r.max;}
 };
+
+static void write(cv::FileStorage& fs, const std::string&, const Range<int>& x)
+{
+  x.write(fs);
+}
+static void read(const cv::FileNode& node, Range<int>& x, const Range<int>& default_value = Range<int>())
+{
+  if(node.empty())
+    x = default_value;
+  else
+    x.read(node);
+}

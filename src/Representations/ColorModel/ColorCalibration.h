@@ -28,6 +28,18 @@ public:
 		{
 			return !(*this == other);
 		}
+    
+    void write(cv::FileStorage& fs) const
+    {
+      fs << "{" << "minR" << minR << "minB" << minB << "minRB" << minRB << "}";
+    }
+    
+    void read(const cv::FileNode& node)
+    {
+      minR = (int)node["minR"];
+      minB = (int)node["minB"];
+      minRB = (int)node["minRB"];
+    }
 		
 		int minR;
 		int minB;
@@ -50,12 +62,82 @@ public:
 		{
 			return !(*this == other);
 		}
+    
+    void write(cv::FileStorage& fs) const
+    {
+      fs << "{" << "hue" << hue << "saturation" << saturation << "intensity" << intensity << "}";
+    }
+    
+    void read(const cv::FileNode& node)
+    {
+      node["hue"] >> hue;
+      node["saturation"] >> saturation;
+      node["intensity"] >> intensity;
+    }
 		
 		Range<int> hue;
 		Range<int> saturation;
 		Range<int> intensity;
 	};
+  
+  void write(cv::FileStorage& fs) const
+  {
+    fs << "{" << "whiteThreshold" << whiteThreshold << "ranges" << "[";
+    
+    for (int i = 0; i < numOfColors; i++) {
+      fs << ranges[i];
+    }
+    
+    fs << "]" << "}";
+  }
+  
+  void read(const cv::FileNode& node)
+  {
+    node["whiteThreshold"] >> whiteThreshold;
+    const cv::FileNode readRanges = node["ranges"];
+    cv::FileNodeIterator it = readRanges.begin(), it_end = readRanges.end(); // Go through the node
+    for (int i = 0; it != it_end; ++it, i++)
+    {
+      (*it) >> ranges[i];
+    }
+    
+  }
 	
 	WhiteThresholds whiteThreshold;
 	HSIRanges ranges[numOfColors];
 };
+
+static void write(cv::FileStorage& fs, const std::string&, const ColorCalibration::WhiteThresholds& x)
+{
+  x.write(fs);
+}
+static void read(const cv::FileNode& node, ColorCalibration::WhiteThresholds& x, const ColorCalibration::WhiteThresholds& default_value = ColorCalibration::WhiteThresholds())
+{
+  if(node.empty())
+    x = default_value;
+  else
+    x.read(node);
+}
+
+static void write(cv::FileStorage& fs, const std::string&, const ColorCalibration::HSIRanges& x)
+{
+  x.write(fs);
+}
+static void read(const cv::FileNode& node, ColorCalibration::HSIRanges& x, const ColorCalibration::HSIRanges& default_value = ColorCalibration::HSIRanges())
+{
+  if(node.empty())
+    x = default_value;
+  else
+    x.read(node);
+}
+static void write(cv::FileStorage& fs, const std::string&, const ColorCalibration& x)
+{
+  x.write(fs);
+}
+static void read(const cv::FileNode& node, ColorCalibration& x, const ColorCalibration& default_value = ColorCalibration())
+{
+  if(node.empty())
+    x = default_value;
+  else
+    x.read(node);
+}

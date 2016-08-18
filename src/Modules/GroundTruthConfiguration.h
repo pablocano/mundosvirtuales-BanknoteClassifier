@@ -21,9 +21,9 @@ private:
   
   void update(RobotsIdentifiers& robotsIdentifiers);
   
-  void readFile(std::string name);
+  void readColorCalibration();
   
-  void writeFile(std::string name);
+  void writeColorCalibration();
   
   void readRobotsIdentifiers();
   
