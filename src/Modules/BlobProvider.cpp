@@ -28,7 +28,7 @@ void BlobProvider::createBlobs()
 {
   segments.clear();
   for(auto const& segment: theRegions.regions)
-    if(!segment.color.is(none) && !segment.color.is(green))
+    if(segment.right.y - segment.left.y > 3 && !segment.color.is(none) && !segment.color.is(green))
       segments.push_back(Segment(segment));
   
   groups.clear();

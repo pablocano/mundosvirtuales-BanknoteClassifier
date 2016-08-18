@@ -14,30 +14,57 @@ void RobotPoseProvider::update(RobotsPoses &robotsPoses)
 {
   robotsPoses.robotPoses.clear();
   for (const RobotPercept::Robot& robot : theRobotPercept.robots) {
-    analizeRobot(robot);
+    analizeBlob(robot);
+    analizePosibleRobot();
     if (posibleRobot.valid) {
       calculatePose(robotsPoses);
     }
   }
 }
 
-void RobotPoseProvider::analizeRobot(const RobotPercept::Robot &robot)
+void RobotPoseProvider::analizeBlob(const RobotPercept::Robot &robot)
 {
-  posibleRobot = {Vector2<int>(),Vector2<int>(),false};
+  posibleRobot.clear();
   for (const Blobs::Blob &blob : theBlobs.blobs) {
     if(blob.center.x < robot.leftUpper.x - minDistance || blob.center.x > robot.rightBottom.x + minDistance || blob.center.y < robot.leftUpper.y - minDistance || blob.center.y > robot.rightBottom.y + minDistance)
       continue;
-    if (blob.color.is(red) && posibleRobot.leftShoulder == Vector2<int>()) {
-      posibleRobot.leftShoulder = blob.center;
+    if (!blob.color.is(none) && !blob.color.is(green) && !blob.color.is(white))
+    {
+      posibleRobot.shoulders.push_back(blob);
     }
-    if (blob.color.is(blue) && posibleRobot.rightShoulder == Vector2<int>()) {
-      posibleRobot.rightShoulder = blob.center;
-    }
-  }
-  if (posibleRobot.leftShoulder != Vector2<int>() && posibleRobot.rightShoulder != Vector2<int>()) {
-    posibleRobot.valid = true;
   }
 }
+
+void RobotPoseProvider::analizePosibleRobot()
+{
+  if(posibleRobot.shoulders.size() != 2)
+  {
+    posibleRobot.valid = false;
+    return;
+  }
+  for(const RobotsIdentifiers::Identifier& identifier : theRobotsIdentifiers.identifiers)
+  {
+    if(posibleRobot.shoulders[0].color.is(identifier.leftShoulder) && posibleRobot.shoulders[1].color.is(identifier.rightShoulder))
+    {
+      posibleRobot.valid = true;
+      posibleRobot.team = identifier.team;
+      posibleRobot.number = identifier.number;
+      posibleRobot.leftShoulder = posibleRobot.shoulders[0].center;
+      posibleRobot.rightShoulder = posibleRobot.shoulders[1].center;
+      return;
+    }
+    if(posibleRobot.shoulders[0].color.is(identifier.rightShoulder) && posibleRobot.shoulders[1].color.is(identifier.leftShoulder))
+    {
+      posibleRobot.valid = true;
+      posibleRobot.team = identifier.team;
+      posibleRobot.number = identifier.number;
+      posibleRobot.leftShoulder = posibleRobot.shoulders[1].center;
+      posibleRobot.rightShoulder = posibleRobot.shoulders[0].center;
+      return;
+    }
+  }
+}
+
 
 void RobotPoseProvider::calculatePose(RobotsPoses &robotsPoses)
 {

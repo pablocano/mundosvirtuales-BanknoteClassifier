@@ -3,8 +3,8 @@
   <!-- Image width & height -->
   <teamBlue>
     <robot1>
-      <leftShoulder>4</leftShoulder>
-      <rightShoulder>3</rightShoulder>
+      <leftShoulder>3</leftShoulder>
+      <rightShoulder>4</rightShoulder>
     </robot1>
     <robot2>
       <leftShoulder>4</leftShoulder>
