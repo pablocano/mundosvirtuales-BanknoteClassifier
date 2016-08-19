@@ -111,10 +111,12 @@ void Camera::update(ImageBGR& image)
 {
   cv::Mat tmp, undistorted, rotated;
   *cameras[index] >> tmp;
-  if (image.empty()) {
+  //if (image.empty()) {
     //cameras[index]->set(CV_CAP_PROP_POS_AVI_RATIO , 0);
-    *cameras[index] >> tmp;
-  }
+    //*cameras[index] >> tmp;
+  //}
+  if(tmp.empty())
+      return;
   // correct and rotate images
   cv::undistort(tmp, undistorted, camerasInfo[index]->K, camerasInfo[index]->d);
   rotateImage90(undistorted, rotated, index == 0? ANGLES::CLOCKWISE : ANGLES::COUNTERCLOCKWISE);

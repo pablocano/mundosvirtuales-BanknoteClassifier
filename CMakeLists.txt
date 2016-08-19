@@ -15,6 +15,8 @@ set( GROUNDTRUTH_SRC
     src/Modules/BackgroundModel.h
     src/Modules/BallPerceptor.cpp
     src/Modules/BallPerceptor.h
+    src/Modules/BlobProvider.cpp
+    src/Modules/BlobProvider.h
     src/Modules/GroundTruthConfiguration.cpp
     src/Modules/GroundTruthConfiguration.h
     src/Modules/GroundTruthProvider.cpp
@@ -23,12 +25,16 @@ set( GROUNDTRUTH_SRC
     src/Modules/Regionizer.h
     src/Modules/RobotPerceptor.cpp
     src/Modules/RobotPerceptor.h
+    src/Modules/RobotPoseProvider.cpp
+    src/Modules/RobotPoseProvider.h
     src/Modules/Segmentator.cpp
     src/Modules/Segmentator.h
     src/Processes/GroundTruth.cpp
     src/Processes/GroundTruth.h
     src/Representations/BallPerception.cpp
     src/Representations/BallPerception.h
+    src/Representations/Blobs.cpp
+    src/Representations/Blobs.h
     src/Representations/CameraInfo.cpp
     src/Representations/CameraInfo.h
     src/Representations/ColorModel/ColorCalibration.h
@@ -43,6 +49,9 @@ set( GROUNDTRUTH_SRC
     src/Representations/Regions.h
     src/Representations/RobotPercept.cpp
     src/Representations/RobotPercept.h
+    src/Representations/RobotPose.cpp
+    src/Representations/RobotPose.h
+    src/Tools/ColorClasses.cpp
     src/Tools/ColorClasses.h
     src/Tools/ColorModelConversions.h
     src/Tools/Comm/GroundTruthMessageHandler.cpp
