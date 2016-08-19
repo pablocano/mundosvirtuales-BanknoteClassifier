@@ -1,18 +1,21 @@
 #include "GroundTruthProvider.h"
 #include "Tools/Comm/GroundTruthMessageHandler.h"
+#include "Tools/Math/Transformation.h"
 
 MAKE_MODULE(GroundTruthProvider, GroundTruth)
 
 void GroundTruthProvider::update(GroundTruthMessageOutput& groundTruthMessageOutput)
 {
-  GroundTruthRobot robot;
-  robot.robotNumber = 1;
-  robot.teamNumber = 21;
-  if (theRobotPercept.robots.size() != 0) {
-    robot.robotPose.position = theRobotPercept.robots[0].posInField;
-    robot.robotPose.rotation = 1.f;
+  
+  for (const RobotsPoses::RobotPose& robotPose : theRobotsPoses.robotPoses) {
+    GroundTruthRobot robot;
+    robot.teamNumber = robotPose.team;
+    robot.robotNumber = robotPose.number;
+    robot.robotPose.position = Transformation::imageToField(Vector2<>(robotPose.position.y,robotPose.position.x), theCameraInfo);
+    robot.robotPose.rotation = robotPose.rotation - M_PI_2;
     SEND_MESSAGE(idGroundTruthMessageRobot, robot);
   }
+  
   GroundTruthBall ball;
   if (theBallPerception.wasSeen) {
     ball.ballPosition = Vector2<>(theBallPerception.position.x,theBallPerception.position.y);
