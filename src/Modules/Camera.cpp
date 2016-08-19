@@ -119,7 +119,7 @@ void Camera::update(ImageBGR& image)
       return;
   // correct and rotate images
   cv::undistort(tmp, undistorted, camerasInfo[index]->K, camerasInfo[index]->d);
-  rotateImage90(undistorted, rotated, index == 0? ANGLES::CLOCKWISE : ANGLES::COUNTERCLOCKWISE);
+  rotateImage90(undistorted, rotated, index == 0? ANGLES::COUNTERCLOCKWISE : ANGLES::CLOCKWISE);
   image = ImageBGR(rotated);
 }
 
