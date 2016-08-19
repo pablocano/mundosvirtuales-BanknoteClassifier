@@ -4,14 +4,14 @@
 #include "Representations/CameraInfo.h"
 #include "Representations/GroundTruthMessages.h"
 #include "Representations/FrameInfo.h"
-#include "Representations/RobotPercept.h"
+#include "Representations/RobotPose.h"
 #include "Tools/ModuleManager/Module.h"
 
 MODULE(GroundTruthProvider,
 {,
   REQUIRES(CameraInfo),
   REQUIRES(FrameInfo),
-  REQUIRES(RobotPercept),
+  REQUIRES(RobotsPoses),
   REQUIRES(BallPerception),
   PROVIDES(GroundTruthMessageOutput),
 });

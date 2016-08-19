@@ -9,7 +9,7 @@ void BallPerceptor::update(BallPerception& ballPerception)
             return;
     ballPerception.wasSeen = false;
     for (auto& region : theRegions.regions) {
-        if (region.color.is(ColorModel::orange)) {
+        if (region.color.is(orange)) {
             if(findBall(region.getCenter(), ballPerception))
                 break;
         }

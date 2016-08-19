@@ -5,15 +5,18 @@
  */
 
 #include "GroundTruth.h"
+#include "Representations/Blobs.h"
+#include "Representations/RobotPose.h"
 #include "Representations/CameraInfo.h"
+#include "Representations/Regions.h"
 #include "Representations/RobotPercept.h"
 #include "Representations/BallPerception.h"
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
+#include "Modules/GroundTruthConfiguration.h"
+#include "Modules/Segmentator.h"
 #include <istream>
 
 GroundTruth::GroundTruth() :
-  moduleManager({"GroundTruth","Common"}),
+  moduleManager({"GroundTruth","Segmentation","Common"}),
   pause(false)
 {}
 
@@ -22,54 +25,49 @@ void GroundTruth::init()
   moduleManager.load();
 }
 
+
 /* Main del programa*/
 int GroundTruth::main()
 {
-  cv::namedWindow("Camera 1",cv::WINDOW_NORMAL);
-  cv::namedWindow("Camera 2",cv::WINDOW_NORMAL);
-
-  while (true){
-    moduleManager.execute();
-    groundTruthMessageHandler.send();
-    
-    ((const RobotPercept&) Blackboard::getInstance()["RobotPercept"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
-    
-    ((const BallPerception&) Blackboard::getInstance()["BallPerception"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
-
-
-    cv::imshow(((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).name, (const ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
-    
-    //cv::imshow(blackBoard.theCameraInfo->name + "sub", *blackBoard.theMovementImage);
-    
-    if (handleKey()) {
-      break;
-    }
-  }
+  moduleManager.execute();
+  groundTruthMessageHandler.send();
+  
+  ((const Blobs&) Blackboard::getInstance()["Blobs"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
+  
+  //((const Regions&) Blackboard::getInstance()["Regions"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
+  
+  ((const RobotsPoses&) Blackboard::getInstance()["RobotsPoses"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
+  
+  //((const RobotPercept&) Blackboard::getInstance()["RobotPercept"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
+  
+  ((const BallPerception&) Blackboard::getInstance()["BallPerception"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
+  
+  image = (const ImageBGR&) Blackboard::getInstance()["ImageBGR"];
+  
+  segmented = (const SegmentedImage&) Blackboard::getInstance()["SegmentedImage"];
+  
+  imageName = ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).name;
   return 0;
 }
 
-bool GroundTruth::handleKey()
+void GroundTruth::setColorCalibration(const ColorCalibration &colorCalibration)
 {
-  char key;
-  if(pause)
-  {
-    key = cv::waitKey(-1);
-    if(key == 'p')
-      pause = false;
-  }
-  else
-  {
-    key = cv::waitKey(1);
-    if(key > 0 && key != 27)
-      pause = true;
-  }
-  if(key == 27)
-    return true;
-  return false;
+  GroundTruthConfiguration::setColorCalibration(colorCalibration);
 }
 
-int main()
+ColorCalibration GroundTruth::getColorCalibration()
 {
-  GroundTruth g;
-  return g.procesMain();
+  ColorCalibration colorCalibration;
+  GroundTruthConfiguration::getColorCalibration(colorCalibration);
+  return colorCalibration;
+}
+
+void GroundTruth::saveColorCalibration()
+{
+  GroundTruthConfiguration::saveColorCalibration();
+}
+
+void GroundTruth::setSegmentation(bool set)
+{
+  Segmentator::setSegmentation(set);
 }

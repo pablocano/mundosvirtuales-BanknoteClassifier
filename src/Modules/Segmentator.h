@@ -13,8 +13,18 @@ MODULE(Segmentator,
 
 class Segmentator : public SegmentatorBase
 {
-public:
+private:
+  static Segmentator *theInstance;
+  
   using Colors = ColorModel::Colors;
 	void update(SegmentedImage &image);
+  
+  bool segment;
+  
+public:
+  
+  Segmentator();
+  
+  static void setSegmentation(bool set);
 
 };

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<opencv_storage>
+  <!-- Image width & height -->
+  <teamBlue>
+    <robot1>
+      <leftShoulder>3</leftShoulder>
+      <rightShoulder>4</rightShoulder>
+    </robot1>
+    <robot2>
+      <leftShoulder>4</leftShoulder>
+      <rightShoulder>6</rightShoulder>
+    </robot2>
+    <robot3>
+      <leftShoulder>4</leftShoulder>
+      <rightShoulder>7</rightShoulder>
+    </robot3>
+    <robot4>
+      <leftShoulder>3</leftShoulder>
+      <rightShoulder>6</rightShoulder>
+    </robot4>
+    <robot5>
+      <leftShoulder>3</leftShoulder>
+      <rightShoulder>7</rightShoulder>
+    </robot5>
+  </teamBlue>
+  <teamRed>
+  </teamRed>
+</opencv_storage>

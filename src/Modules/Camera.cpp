@@ -2,6 +2,7 @@
 #include "Tools/SystemCall.h"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <sstream>
+
 MAKE_MODULE(Camera, Common)
 
 Camera::Camera(): index(0)
@@ -35,7 +36,6 @@ Camera::Camera(): index(0)
         video0.set(CV_CAP_PROP_FRAME_HEIGHT, height);
         video0.set(CV_CAP_PROP_FRAME_WIDTH, width);
     }
-
     // open second camera
     video1 = cv::VideoCapture(1);
     if(!video1.isOpened())  // check if we succeeded
@@ -111,10 +111,12 @@ void Camera::update(ImageBGR& image)
 {
   cv::Mat tmp, undistorted, rotated;
   *cameras[index] >> tmp;
-  if (image.empty()) {
+  //if (image.empty()) {
     //cameras[index]->set(CV_CAP_PROP_POS_AVI_RATIO , 0);
-    *cameras[index] >> tmp;
-  }
+    //*cameras[index] >> tmp;
+  //}
+  if(tmp.empty())
+      return;
   // correct and rotate images
   cv::undistort(tmp, undistorted, camerasInfo[index]->K, camerasInfo[index]->d);
   rotateImage90(undistorted, rotated, index == 0? ANGLES::COUNTERCLOCKWISE : ANGLES::CLOCKWISE);
