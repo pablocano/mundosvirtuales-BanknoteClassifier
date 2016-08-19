@@ -23,7 +23,7 @@ Camera::Camera(): index(0)
     /**
      * Prepare cameras
     */
-    video0 = cv::VideoCapture(2);
+    video0 = cv::VideoCapture(1);
     if(!video0.isOpened())  // check if we succeeded
     {
         cam1.available = false;
