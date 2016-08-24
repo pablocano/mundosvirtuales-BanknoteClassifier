@@ -9,6 +9,7 @@
 #include "MessageIDs.h"
 #include "Tools/SystemCall.h"
 #include <algorithm>
+#include <iostream>
 
 #ifndef WINDOWS
   #ifdef LINUX
@@ -43,3 +44,28 @@ unsigned SPLStandardMessageWrapper::fromMessageQueue(MessageQueue& out)
 
   return header.messageSize;
 }
+
+void SPLStandardMessageWrapper::toMessageQueue(MessageQueue &in, const unsigned remoteIp)
+{
+  if(header[0] != 'S' || header[1] != 'P' || header[2] != 'L' || header[3] != ' ')
+  {
+    std::cout << "Received package from ip " << remoteIp << " with Header '" << header[0] << header[1] << header[2] << header[3] << "' but should be 'SPL '. Ignoring package..." << std::endl;
+    return;
+  }
+  
+  if(version != SPL_STANDARD_MESSAGE_STRUCT_VERSION)
+  {
+    std::cout << "Received package from ip " << remoteIp << " with SPL_STANDARD_MESSAGE_STRUCT_VERSION '" << version << "' but should be '" << SPL_STANDARD_MESSAGE_STRUCT_VERSION << "'.Ignoring package..." << std::endl;
+    return;
+  }
+  
+  const uchrtHeader& header = (const uchrtHeader&) *data;
+  
+  ntp_com ntp = {static_cast<int>(remoteIp ? remoteIp : playerNum),header.timestamp,SystemCall::getCurrentSystemTime(),header.messageSize};
+  in << &ntp;
+  in.finishMessage(idNTPHeader);
+  
+  in.append(data + uchrtHeaderSize);
+}
+
+

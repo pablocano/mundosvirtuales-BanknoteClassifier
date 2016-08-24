@@ -5,6 +5,7 @@ GroundTruthWrapper::GroundTruthWrapper(QObject *parent)
  : QThread(parent),
    shouldStop(false)
 {
+  groundTruth.setGlobals();
   start(NormalPriority);
 }
 
