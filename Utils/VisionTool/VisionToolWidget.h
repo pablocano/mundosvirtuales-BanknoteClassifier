@@ -15,6 +15,8 @@ private:
   
   void paintEvent(QPaintEvent *event);
   
+  void drawField(QPainter& painter);
+  
   void drawRobot(QPainter& painter, const GroundTruthRobot& robot);
   
   void drawBall(QPainter& painter, const GroundTruthBall& ball);
