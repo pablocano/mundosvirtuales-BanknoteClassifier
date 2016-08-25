@@ -27,6 +27,8 @@ int main()
 {
   GroundTruth g;
   
+  g.setGlobals();
+  
   bool pause = false;
   
   cv::namedWindow("Camera 1",cv::WINDOW_AUTOSIZE);

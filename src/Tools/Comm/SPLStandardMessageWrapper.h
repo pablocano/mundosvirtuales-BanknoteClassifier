@@ -26,8 +26,17 @@ private:
     char sizeMarker; /**< Helper to determine size without padding. Must be last field. */
   };
   
+  struct ntp_com{
+    int playerNum;
+    unsigned timeStamp;
+    unsigned systemTime;
+    unsigned short messageSize;
+  };
+  
 public:
   SPLStandardMessageWrapper();
   
   unsigned fromMessageQueue(MessageQueue& out);
+  
+  void toMessageQueue(MessageQueue& in, const unsigned remoteIp);
 };

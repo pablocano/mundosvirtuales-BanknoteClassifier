@@ -7,11 +7,25 @@
 //
 
 #include "Process.h"
+#include "Tools/Global.h"
+
+Process::Process()
+: initialized(false)
+{
+}
+
+void Process::setGlobals()
+{
+  Global::theSettings = &settings;
+  
+  Blackboard::setInstance(blackboard);
+}
 
 int Process::procesMain()
 {
   if (!initialized) {
     init();
+    initialized = true;
   }
   
   return main();

@@ -65,6 +65,8 @@ set( GROUNDTRUTH_SRC
     src/Tools/Enum.h
     src/Tools/File.cpp
     src/Tools/File.h
+    src/Tools/Global.cpp
+    src/Tools/Global.h
     src/Tools/Math/Line.cpp
     src/Tools/Math/Line.h
     src/Tools/Math/Pose2D.h
@@ -82,6 +84,8 @@ set( GROUNDTRUTH_SRC
     src/Tools/ModuleManager/ModuleManager.h
     src/Tools/Process.cpp
     src/Tools/Process.h
+    src/Tools/Settings.cpp
+    src/Tools/Settings.h
     src/Tools/Streamable.h
     src/Tools/SystemCall.cpp
     src/Tools/SystemCall.h
@@ -105,6 +109,9 @@ set( FIELD_CALIBRATOR
 
 set( CALIBRATOR_SRC_DIR Utils/CalibratorTool)
 
+QT4_WRAP_UI(CALIBRATION_TOOL_UISrcs ${CALIBRATOR_SRC_DIR}/mainwindow.ui)
+QT4_WRAP_CPP(CALIBRATION_TOOL_MOCSrcs ${CALIBRATOR_SRC_DIR}/MainWindow.h ${CALIBRATOR_SRC_DIR}/GroundTruthWrapper.h)
+
 set( CALIBRATOR_TOOL_SRC
   ${CALIBRATOR_SRC_DIR}/Main.cpp
   ${CALIBRATOR_SRC_DIR}/GroundTruthWrapper.cpp
@@ -113,8 +120,43 @@ set( CALIBRATOR_TOOL_SRC
   ${CALIBRATOR_SRC_DIR}/MainWindow.h
 )
 
-QT4_WRAP_UI(UISrcs ${CALIBRATOR_SRC_DIR}/mainwindow.ui)
-QT4_WRAP_CPP(MOCSrcs ${CALIBRATOR_SRC_DIR}/MainWindow.h ${CALIBRATOR_SRC_DIR}/GroundTruthWrapper.h)
+set( VISION_TOOL_SRC_DIR Utils/VisionTool)
+
+QT4_WRAP_CPP(VISION_TOOL_MOCSrcs ${VISION_TOOL_SRC_DIR}/VisionToolWidget.h)
+
+set( VISION_TOOL_SRC
+  ${VISION_TOOL_SRC_DIR}/Main.cpp
+  ${VISION_TOOL_SRC_DIR}/CommunicationHandler.cpp
+  ${VISION_TOOL_SRC_DIR}/CommunicationHandler.h
+  ${VISION_TOOL_SRC_DIR}/VisionTool.cpp
+  ${VISION_TOOL_SRC_DIR}/VisionTool.h
+  ${VISION_TOOL_SRC_DIR}/VisionToolWidget.cpp
+  ${VISION_TOOL_SRC_DIR}/VisionToolWidget.h
+  src/Tools/Comm/GroundTruthMessageHandler.cpp
+  src/Tools/Comm/GroundTruthMessageHandler.h
+  src/Tools/Comm/SPLStandardMessage.h
+  src/Tools/Comm/SPLStandardMessageWrapper.cpp
+  src/Tools/Comm/SPLStandardMessageWrapper.h
+  src/Tools/Comm/UdpComm.cpp
+  src/Tools/Comm/UdpComm.h
+  src/Tools/Enum.cpp
+  src/Tools/Enum.h
+  src/Tools/File.cpp
+  src/Tools/File.h
+  src/Tools/Global.cpp
+  src/Tools/Global.h
+  src/Tools/Math/Pose2D.h
+  src/Tools/Math/Vector2.h
+  src/Tools/Messages/MessageQueue.cpp
+  src/Tools/Messages/MessageQueue.h
+  src/Tools/Settings.cpp
+  src/Tools/Settings.h
+  src/Tools/Streamable.h
+  src/Tools/SystemCall.cpp
+  src/Tools/SystemCall.h
+
+  ${MessageIDsPath}/MessageIDs.h
+)
 
 source_group(src\\Processes REGULAR_EXPRESSION "src/Processes/*")
 source_group(src\\Modules REGULAR_EXPRESSION "Modules/*")
@@ -126,6 +168,7 @@ source_group(src\\Tools\\Comm REGULAR_EXPRESSION "Tools/Comm/*")
 source_group(src\\Tools\\Messages REGULAR_EXPRESSION "Tools/Messages/*")
 source_group(src\\Tools\\Math REGULAR_EXPRESSION "Tools/Math/*")
 source_group(Utils\\CalibratorTool REGULAR_EXPRESSION "Utils/CalibratorTool/*")
+source_group(Utils\\VisionTool REGULAR_EXPRESSION "Utils/VisionTool/*")
 
 set(CMAKE_CXX_FLAGS "-std=c++11")
 
@@ -155,5 +198,8 @@ target_link_libraries(gt groundTruth)
 
 include_directories(${QT_USE_FILE} ${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/CalibratorTool  ${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(calibrationTool ${CALIBRATOR_TOOL_SRC} ${MOCSrcs} ${UISrcs})
+add_executable(calibrationTool ${CALIBRATOR_TOOL_SRC} ${CALIBRATION_TOOL_MOCSrcs} ${CALIBRATION_TOOL_UISrcs})
 target_link_libraries(calibrationTool groundTruth ${QT_LIBRARIES} ${OpenCV_LIBS})
+
+add_executable(visionTool ${VISION_TOOL_SRC} ${VISION_TOOL_MOCSrcs} ${OpenCV_INCLUDE})
+target_link_libraries(visionTool ${OpenCV_LIBS} ${QT_LIBRARIES})

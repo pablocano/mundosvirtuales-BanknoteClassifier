@@ -1,22 +1,26 @@
 #pragma once
 #include "Tools/ModuleManager/Blackboard.h"
+#include "Tools/Settings.h"
 
 class Process {
   
 public:
   
-  Process() : initialized(false)
-  {
-    Blackboard::setInstance(blackboard);
-  }
+  Process();
   
   int procesMain();
+  
+  void setGlobals();
+  
+protected:
   
   virtual int main() = 0;
   
   virtual void init() {};
   
+private:
+  bool initialized;
+  Settings settings;
   Blackboard blackboard;
   
-  bool initialized;
 };

@@ -14,9 +14,20 @@ MessageQueue::MessageQueue()
 : maxSize(780 - queueHeaderSize),
   usedSize(0),
   writePosition(0),
-  numberOfMessages(0)
+  numberOfMessages(0),
+  selectedMessageForReadingPosition(0),
+  lastMessage(0)
 {
   buf = (char*) malloc(maxSize) + queueHeaderSize;
+}
+
+void MessageQueue::handleAllMessages(MessageHandler& handler)
+{
+  for(int i = 0; i < numberOfMessages; ++i)
+  {
+    setSelectedMessageForReading(i);
+    handler.handleMessage(*this);
+  }
 }
 
 MessageQueue::~MessageQueue()
@@ -30,6 +41,8 @@ void MessageQueue::clear()
   usedSize = 0;
   writePosition = 0;
   numberOfMessages = 0;
+  selectedMessageForReadingPosition = 0;
+  lastMessage = 0;
 }
 
 char* MessageQueue::reserve(size_t size)
@@ -65,4 +78,48 @@ void MessageQueue::write(char *dest)
   memcpy(dest, &usedSize, 4);
   memcpy(dest + 4, &numberOfMessages, 4);
   memcpy(dest + 8, buf, usedSize);
+}
+
+void MessageQueue::append(void* stream)
+{
+  struct msg_header{
+    unsigned usedSize;
+    int numberOfMessages;
+  };
+  
+  char* inStream = (char*)stream;
+  
+  msg_header& header = (msg_header&) *inStream;
+  
+  // Trying a direct copy. This is hacked, but fast.
+  char* dest = header.numberOfMessages == (unsigned) -1 ? 0 : reserve(header.usedSize - headerSize);
+  if(dest)
+  {
+    memcpy(dest - headerSize, inStream + sizeof(msg_header), header.usedSize);
+    numberOfMessages += header.numberOfMessages;
+    usedSize += header.usedSize;
+    writePosition = 0;
+  }
+}
+
+void MessageQueue::setSelectedMessageForReading(int message)
+{
+  int m = message;
+  if(m >= lastMessage)
+  {
+    m -= lastMessage;
+  }
+  else
+    selectedMessageForReadingPosition = 0;
+  
+  for(int i = 0; i < m; ++i)
+    selectedMessageForReadingPosition += getMessageSize() + headerSize;
+  
+  lastMessage = message;
+}
+
+
+void MessageQueue::read(void* p, size_t size)
+{
+  memcpy(p, buf + selectedMessageForReadingPosition + headerSize, size);
 }

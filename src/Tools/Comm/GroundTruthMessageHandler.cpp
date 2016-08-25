@@ -4,15 +4,22 @@
 
 GroundTruthMessageHandler* GroundTruthMessageHandler::theInstance = 0;
 
-GroundTruthMessageHandler::GroundTruthMessageHandler()
+
+GroundTruthMessageHandler::GroundTruthMessageHandler(MessageQueue& in, MessageQueue& out) :
+in(in),
+out(out),
+port(0)
 {
   theInstance = this;
-  int port = 10021;
-  std::string bcastAddr = UdpComm::getWifiBroadcastAddress();
+}
+
+void GroundTruthMessageHandler::start(int port, const char* subnet)
+{
+  this->port = port;
   socket.setBlocking(false);
   socket.setBroadcast(true);
   socket.bind("0.0.0.0", port);
-  socket.setTarget(bcastAddr.c_str(), port);
+  socket.setTarget(subnet, port);
   socket.setLoopback(false);
 }
 
@@ -23,7 +30,7 @@ GroundTruthMessageHandler::~GroundTruthMessageHandler()
 
 void GroundTruthMessageHandler::send()
 {
-  if (queue.usedSize == 0) {
+  if (out.usedSize == 0) {
     //Nothing to send
     return;
   }
@@ -31,9 +38,9 @@ void GroundTruthMessageHandler::send()
   
   SPLStandardMessageWrapper message;
   
-  unsigned size = message.fromMessageQueue(queue);
+  unsigned size = message.fromMessageQueue(out);
   memcpy(buf, (char*)&message, size);
-  queue.clear();
+  out.clear();
   
   if(!socket.write(buf, size))
   {
@@ -41,7 +48,37 @@ void GroundTruthMessageHandler::send()
   }
 }
 
+unsigned GroundTruthMessageHandler::receive()
+{
+  in.clear();
+  if(!port)
+    return 0; // not started yet
+  
+  char buffer[sizeof(SPLStandardMessage)];
+  int size;
+  unsigned remoteIp = 0;
+  unsigned receivedSize = 0;
+  
+  do
+  {
+    size = socket.read(buffer, sizeof(buffer), remoteIp);
+    if(size >= (int)(sizeof(SPLStandardMessage) - SPL_STANDARD_MESSAGE_DATA_SIZE) && size <= (int)(sizeof(SPLStandardMessage)))
+    {
+      receivedSize = (unsigned) size;
+      
+      
+      SPLStandardMessageWrapper inMsg;
+      memcpy(&inMsg, buffer, size);
+      
+      inMsg.toMessageQueue(in, remoteIp);
+    }
+  }
+  while(size > 0);
+  
+  return receivedSize;
+}
+
 MessageQueue& GroundTruthMessageHandler::getOutQueue()
 {
-  return theInstance->queue;
+  return theInstance->out;
 }

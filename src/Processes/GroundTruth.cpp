@@ -13,15 +13,18 @@
 #include "Representations/BallPerception.h"
 #include "Modules/GroundTruthConfiguration.h"
 #include "Modules/Segmentator.h"
+#include "Tools/Global.h"
 #include <istream>
 
 GroundTruth::GroundTruth() :
+  INIT_GROUND_TRUTH_COMM,
   moduleManager({"GroundTruth","Segmentation","Common"}),
   pause(false)
 {}
 
 void GroundTruth::init()
 {
+  START_GROUND_TRUTH_COMM;
   moduleManager.load();
 }
 
@@ -29,8 +32,9 @@ void GroundTruth::init()
 /* Main del programa*/
 int GroundTruth::main()
 {
+  RECEIVE_GROUND_TRUTH_COMM;
   moduleManager.execute();
-  groundTruthMessageHandler.send();
+  SEND_GROUND_TRUTH_COMM;
   
   ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
 

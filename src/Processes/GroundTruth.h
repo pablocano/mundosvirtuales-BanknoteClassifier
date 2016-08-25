@@ -15,6 +15,9 @@
 
 class GroundTruth : public Process{
   
+private:
+  GROUND_TRUTH_COMM;
+  
 protected:
   
   void init();
@@ -22,7 +25,6 @@ protected:
   int main();
   
   ModuleManager moduleManager;
-  GroundTruthMessageHandler groundTruthMessageHandler;
   
   bool pause;
   
