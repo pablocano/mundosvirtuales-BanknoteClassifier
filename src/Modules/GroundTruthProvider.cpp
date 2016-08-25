@@ -19,7 +19,7 @@ void GroundTruthProvider::update(GroundTruthMessageOutput& groundTruthMessageOut
   
   GroundTruthBall ball;
   if (theBallPerception.wasSeen) {
-    ball.ballPosition = Vector2<>(theBallPerception.position.x,theBallPerception.position.y);
+    ball.ballPosition = Transformation::imageToField(Vector2<>(theBallPerception.position.x,theBallPerception.position.y),theCameraInfo);
     SEND_MESSAGE(idGroundTruthMessageBall, ball);
     printf("Ball PosX: %f, Ball PosY: %f\n",ball.ballPosition.x,ball.ballPosition.y);
   }

@@ -57,28 +57,38 @@ void VisionToolWidget::drawField(QPainter &painter)
   
   //Circle
   painter.setBrush(Qt::NoBrush);
-  painter.drawEllipse(QPointF(350,250), 70, 70);
+  painter.drawEllipse(QPointF(350,250), 58, 58);
   
   //Left Area
-  painter.drawLine(130, 120, 130, 370);
-  painter.drawLine(570, 120, 570, 370);
-  painter.drawLine(50, 120, 130, 120);
+  painter.drawLine(115, 142, 115, 358);
+  painter.drawLine(50, 358, 115, 358);
+  painter.drawLine(50, 142, 115, 142);
   
   //Right Area
-  painter.drawLine(50, 370, 130, 370);
-  painter.drawLine(570, 120, 650, 120);
-  painter.drawLine(570, 370, 650, 370);
+  painter.drawLine(588, 142, 588, 358);
+  painter.drawLine(588, 142, 650, 142);
+  painter.drawLine(588, 358, 650, 358);
   
   //Central Mark
   painter.drawLine(347, 250, 353, 250);
   
   //Left Penalty Mark
-  painter.drawLine(172, 250, 178, 250);
-  painter.drawLine(175, 247, 175, 253);
+  painter.drawLine(227, 250, 233, 250);
+  painter.drawLine(230, 247, 230, 253);
   
   //Right Penalty Mark
-  painter.drawLine(522, 250, 528, 250);
-  painter.drawLine(525, 247, 525, 253);
+  painter.drawLine(467, 250, 473, 250);
+  painter.drawLine(470, 247, 470, 253);
+  
+  //Left Goal
+  painter.setPen(QPen(Qt::yellow,5,Qt::SolidLine, Qt::RoundCap));
+  painter.setBrush(Qt::yellow);
+  painter.drawEllipse(QPointF(50,170), 5, 5);
+  painter.drawEllipse(QPointF(50,330), 5, 5);
+  
+  //Right Goal
+  painter.drawEllipse(QPointF(650,170), 5, 5);
+  painter.drawEllipse(QPointF(650,330), 5, 5);
   
 }
 
