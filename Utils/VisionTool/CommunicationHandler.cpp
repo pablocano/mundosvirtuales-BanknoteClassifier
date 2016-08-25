@@ -26,6 +26,7 @@ bool CommunicationHandler::handleMessage(MessageQueue &message)
     case idGroundTruthMessageBall:
       message >> &ball;
       balls.push_back(ball);
+      printf("Ball Pos X:%f,Ball Pos Y:%f\n",ball.ballPosition.x,ball.ballPosition.y);
       return true;
       
     case idGroundTruthMessageRobot:
