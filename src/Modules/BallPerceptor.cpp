@@ -4,7 +4,18 @@ MAKE_MODULE(BallPerceptor, GroundTruth)
 
 void BallPerceptor::update(BallPerception& ballPerception)
 {
-    if(ballPerception.wasSeen)
+  ballPerception.wasSeen = false;
+  for(const Blobs::Blob& blob : theBlobs.blobs)
+  {
+    if(blob.color.is(orange) && (blob.leftUpper - blob.rightBottom).abs() < 10)
+    {
+      ballPerception.wasSeen = true;
+      ballPerception.position = blob.center;
+      ballPerception.radius = (blob.rightBottom.x - blob.leftUpper.x)/ 2.f;
+      return;
+    }
+  }
+    /*if(ballPerception.wasSeen)
         if(findBall(ballPerception.position, ballPerception))
             return;
     ballPerception.wasSeen = false;
@@ -13,7 +24,7 @@ void BallPerceptor::update(BallPerception& ballPerception)
             if(findBall(region.getCenter(), ballPerception))
                 break;
         }
-    }
+    }*/
 }
 
 bool BallPerceptor::findBall(const Vector2<int>& position, BallPerception& ballPerception)

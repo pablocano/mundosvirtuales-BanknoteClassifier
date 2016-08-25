@@ -3,6 +3,7 @@
 //#include "Representations/Blackboard.h"
 #include "Representations/BallPerception.h"
 #include "Representations/ColorModel/ColorModel.h"
+#include "Representations/Blobs.h"
 #include "Representations/Image.h"
 #include "Representations/Regions.h"
 #include "Tools/ModuleManager/Module.h"
@@ -13,7 +14,8 @@ MODULE(BallPerceptor,
   REQUIRES(Image),
   REQUIRES(ColorModel),
   REQUIRES(Regions),
-	PROVIDES(BallPerception),
+  REQUIRES(Blobs),
+  PROVIDES(BallPerception),
 });
 
 

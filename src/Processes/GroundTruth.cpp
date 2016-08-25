@@ -32,6 +32,8 @@ int GroundTruth::main()
   moduleManager.execute();
   groundTruthMessageHandler.send();
   
+  ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
+
   ((const Blobs&) Blackboard::getInstance()["Blobs"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
   
   //((const Regions&) Blackboard::getInstance()["Regions"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
