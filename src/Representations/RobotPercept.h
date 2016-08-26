@@ -9,11 +9,11 @@ public:
 
     struct Robot
     {
-        Robot(const Vector2<int>& center, const Vector2<int> &leftUpper, const Vector2<int>& rightBottom, const Vector2<>& posInField) : center(center), leftUpper(leftUpper), rightBottom(rightBottom), posInField(posInField) {}
+        Robot(const Vector2<int>& center, const Vector2<int> &leftUpper, const Vector2<int>& rightBottom, const Vector2<>& posInField) : center(center), leftUpper(leftUpper), rightBottom(rightBottom), centerCorrected(centerCorrected) {}
         Vector2<int> center;
         Vector2<int> leftUpper;
         Vector2<int> rightBottom;
-        Vector2<> posInField;
+        Vector2<> centerCorrected;
     };
 
     void draw(cv::Mat& image) const;

@@ -28,7 +28,7 @@ void BlobProvider::createBlobs()
 {
   segments.clear();
   for(auto const& segment: theRegions.regions)
-    if(segment.right.y - segment.left.y > 3 && !segment.color.is(none) && !segment.color.is(green))
+    if(segment.right.x - segment.left.x > 3 && !segment.color.is(none) && !segment.color.is(green))
       segments.push_back(Segment(segment));
   
   groups.clear();
@@ -78,11 +78,11 @@ bool BlobProvider::Group::itBelongs(const Segment &line, int segment)
     return false;
   
   if(segments[segment].depth == line.depth)
-    if(std::abs(line.left.y - segments[segment].right.y) < 15 || std::abs(segments[segment].left.y - line.right.y) < 15)
+    if(std::abs(line.left.x - segments[segment].right.x) < 15 || std::abs(segments[segment].left.x - line.right.x) < 15)
       return true;
   
   if(std::abs(line.depth - segments[segment].depth) < 4)
-    if(segments[segment].left.y < line.right.y && segments[segment].right.y > line.left.y)
+    if(segments[segment].left.x < line.right.x && segments[segment].right.x > line.left.x)
       return true;
   
   return false;

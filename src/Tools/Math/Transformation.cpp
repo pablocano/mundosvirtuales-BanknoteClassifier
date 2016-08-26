@@ -17,3 +17,11 @@ Vector2<> Transformation::imageToField(const Vector2<> &positionInImage, const C
     res *= cameraInfo.pix2World;
     return res;
 }
+
+Vector2<> Transformation::imageToImageCorrected(const Vector2<> &positionInImage, const CameraInfo &cameraInfo)
+{
+  Vector2<> res = positionInImage;
+  res.y = -res.y;
+  
+  return res + cameraInfo.fieldCenterInImage;
+}

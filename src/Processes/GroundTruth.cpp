@@ -37,10 +37,10 @@ int GroundTruth::main()
   SEND_GROUND_TRUTH_COMM;
   
   ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
-
-  ((const Blobs&) Blackboard::getInstance()["Blobs"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
   
   //((const Regions&) Blackboard::getInstance()["Regions"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
+  
+  ((const Blobs&) Blackboard::getInstance()["Blobs"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
   
   ((const RobotsPoses&) Blackboard::getInstance()["RobotsPoses"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
   

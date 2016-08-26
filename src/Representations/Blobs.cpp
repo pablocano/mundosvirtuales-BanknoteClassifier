@@ -15,6 +15,6 @@ void Blobs::draw(cv::Mat &image) const
 {
   for(auto& blob : blobs)
   {
-    cv::rectangle(image,cv::Point2i(blob.leftUpper.y, blob.leftUpper.x),cv::Point2i(blob.rightBottom.y, blob.rightBottom.x), DrawingColors::getDrawingColor(blob.color.colors));
+    cv::rectangle(image,cv::Point2i(blob.leftUpper.x, blob.leftUpper.y),cv::Point2i(blob.rightBottom.x, blob.rightBottom.y), DrawingColors::getDrawingColor(blob.color.colors));
   }
 }

@@ -7,8 +7,8 @@ void BallPerception::draw(cv::Mat &image) const
     {
         cv::Mat copy;
         image.copyTo(copy);
-        cv::circle(copy, cv::Point(position.y,position.x), radius, cv::Scalar(0,128,255), -1);
-        cv::circle(copy, cv::Point(position.y,position.x), radius, cv::Scalar(0,0,0));
+        cv::circle(copy, cv::Point(position.x,position.y), radius, cv::Scalar(0,128,255), -1);
+        cv::circle(copy, cv::Point(position.x,position.y), radius, cv::Scalar(0,0,0));
         cv::addWeighted(image, 0.3, copy, 0.7, 0, image);
     }
 }

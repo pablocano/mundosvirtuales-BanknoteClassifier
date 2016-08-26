@@ -6,5 +6,7 @@ class CameraInfo;
 class Transformation
 {
 public:
-    static Vector2<> imageToField(const Vector2<> &positionInImage, const CameraInfo& cameraInfo);
+  static Vector2<> imageToField(const Vector2<> &positionInImage, const CameraInfo& cameraInfo);
+  
+  static Vector2<> imageToImageCorrected(const Vector2<> &positionInImage, const CameraInfo& cameraInfo);
 };

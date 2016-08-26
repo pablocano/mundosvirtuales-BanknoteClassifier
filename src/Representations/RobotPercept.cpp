@@ -24,6 +24,6 @@ void RobotPercept::draw(cv::Mat &image) const
 
         cv::putText(image, text, textOrg, fontFace, fontScale,
                 cv::Scalar::all(0), thickness, 8);
-        cv::rectangle(image,cv::Point2i(robot.leftUpper.y, robot.leftUpper.x),cv::Point2i(robot.rightBottom.y, robot.rightBottom.x), cv::Scalar(255,0,0));
+        cv::rectangle(image,cv::Point2i(robot.leftUpper.x, robot.leftUpper.y),cv::Point2i(robot.rightBottom.x, robot.rightBottom.y), cv::Scalar(255,0,0));
     }
 }

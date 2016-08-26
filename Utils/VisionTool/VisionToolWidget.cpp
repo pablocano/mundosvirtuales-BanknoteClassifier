@@ -106,7 +106,7 @@ void VisionToolWidget::drawBall(QPainter &painter, const GroundTruthBall &ball)
 {
   painter.setPen(Qt::red);
   painter.setBrush(Qt::red);
-  Vector2<> ballPosition = ball.ballPosition;///10.f;
+  Vector2<> ballPosition = ball.ballPosition/10.f;
   ballPosition += Vector2<>(350, 250);
   painter.drawEllipse(QPointF(ballPosition.x,ballPosition.y), 5,5);
 }
