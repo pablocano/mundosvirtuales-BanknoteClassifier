@@ -34,7 +34,9 @@ int GroundTruth::main()
 {
   RECEIVE_GROUND_TRUTH_COMM;
   moduleManager.execute();
-  SEND_GROUND_TRUTH_COMM;
+  if(((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).type == CameraInfo::Type::cam2){
+    SEND_GROUND_TRUTH_COMM;
+  }
   
   ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
   

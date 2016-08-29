@@ -23,6 +23,8 @@ protected:
   void init();
   
   int main();
+
+  void sendBothCameras();
   
   ModuleManager moduleManager;
   

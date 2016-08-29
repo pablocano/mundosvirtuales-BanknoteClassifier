@@ -11,7 +11,7 @@ void RobotPercept::draw(cv::Mat &image) const
     for(auto& robot : robots)
     {
         std::stringstream textStream;
-        textStream << robot.posInField.x <<  ", " << robot.posInField.y;
+        textStream << robot.center.x <<  ", " << robot.center.y;
         std::string text = textStream.str();
         int baseline=0;
         cv::Size textSize = cv::getTextSize(text, fontFace,
@@ -19,8 +19,8 @@ void RobotPercept::draw(cv::Mat &image) const
         baseline += thickness;
 
         // center the text
-        cv::Point textOrg(robot.center.y - textSize.width/2,
-                      robot.center.x + textSize.height/2);
+        cv::Point textOrg(robot.centerInImage.x - textSize.width/2,
+                      robot.centerInImage.y + textSize.height/2);
 
         cv::putText(image, text, textOrg, fontFace, fontScale,
                 cv::Scalar::all(0), thickness, 8);

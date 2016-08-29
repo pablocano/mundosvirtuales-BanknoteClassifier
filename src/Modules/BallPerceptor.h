@@ -1,6 +1,6 @@
 
 #pragma once
-//#include "Representations/Blackboard.h"
+#include "Representations/CameraInfo.h"
 #include "Representations/BallPerception.h"
 #include "Representations/ColorModel/ColorModel.h"
 #include "Representations/Blobs.h"
@@ -12,6 +12,7 @@
 MODULE(BallPerceptor,
 {,
   REQUIRES(Image),
+  REQUIRES(CameraInfo),
   REQUIRES(ColorModel),
   REQUIRES(Regions),
   REQUIRES(Blobs),

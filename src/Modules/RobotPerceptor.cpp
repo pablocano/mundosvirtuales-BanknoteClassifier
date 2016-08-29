@@ -11,7 +11,7 @@ void RobotPerceptor::update(RobotPercept& robotPercept)
     {
         if(blob.color.is(white))
         {
-            Vector2<> pos = Transformation::imageToField(Vector2<>(blob.center.x,blob.center.y),theCameraInfo);
+            Vector2<int> pos = Transformation::imageToImageCorrected(blob.center,theCameraInfo);
             robotPercept.robots.push_back(RobotPercept::Robot(blob.center,blob.leftUpper,blob.rightBottom,pos));
         }
     }
