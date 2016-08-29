@@ -98,6 +98,7 @@ void VisionToolWidget::drawRobot(QPainter &painter, const GroundTruthRobot& robo
   painter.setBrush(QBrush(Qt::white));
   Pose2D robotPose = robot.robotPose;
   robotPose.position /= 10.f;
+  robotPose.position.y = -robotPose.position.y;
   robotPose.position += Vector2<>(350, 250);
   painter.drawRect(QRect(QPoint(robotPose.position.x,robotPose.position.y), QSize(10,10)));
 }
@@ -107,6 +108,7 @@ void VisionToolWidget::drawBall(QPainter &painter, const GroundTruthBall &ball)
   painter.setPen(Qt::red);
   painter.setBrush(Qt::red);
   Vector2<> ballPosition = ball.ballPosition/10.f;
+  ballPosition.y = -ballPosition.y;
   ballPosition += Vector2<>(350, 250);
   painter.drawEllipse(QPointF(ballPosition.x,ballPosition.y), 5,5);
 }
