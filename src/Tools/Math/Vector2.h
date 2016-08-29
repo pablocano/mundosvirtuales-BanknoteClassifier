@@ -247,6 +247,12 @@ public:
     y = (T)(b * buffer + a * (float)y);
     return *this;
   }
+
+  Vector2<T>& mirrorY()
+  {
+    y = -y;
+    return *this;
+  }
   
   /* Los valoes del vector*/
   T x, y;
