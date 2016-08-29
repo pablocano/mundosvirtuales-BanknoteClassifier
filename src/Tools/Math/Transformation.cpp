@@ -24,15 +24,14 @@ Vector2<> Transformation::imageToField(const Vector2<> &positionInImage, const C
 Vector2<int> Transformation::imageToImageCorrected(const Vector2<int> &positionInImage, const CameraInfo &cameraInfo)
 {
   Vector2<int> res = positionInImage;
-  res.y = -res.y;
 
   Vector2<int> cameraCenter = Vector2<int>(cameraInfo.fieldCenterInImage.x,cameraInfo.fieldCenterInImage.y);
-  cameraCenter.y = -cameraCenter.y;
   
-  return res - cameraCenter;
+  return res.mirrorY() - cameraCenter.mirrorY();
 }
 
 Vector2<int> Transformation::imageCorrectedToImage(const Vector2<int> &positionInImageCorrected, const CameraInfo &cameraInfo)
 {
-  return positionInImageCorrected + Vector2<int>(cameraInfo.fieldCenterInImage.x,cameraInfo.fieldCenterInImage.y);
+  Vector2<int> resp = positionInImageCorrected;
+  return resp.mirrorY() + Vector2<int>(cameraInfo.fieldCenterInImage.x,cameraInfo.fieldCenterInImage.y);
 }
