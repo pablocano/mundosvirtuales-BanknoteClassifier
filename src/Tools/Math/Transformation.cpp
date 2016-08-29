@@ -31,3 +31,8 @@ Vector2<int> Transformation::imageToImageCorrected(const Vector2<int> &positionI
   
   return res - cameraCenter;
 }
+
+Vector2<int> Transformation::imageCorrectedToImage(const Vector2<int> &positionInImageCorrected, const CameraInfo &cameraInfo)
+{
+  return positionInImageCorrected + Vector2<int>(cameraInfo.fieldCenterInImage.x,cameraInfo.fieldCenterInImage.y);
+}

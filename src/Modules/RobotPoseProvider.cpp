@@ -7,6 +7,7 @@
 //
 
 #include "RobotPoseProvider.h"
+#include "Tools/Math/Transformation.h"
 
 MAKE_MODULE(RobotPoseProvider, GroundTruth)
 
@@ -49,8 +50,8 @@ void RobotPoseProvider::analizePosibleRobot()
       posibleRobot.valid = true;
       posibleRobot.team = identifier.team;
       posibleRobot.number = identifier.number;
-      posibleRobot.leftShoulder = posibleRobot.shoulders[0].center;
-      posibleRobot.rightShoulder = posibleRobot.shoulders[1].center;
+      posibleRobot.leftShoulder = Transformation::imageToImageCorrected(posibleRobot.shoulders[0].center,theCameraInfo);
+      posibleRobot.rightShoulder = Transformation::imageToImageCorrected(posibleRobot.shoulders[1].center,theCameraInfo);
       return;
     }
     if(posibleRobot.shoulders[0].color.is(identifier.rightShoulder) && posibleRobot.shoulders[1].color.is(identifier.leftShoulder))
@@ -58,8 +59,8 @@ void RobotPoseProvider::analizePosibleRobot()
       posibleRobot.valid = true;
       posibleRobot.team = identifier.team;
       posibleRobot.number = identifier.number;
-      posibleRobot.leftShoulder = posibleRobot.shoulders[1].center;
-      posibleRobot.rightShoulder = posibleRobot.shoulders[0].center;
+      posibleRobot.leftShoulder = Transformation::imageToImageCorrected(posibleRobot.shoulders[1].center,theCameraInfo);
+      posibleRobot.rightShoulder = Transformation::imageToImageCorrected(posibleRobot.shoulders[0].center,theCameraInfo);
       return;
     }
   }
@@ -68,10 +69,12 @@ void RobotPoseProvider::analizePosibleRobot()
 
 void RobotPoseProvider::calculatePose(RobotsPoses &robotsPoses)
 {
-  Vector2<> center = Vector2<>((posibleRobot.leftShoulder.y + posibleRobot.rightShoulder.y)/2.f,(posibleRobot.leftShoulder.x + posibleRobot.rightShoulder.x)/2.f);
+  Vector2<> center = Vector2<>((posibleRobot.leftShoulder.x + posibleRobot.rightShoulder.x)/2.f,(posibleRobot.leftShoulder.y + posibleRobot.rightShoulder.y)/2.f);
   
-  Vector2<> direction = Vector2<>(posibleRobot.rightShoulder.y - posibleRobot.leftShoulder.y, posibleRobot.rightShoulder.x - posibleRobot.leftShoulder.x).rotateRight();
+  Vector2<> direction = Vector2<>(posibleRobot.rightShoulder.x - posibleRobot.leftShoulder.x, posibleRobot.rightShoulder.y - posibleRobot.leftShoulder.y).rotateRight();
   
-  robotsPoses.robotPoses.push_back(RobotsPoses::RobotPose(direction.angle(),center));
+  Vector2<int> centerInImage = Transformation::imageCorrectedToImage(Vector2<int>(center.x, center.y),theCameraInfo);
+  
+  robotsPoses.robotPoses.push_back(RobotsPoses::RobotPose(direction.angle(),center,centerInImage));
   
 }
