@@ -13,7 +13,7 @@ VisionToolWidget::VisionToolWidget(QObject *parent)
 {
   visionTool.init();
   connect(&qtimer, SIGNAL (timeout()), this, SLOT (receiveMessages()));
-  qtimer.start(30);
+  qtimer.start(80);
 }
 
 void VisionToolWidget::paintEvent(QPaintEvent *event)
@@ -94,13 +94,28 @@ void VisionToolWidget::drawField(QPainter &painter)
 
 void VisionToolWidget::drawRobot(QPainter &painter, const GroundTruthRobot& robot)
 {
-  painter.setPen(QPen(Qt::white,1,Qt::SolidLine, Qt::RoundCap));
+  Vector2<> point1 = (Vector2<>(60.f,100.f).rotate(robot.robotPose.rotation) + robot.robotPose.position).mirrorY()/10.f + Vector2<>(350, 250);
+  Vector2<> point2 = (Vector2<>(60.f,-100.f).rotate(robot.robotPose.rotation) + robot.robotPose.position).mirrorY()/10.f + Vector2<>(350, 250);
+  Vector2<> point3 = (Vector2<>(-60.f,-100.f).rotate(robot.robotPose.rotation) + robot.robotPose.position).mirrorY()/10.f + Vector2<>(350, 250);
+  Vector2<> point4 = (Vector2<>(-60.f,100.f).rotate(robot.robotPose.rotation) + robot.robotPose.position).mirrorY()/10.f + Vector2<>(350, 250);
+  Vector2<> position = robot.robotPose.position;
+  Vector2<> directionA = Vector2<>(position).mirrorY()/10.f + Vector2<>(350.f,250.f);
+  Vector2<> directionB = (Vector2<>(200.f,0.f).rotate(robot.robotPose.rotation) + position).mirrorY()/10.f + Vector2<>(350.f,250.f);
+  
+  painter.setPen(QPen(Qt::red,3,Qt::SolidLine, Qt::RoundCap));
   painter.setBrush(QBrush(Qt::white));
-  Pose2D robotPose = robot.robotPose;
-  robotPose.position /= 10.f;
-  robotPose.position.y = -robotPose.position.y;
-  robotPose.position += Vector2<>(350, 250);
-  painter.drawRect(QRect(QPoint(robotPose.position.x,robotPose.position.y), QSize(10,10)));
+  
+  QPointF points[4] = {
+    QPointF(point1.x,point1.y),
+    QPointF(point2.x,point2.y),
+    QPointF(point3.x,point3.y),
+    QPointF(point4.x,point4.y)
+  };
+  
+  painter.drawConvexPolygon(points, 4);
+  
+  painter.drawLine(QPoint(directionA.x,directionA.y), QPoint(directionB.x,directionB.y));
+  
 }
 
 void VisionToolWidget::drawBall(QPainter &painter, const GroundTruthBall &ball)
@@ -108,7 +123,7 @@ void VisionToolWidget::drawBall(QPainter &painter, const GroundTruthBall &ball)
   painter.setPen(Qt::red);
   painter.setBrush(Qt::red);
   Vector2<> ballPosition = ball.ballPosition/10.f;
-  ballPosition.y = -ballPosition.y;
+  ballPosition.mirrorY();
   ballPosition += Vector2<>(350, 250);
   painter.drawEllipse(QPointF(ballPosition.x,ballPosition.y), 5,5);
 }

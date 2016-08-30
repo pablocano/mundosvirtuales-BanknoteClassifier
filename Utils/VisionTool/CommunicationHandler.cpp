@@ -42,6 +42,7 @@ void CommunicationHandler::handleAllMessages(MessageQueue &receiver)
   if(theInstance){
     theInstance->robots.clear();
     theInstance->balls.clear();
+    printf("Numbers of Messages: %i\n",receiver.numberOfMessages);
     receiver.handleAllMessages(*theInstance);
   }
   

@@ -24,7 +24,6 @@ int VisionTool::execute()
 {
   RECEIVE_GROUND_TRUTH_COMM;
   CommunicationHandler::handleAllMessages(theCommReceiver);
-  cv::waitKey(1);
   return 0;
 }
 
