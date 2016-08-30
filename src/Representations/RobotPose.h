@@ -7,7 +7,7 @@ class RobotsPoses : public Streamable {
 public:
   struct RobotPose : public Pose2D
   {
-    RobotPose(const float rotation, const Vector2<>& position, const Vector2<int>& positionInImage): Pose2D(rotation,position), centerInImage(positionInImage), team(0),number(0) {}
+    RobotPose(const float rotation, const Vector2<>& position, const Vector2<int>& positionInImage, int team, int number): Pose2D(rotation,position), centerInImage(positionInImage), team(team),number(number) {}
 
     Vector2<int> centerInImage;
     int team;

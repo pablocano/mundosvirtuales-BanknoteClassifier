@@ -75,6 +75,6 @@ void RobotPoseProvider::calculatePose(RobotsPoses &robotsPoses)
   
   Vector2<int> centerInImage = Transformation::imageCorrectedToImage(Vector2<int>(center.x, center.y),theCameraInfo);
   
-  robotsPoses.robotPoses.push_back(RobotsPoses::RobotPose(direction.angle(),center,centerInImage));
+  robotsPoses.robotPoses.push_back(RobotsPoses::RobotPose(direction.angle(),center,centerInImage,posibleRobot.team,posibleRobot.number));
   
 }
