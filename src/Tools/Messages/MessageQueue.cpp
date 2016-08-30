@@ -9,6 +9,8 @@
 #include "MessageQueue.h"
 #include <cstdlib>
 #include <string.h>
+#include <algorithm>
+#include <limits>
 
 MessageQueue::MessageQueue()
 : buf(0),
