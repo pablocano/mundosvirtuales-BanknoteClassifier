@@ -13,6 +13,7 @@
 CommunicationHandler* CommunicationHandler::theInstance = 0;
 
 CommunicationHandler::CommunicationHandler()
+: numOfMessagesReceived(0)
 {
   theInstance = this;
 }
@@ -42,7 +43,8 @@ void CommunicationHandler::handleAllMessages(MessageQueue &receiver)
   if(theInstance){
     theInstance->robots.clear();
     theInstance->balls.clear();
-    printf("Numbers of Messages: %i\n",receiver.numberOfMessages);
+    theInstance->numOfMessagesReceived = receiver.numberOfMessages;
+    printf("Numbers of Messages: %i\n",theInstance->numOfMessagesReceived);
     receiver.handleAllMessages(*theInstance);
   }
   

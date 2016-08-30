@@ -10,10 +10,10 @@
 #include "VisionToolWidget.h"
 
 VisionToolWidget::VisionToolWidget(QObject *parent)
+: timerId(0)
 {
   visionTool.init();
-  connect(&qtimer, SIGNAL (timeout()), this, SLOT (receiveMessages()));
-  qtimer.start(80);
+  timerId = startTimer(0);
 }
 
 void VisionToolWidget::paintEvent(QPaintEvent *event)
@@ -32,10 +32,12 @@ void VisionToolWidget::paintEvent(QPaintEvent *event)
   resize(700, 500);
 }
 
-void VisionToolWidget::receiveMessages()
+void VisionToolWidget::timerEvent(QTimerEvent* event)
 {
   visionTool.execute();
-  update();
+  if (visionTool.communicationHandler.numOfMessagesReceived) {
+    update();
+  }
 }
 
 void VisionToolWidget::drawField(QPainter &painter)
