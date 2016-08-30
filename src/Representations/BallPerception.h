@@ -13,6 +13,7 @@ public:
     
     void draw(cv::Mat& image) const;
 	
+    Vector2<int> positionInImage;
     Vector2<int> position;
     int radius;
     bool wasSeen;

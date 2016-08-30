@@ -196,7 +196,7 @@ target_link_libraries( fieldCalibrator ${OpenCV_LIBS} )
 add_executable(gt src/Processes/main.cpp)
 target_link_libraries(gt groundTruth)
 
-include_directories(${QT_USE_FILE} ${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/CalibratorTool  ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/CalibratorTool  ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(calibrationTool ${CALIBRATOR_TOOL_SRC} ${CALIBRATION_TOOL_MOCSrcs} ${CALIBRATION_TOOL_UISrcs})
 target_link_libraries(calibrationTool groundTruth ${QT_LIBRARIES} ${OpenCV_LIBS})

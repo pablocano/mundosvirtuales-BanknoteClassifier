@@ -1,4 +1,5 @@
 #include "BallPerceptor.h"
+#include "Tools/Math/Transformation.h"
 
 MAKE_MODULE(BallPerceptor, GroundTruth)
 
@@ -7,10 +8,11 @@ void BallPerceptor::update(BallPerception& ballPerception)
   ballPerception.wasSeen = false;
   for(const Blobs::Blob& blob : theBlobs.blobs)
   {
-    if(blob.color.is(orange) && (blob.leftUpper - blob.rightBottom).abs() < 10)
+    if(blob.color.is(orange) && (blob.leftUpper - blob.rightBottom).abs() < 15 && (blob.leftUpper - blob.rightBottom).abs() > 5)
     {
       ballPerception.wasSeen = true;
-      ballPerception.position = blob.center;
+      ballPerception.positionInImage = blob.center;
+      ballPerception.position = Transformation::imageToImageCorrected(ballPerception.positionInImage,theCameraInfo);
       ballPerception.radius = (blob.rightBottom.x - blob.leftUpper.x)/ 2.f;
       return;
     }

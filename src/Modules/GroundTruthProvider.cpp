@@ -12,14 +12,14 @@ void GroundTruthProvider::update(GroundTruthMessageOutput& groundTruthMessageOut
     robot.teamNumber = robotPose.team;
     robot.robotNumber = robotPose.number;
     robot.robotPose.position = Transformation::imageToField(Vector2<>(robotPose.position.x,robotPose.position.y), theCameraInfo);
-    robot.robotPose.rotation = robotPose.rotation - M_PI_2;
+    robot.robotPose.rotation = robotPose.rotation;
     SEND_MESSAGE(idGroundTruthMessageRobot, robot);
-    printf("Robot PosX: %f, Robot PosY: %f\n",robot.robotPose.position.x,robot.robotPose.position.y);
+    printf("Robot PosX: %f, Robot PosY: %f, Robot Rotation: %f\n",robot.robotPose.position.x,robot.robotPose.position.y,robot.robotPose.rotation);
   }
   
   GroundTruthBall ball;
   if (theBallPerception.wasSeen) {
-    ball.ballPosition = Vector2<>(theBallPerception.position.x,theBallPerception.position.y);
+    ball.ballPosition = Transformation::imageToField(Vector2<>(theBallPerception.position.x,theBallPerception.position.y),theCameraInfo);
     SEND_MESSAGE(idGroundTruthMessageBall, ball);
     printf("Ball PosX: %f, Ball PosY: %f\n",ball.ballPosition.x,ball.ballPosition.y);
   }
