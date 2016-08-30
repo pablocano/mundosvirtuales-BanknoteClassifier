@@ -37,6 +37,8 @@ void GroundTruthMessageHandler::send()
   char buf[sizeof(SPLStandardMessage)];
   
   SPLStandardMessageWrapper message;
+
+  printf("Number of Messages: %i\n",out.numberOfMessages);
   
   unsigned size = message.fromMessageQueue(out);
   memcpy(buf, (char*)&message, size);
