@@ -9,13 +9,16 @@
 #include "Process.h"
 #include "Tools/Global.h"
 
-Process::Process()
-: initialized(false)
+Process::Process(MessageQueue& in,MessageQueue& out)
+: initialized(false),
+  debugIn(in),
+  debugOut(out)
 {
 }
 
 void Process::setGlobals()
 {
+  Global::theDebugOut = &debugOut;
   Global::theSettings = &settings;
   
   Blackboard::setInstance(blackboard);

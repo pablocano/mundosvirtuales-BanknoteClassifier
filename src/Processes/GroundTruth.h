@@ -16,6 +16,7 @@
 class GroundTruth : public Process{
   
 private:
+  DEBUGGING;
   GROUND_TRUTH_COMM;
   
 protected:

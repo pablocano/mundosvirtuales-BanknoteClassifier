@@ -8,4 +8,7 @@
 
 #include "Global.h"
 
+MessageQueue* Global::theDebugOut = 0;
+MessageQueue* Global::theCommunicationOut = 0;
 Settings* Global::theSettings = 0;
+

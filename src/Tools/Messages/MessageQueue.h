@@ -41,13 +41,23 @@ public:
   
   ~MessageQueue();
   
-  void clear();
-  
   char* reserve(size_t size);
   
   void write(const void *p, size_t size);
   
   void write(char *dest);
+  
+  /**
+   * The method sets the size of memory which is allocated for the queue.
+   * In the simulator, this is only the maximum size (dynamic allocation).
+   * @param size The maximum size of the queue in Bytes.
+   */
+  void setSize(unsigned size);
+  
+  /**
+   * The method removes all messages from the queue.
+   */
+  void clear();
   
   /**
    * The method reads all messages from a stream and appends them to this message queue.
@@ -97,7 +107,6 @@ public:
   
   char *buf;
   
-  unsigned maxSize;
   unsigned usedSize;
   unsigned writePosition;
   int numberOfMessages;
@@ -107,5 +116,7 @@ public:
   
   static const int headerSize = 4; /**< The size of the header of each message in bytes. */
   static const int queueHeaderSize = 2 * sizeof(unsigned); /**< The size of the header in a streamed queue. */
+  unsigned maximumSize; /**< The maximum queue size (in bytes). */
+  unsigned reservedSize; /**< The queue size reserved (in bytes). */
   
 };

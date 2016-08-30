@@ -1,12 +1,20 @@
 #pragma once
+#include "Tools/Messages/MessageQueue.h"
 #include "Tools/ModuleManager/Blackboard.h"
 #include "Tools/Settings.h"
+
+#define DEBUGGING \
+MessageQueue theDebugIn; \
+MessageQueue theDebugOut;
+
+#define INIT_DEBUGGING \
+Process(theDebugIn,theDebugOut)
 
 class Process {
   
 public:
   
-  Process();
+  Process(MessageQueue& in,MessageQueue& out);
   
   int procesMain();
   
@@ -22,5 +30,8 @@ private:
   bool initialized;
   Settings settings;
   Blackboard blackboard;
+  
+  MessageQueue& debugIn;
+  MessageQueue& debugOut;
   
 };

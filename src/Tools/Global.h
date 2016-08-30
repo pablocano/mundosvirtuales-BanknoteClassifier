@@ -9,6 +9,7 @@
 // Only declare prototypes. Don't include anything here, because this
 // file is included in many other files.
 class Settings;
+class MessageQueue;
 
 /**
  * @class Global
@@ -17,9 +18,22 @@ class Settings;
 class Global
 {
 private:
+  static MessageQueue* theDebugOut;
+  static MessageQueue* theCommunicationOut;
   static Settings* theSettings;
   
 public:
+  /**
+   * The method returns a reference to the process wide instance.
+   * @return The instance of the outgoing debug message queue in this process.
+   */
+  static MessageQueue& getDebugOut() {return *theDebugOut;}
+  
+  /**
+   * The method returns a reference to the process wide instance.
+   * @return The instance of the outgoing team message queue in this process.
+   */
+  static MessageQueue& getTeamOut() {return *theCommunicationOut;}
   /**
    * The method returns a reference to the process wide instance.
    * @return The instance of the settings in this process.

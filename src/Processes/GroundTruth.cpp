@@ -14,16 +14,24 @@
 #include "Modules/GroundTruthConfiguration.h"
 #include "Modules/Segmentator.h"
 #include "Tools/Global.h"
+#include "Tools/Comm/SPLStandardMessage.h"
 #include <istream>
 
 GroundTruth::GroundTruth() :
+  INIT_DEBUGGING,
   INIT_GROUND_TRUTH_COMM,
   moduleManager({"GroundTruth","Segmentation","Common"}),
   pause(false)
-{}
+{
+  theDebugOut.setSize(5200000);
+  theDebugIn.setSize(2800000);
+  theCommSender.setSize(sizeof(SPLStandardMessage));
+  theCommReceiver.setSize(5 * sizeof(SPLStandardMessage)); // more than 4 because of additional data
+}
 
 void GroundTruth::init()
 {
+  Global::theCommunicationOut = &theCommSender;
   START_GROUND_TRUTH_COMM;
   moduleManager.load();
 }

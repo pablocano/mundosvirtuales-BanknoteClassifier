@@ -23,7 +23,7 @@ bool handleKey(bool& pause)
 
 
 
-int main()
+int main(int argc, char *argv[])
 {
   GroundTruth g;
   
@@ -31,14 +31,18 @@ int main()
   
   bool pause = false;
   
-  cv::namedWindow("Camera 1",cv::WINDOW_AUTOSIZE);
-  cv::namedWindow("Camera 2",cv::WINDOW_AUTOSIZE);
+  if (argc == 1) {
+    cv::namedWindow("Camera 1",cv::WINDOW_AUTOSIZE);
+    cv::namedWindow("Camera 2",cv::WINDOW_AUTOSIZE);
+  }
   
   while(true)
   {
     g.procesMain();
     
-    cv::imshow(g.imageName, g.image);
+    if (argc == 1) {
+      cv::imshow(g.imageName, g.image);
+    }
     
     if(handleKey(pause))
       break;

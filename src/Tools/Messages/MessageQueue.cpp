@@ -11,14 +11,27 @@
 #include <string.h>
 
 MessageQueue::MessageQueue()
-: maxSize(780 - queueHeaderSize),
-  usedSize(0),
-  writePosition(0),
-  numberOfMessages(0),
-  selectedMessageForReadingPosition(0),
-  lastMessage(0)
+: buf(0),
+  maximumSize(0x4000000), // 64 MB
+  reservedSize(16384)
 {
-  buf = (char*) malloc(maxSize) + queueHeaderSize;
+  buf = (char*) malloc(reservedSize + queueHeaderSize) + queueHeaderSize;
+  clear();
+}
+
+void MessageQueue::setSize(unsigned size)
+{
+  size = std::min(std::numeric_limits<unsigned>::max() - queueHeaderSize, size);
+  if(size < reservedSize)
+  {
+    char* newBuf = (char*) realloc(buf - queueHeaderSize, size + queueHeaderSize) + queueHeaderSize;
+    if(newBuf)
+    {
+      buf = newBuf;
+      reservedSize = size;
+    }
+  }
+  maximumSize = size;
 }
 
 void MessageQueue::handleAllMessages(MessageHandler& handler)
@@ -48,7 +61,7 @@ void MessageQueue::clear()
 char* MessageQueue::reserve(size_t size)
 {
   unsigned currentSize = usedSize + headerSize + writePosition;
-  if(currentSize + size > maxSize)
+  if(currentSize + size > maximumSize)
     return 0;
   else
   {

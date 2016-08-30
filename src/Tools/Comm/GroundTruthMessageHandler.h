@@ -8,14 +8,14 @@
 #define GROUND_TRUTH_COMM \
 MessageQueue theCommReceiver; \
 MessageQueue theCommSender; \
-GroundTruthMessageHandler theGroundTruthCommHandler;
+GroundTruthMessageHandler theGroundTruthCommHandler
 
 #define INIT_GROUND_TRUTH_COMM \
 theGroundTruthCommHandler(theCommReceiver, theCommSender)
 
 #define START_GROUND_TRUTH_COMM \
 std::string bcastAddr = UdpComm::getWifiBroadcastAddress(); \
-theGroundTruthCommHandler.start(Global::getSettings()->teamPort, bcastAddr.c_str());
+theGroundTruthCommHandler.start(Global::getSettings()->teamPort, bcastAddr.c_str())
 
 #define RECEIVE_GROUND_TRUTH_COMM \
 (void) theGroundTruthCommHandler.receive()
