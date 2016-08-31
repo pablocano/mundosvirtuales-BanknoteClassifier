@@ -63,6 +63,10 @@ void SPLStandardMessageWrapper::toMessageQueue(MessageQueue &in, const unsigned 
   
   ntp_com ntp = {static_cast<int>(remoteIp ? remoteIp : playerNum),header.timestamp,SystemCall::getCurrentSystemTime(),header.messageSize};
   in << ntp;
+  /*in << (remoteIp ? remoteIp : playerNum);
+  in << header.timestamp;
+  in << SystemCall::getCurrentSystemTime();
+  in << header.messageSize;*/
   in.finishMessage(idNTPHeader);
   
   in.append(data + uchrtHeaderSize);

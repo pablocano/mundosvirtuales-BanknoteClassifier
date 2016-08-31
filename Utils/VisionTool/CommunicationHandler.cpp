@@ -24,12 +24,12 @@ bool CommunicationHandler::handleMessage(MessageQueue &message)
   GroundTruthBall ball;
   switch (message.getMessageID()) {
     case idGroundTruthMessageBall:
-      message >> &ball;
+      message >> ball;
       balls.push_back(ball);
       return true;
       
     case idGroundTruthMessageRobot:
-      message >> &robot;
+      message >> robot;
       robots.push_back(robot);
       return true;
       

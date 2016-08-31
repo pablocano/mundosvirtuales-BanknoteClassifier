@@ -97,9 +97,9 @@ public:
    */
   void handleAllMessages(MessageHandler& handler);
   
-  template <class T> void operator>>(T t){read(&t, sizeof(T));}
+  template <class T> void operator>>(T& t){read(&t, sizeof(T));}
   
-  template <class T> void operator<<(T t){write(&t, sizeof(T));}
+  template <class T> void operator<<(T& t){write(&t, sizeof(T));}
   
   void finishMessage(MessageID id);
   
