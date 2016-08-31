@@ -33,7 +33,7 @@ public:
    * The method returns a reference to the process wide instance.
    * @return The instance of the outgoing team message queue in this process.
    */
-  static MessageQueue& getTeamOut() {return *theCommunicationOut;}
+  static MessageQueue& geCommunicationOut() {return *theCommunicationOut;}
   /**
    * The method returns a reference to the process wide instance.
    * @return The instance of the settings in this process.

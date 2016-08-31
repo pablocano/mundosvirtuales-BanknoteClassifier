@@ -58,6 +58,7 @@ void MessageQueue::clear()
   numberOfMessages = 0;
   selectedMessageForReadingPosition = 0;
   lastMessage = 0;
+  readPosition = 0;
 }
 
 char* MessageQueue::reserve(size_t size)
@@ -130,11 +131,13 @@ void MessageQueue::setSelectedMessageForReading(int message)
   for(int i = 0; i < m; ++i)
     selectedMessageForReadingPosition += getMessageSize() + headerSize;
   
+  readPosition = 0;
   lastMessage = message;
 }
 
 
 void MessageQueue::read(void* p, size_t size)
 {
-  memcpy(p, buf + selectedMessageForReadingPosition + headerSize, size);
+  memcpy(p, buf + selectedMessageForReadingPosition + headerSize + readPosition, size);
+  readPosition += static_cast<int>(size);
 }

@@ -97,9 +97,9 @@ public:
    */
   void handleAllMessages(MessageHandler& handler);
   
-  template <class T> void operator>>(T* t){read(t, sizeof(T));}
+  template <class T> void operator>>(T t){read(&t, sizeof(T));}
   
-  template <class T> void operator<<(T* t){write(t, sizeof(T));}
+  template <class T> void operator<<(T t){write(&t, sizeof(T));}
   
   void finishMessage(MessageID id);
   
@@ -118,5 +118,5 @@ public:
   static const int queueHeaderSize = 2 * sizeof(unsigned); /**< The size of the header in a streamed queue. */
   unsigned maximumSize; /**< The maximum queue size (in bytes). */
   unsigned reservedSize; /**< The queue size reserved (in bytes). */
-  
+  int readPosition; /**< The position up to where a message is already read. */
 };

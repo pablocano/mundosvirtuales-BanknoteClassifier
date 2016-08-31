@@ -23,10 +23,6 @@ theGroundTruthCommHandler.start(Global::getSettings()->teamPort, bcastAddr.c_str
 #define SEND_GROUND_TRUTH_COMM \
 theGroundTruthCommHandler.send()
 
-#define SEND_MESSAGE(type,expression) \
-{ GroundTruthMessageHandler::getOutQueue() << &expression;\
-GroundTruthMessageHandler::getOutQueue().finishMessage(type); }
-
 
 class GroundTruthMessageHandler
 {
