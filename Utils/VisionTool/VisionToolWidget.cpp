@@ -9,8 +9,9 @@
 #include <QPointF>
 #include "VisionToolWidget.h"
 
-VisionToolWidget::VisionToolWidget(QObject *parent)
-: timerId(0)
+VisionToolWidget::VisionToolWidget(QWidget *parent)
+: QWidget(parent),
+  timerId(0)
 {
   visionTool.init();
   timerId = startTimer(0);
@@ -29,7 +30,7 @@ void VisionToolWidget::paintEvent(QPaintEvent *event)
   {
     drawBall(painter, ball);
   }
-  resize(700, 500);
+  //resize(700, 500);
 }
 
 void VisionToolWidget::timerEvent(QTimerEvent* event)

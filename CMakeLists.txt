@@ -9,88 +9,90 @@ set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
 set( MessageIDsPath ${CMAKE_CURRENT_SOURCE_DIR}/../uchile-robotics-team/Src/Tools/MessageQueue CACHE PATH "Path to MessageIDs file used by BHuman code")
 
 set( GROUNDTRUTH_SRC
-    src/Modules/Camera.cpp
-    src/Modules/Camera.h
-    src/Modules/BackgroundModel.cpp
-    src/Modules/BackgroundModel.h
-    src/Modules/BallPerceptor.cpp
-    src/Modules/BallPerceptor.h
-    src/Modules/BlobProvider.cpp
-    src/Modules/BlobProvider.h
-    src/Modules/GroundTruthConfiguration.cpp
-    src/Modules/GroundTruthConfiguration.h
-    src/Modules/GroundTruthProvider.cpp
-    src/Modules/GroundTruthProvider.h
-    src/Modules/Regionizer.cpp
-    src/Modules/Regionizer.h
-    src/Modules/RobotPerceptor.cpp
-    src/Modules/RobotPerceptor.h
-    src/Modules/RobotPoseProvider.cpp
-    src/Modules/RobotPoseProvider.h
-    src/Modules/Segmentator.cpp
-    src/Modules/Segmentator.h
-    src/Processes/GroundTruth.cpp
-    src/Processes/GroundTruth.h
-    src/Representations/BallPerception.cpp
-    src/Representations/BallPerception.h
-    src/Representations/Blobs.cpp
-    src/Representations/Blobs.h
-    src/Representations/CameraInfo.cpp
-    src/Representations/CameraInfo.h
-    src/Representations/ColorModel/ColorCalibration.h
-    src/Representations/ColorModel/ColorModel.cpp
-    src/Representations/ColorModel/ColorModel.h
-    src/Representations/FrameInfo.h
-    src/Representations/FieldDimensions.h
-    src/Representations/FieldDimensions.cpp
-    src/Representations/GroundTruthMessages.h
-    src/Representations/Image.h
-    src/Representations/Regions.cpp
-    src/Representations/Regions.h
-    src/Representations/RobotPercept.cpp
-    src/Representations/RobotPercept.h
-    src/Representations/RobotPose.cpp
-    src/Representations/RobotPose.h
-    src/Tools/ColorClasses.cpp
-    src/Tools/ColorClasses.h
-    src/Tools/ColorModelConversions.h
-    src/Tools/Comm/GroundTruthMessageHandler.cpp
-    src/Tools/Comm/GroundTruthMessageHandler.h
-    src/Tools/Comm/SPLStandardMessage.h
-    src/Tools/Comm/SPLStandardMessageWrapper.cpp
-    src/Tools/Comm/SPLStandardMessageWrapper.h
-    src/Tools/Comm/UdpComm.cpp
-    src/Tools/Comm/UdpComm.h
-    src/Tools/Enum.cpp
-    src/Tools/Enum.h
-    src/Tools/File.cpp
-    src/Tools/File.h
-    src/Tools/Global.cpp
-    src/Tools/Global.h
-    src/Tools/Math/Line.cpp
-    src/Tools/Math/Line.h
-    src/Tools/Math/Pose2D.h
-    src/Tools/Math/Range.h
-    src/Tools/Math/Transformation.cpp
-    src/Tools/Math/Transformation.h
-    src/Tools/Math/Vector2.h
-    src/Tools/Messages/MessageQueue.cpp
-    src/Tools/Messages/MessageQueue.h
-    src/Tools/ModuleManager/Blackboard.cpp
-    src/Tools/ModuleManager/Blackboard.h
-    src/Tools/ModuleManager/Module.cpp
-    src/Tools/ModuleManager/Module.h
-    src/Tools/ModuleManager/ModuleManager.cpp
-    src/Tools/ModuleManager/ModuleManager.h
-    src/Tools/Process.cpp
-    src/Tools/Process.h
-    src/Tools/Settings.cpp
-    src/Tools/Settings.h
-    src/Tools/Streamable.h
-    src/Tools/SystemCall.cpp
-    src/Tools/SystemCall.h
-    
-    ${MessageIDsPath}/MessageIDs.h
+  src/Modules/Camera.cpp
+  src/Modules/Camera.h
+  src/Modules/BackgroundModel.cpp
+  src/Modules/BackgroundModel.h
+  src/Modules/BallPerceptor.cpp
+  src/Modules/BallPerceptor.h
+  src/Modules/BlobProvider.cpp
+  src/Modules/BlobProvider.h
+  src/Modules/GroundTruthConfiguration.cpp
+  src/Modules/GroundTruthConfiguration.h
+  src/Modules/GroundTruthProvider.cpp
+  src/Modules/GroundTruthProvider.h
+  src/Modules/Regionizer.cpp
+  src/Modules/Regionizer.h
+  src/Modules/RobotPerceptor.cpp
+  src/Modules/RobotPerceptor.h
+  src/Modules/RobotPoseProvider.cpp
+  src/Modules/RobotPoseProvider.h
+  src/Modules/Segmentator.cpp
+  src/Modules/Segmentator.h
+  src/Processes/GroundTruth.cpp
+  src/Processes/GroundTruth.h
+  src/Representations/BallPerception.cpp
+  src/Representations/BallPerception.h
+  src/Representations/Blobs.cpp
+  src/Representations/Blobs.h
+  src/Representations/CameraInfo.cpp
+  src/Representations/CameraInfo.h
+  src/Representations/ColorModel/ColorCalibration.h
+  src/Representations/ColorModel/ColorModel.cpp
+  src/Representations/ColorModel/ColorModel.h
+  src/Representations/FrameInfo.h
+  src/Representations/FieldDimensions.h
+  src/Representations/FieldDimensions.cpp
+  src/Representations/GroundTruthMessages.h
+  src/Representations/Image.h
+  src/Representations/Regions.cpp
+  src/Representations/Regions.h
+  src/Representations/RobotPercept.cpp
+  src/Representations/RobotPercept.h
+  src/Representations/RobotPose.cpp
+  src/Representations/RobotPose.h
+  src/Tools/ColorClasses.cpp
+  src/Tools/ColorClasses.h
+  src/Tools/ColorModelConversions.h
+  src/Tools/Comm/Comm.h
+  src/Tools/Comm/GroundTruthMessageHandler.cpp
+  src/Tools/Comm/GroundTruthMessageHandler.h
+  src/Tools/Comm/SPLStandardMessage.h
+  src/Tools/Comm/SPLStandardMessageWrapper.cpp
+  src/Tools/Comm/SPLStandardMessageWrapper.h
+  src/Tools/Comm/UdpComm.cpp
+  src/Tools/Comm/UdpComm.h
+  src/Tools/Debugging/Debugging.h
+  src/Tools/Enum.cpp
+  src/Tools/Enum.h
+  src/Tools/File.cpp
+  src/Tools/File.h
+  src/Tools/Global.cpp
+  src/Tools/Global.h
+  src/Tools/Math/Line.cpp
+  src/Tools/Math/Line.h
+  src/Tools/Math/Pose2D.h
+  src/Tools/Math/Range.h
+  src/Tools/Math/Transformation.cpp
+  src/Tools/Math/Transformation.h
+  src/Tools/Math/Vector2.h
+  src/Tools/Messages/MessageQueue.cpp
+  src/Tools/Messages/MessageQueue.h
+  src/Tools/ModuleManager/Blackboard.cpp
+  src/Tools/ModuleManager/Blackboard.h
+  src/Tools/ModuleManager/Module.cpp
+  src/Tools/ModuleManager/Module.h
+  src/Tools/ModuleManager/ModuleManager.cpp
+  src/Tools/ModuleManager/ModuleManager.h
+  src/Tools/Process.cpp
+  src/Tools/Process.h
+  src/Tools/Settings.cpp
+  src/Tools/Settings.h
+  src/Tools/Streamable.h
+  src/Tools/SystemCall.cpp
+  src/Tools/SystemCall.h
+
+  ${MessageIDsPath}/MessageIDs.h
 )
 
 
@@ -122,10 +124,12 @@ set( CALIBRATOR_TOOL_SRC
 
 set( VISION_TOOL_SRC_DIR Utils/VisionTool)
 
-QT4_WRAP_CPP(VISION_TOOL_MOCSrcs ${VISION_TOOL_SRC_DIR}/VisionToolWidget.h)
+QT4_WRAP_CPP(VISION_TOOL_MOCSrcs ${VISION_TOOL_SRC_DIR}/VisionToolWidget.h ${VISION_TOOL_SRC_DIR}/MainWindow.h)
 
 set( VISION_TOOL_SRC
   ${VISION_TOOL_SRC_DIR}/Main.cpp
+  ${VISION_TOOL_SRC_DIR}/MainWindow.cpp
+  ${VISION_TOOL_SRC_DIR}/MainWindow.h
   ${VISION_TOOL_SRC_DIR}/CommunicationHandler.cpp
   ${VISION_TOOL_SRC_DIR}/CommunicationHandler.h
   ${VISION_TOOL_SRC_DIR}/VisionTool.cpp
@@ -165,6 +169,7 @@ source_group(src\\Representations\\ColorModel REGULAR_EXPRESSION "Representation
 source_group(src\\Tools REGULAR_EXPRESSION "Tools/*")
 source_group(src\\Tools\\ModuleManager REGULAR_EXPRESSION "Tools/ModuleManager/*")
 source_group(src\\Tools\\Comm REGULAR_EXPRESSION "Tools/Comm/*")
+source_group(src\\Tools\\Debugging REGULAR_EXPRESSION "Tools/Debugging/*")
 source_group(src\\Tools\\Messages REGULAR_EXPRESSION "Tools/Messages/*")
 source_group(src\\Tools\\Math REGULAR_EXPRESSION "Tools/Math/*")
 source_group(Utils\\CalibratorTool REGULAR_EXPRESSION "Utils/CalibratorTool/*")
