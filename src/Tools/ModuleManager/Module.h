@@ -52,6 +52,41 @@
  */
 class ModuleBase
 {
+private:
+  /**
+   * Helper class to check whether a class defines a draw method itself.
+   */
+  template<typename T> struct HasDrawMethod
+  {
+    template<typename U, void (U::*)()> struct Draw {};
+    template<typename U, void (U::*)() const> struct ConstDraw {};
+    template<typename U> static char Test(Draw<U, &U::draw>*);
+    template<typename U> static char Test(ConstDraw<U, &U::draw>*);
+    template<typename U> static int Test(...);
+    static const bool value = sizeof(Test<T>(0)) == sizeof(char);
+  };
+  
+  /**
+   * This class defines a method that is called when a class has a
+   * draw() method. The latter is called.
+   * @param T The type of the representation.
+   * @param hasDraw States, whether T has a draw() method.
+   */
+  template<typename T, bool hasDraw = true> struct Draw
+  {
+    static void draw(T& t) {t.draw();}
+  };
+  
+  /**
+   * This class defines a method that is called when a class does not
+   * have a draw() method.
+   * @param T The type of the representation.
+   */
+  template<typename T> struct Draw<T, false>
+  {
+    static void draw(T& t) {}
+  };
+  
 public:
   class Info
   {
@@ -62,6 +97,16 @@ public:
     Info(const char* representation, void (*update)(Streamable&))
     : representation(representation), update(update) {}
   };
+  
+  /**
+   * Calls a draw method if a representation has one.
+   * @param T The type of the representation.
+   * @param t The representation.
+   */
+  template<typename T> static void draw(T& t)
+  {
+    Draw<T, HasDrawMethod<T>::value>::draw(t);
+  }
   
 private:
   static ModuleBase* first; /**< The head of the list of all modules available. */

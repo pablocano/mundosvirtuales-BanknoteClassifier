@@ -1,5 +1,6 @@
 #include "GroundTruthConfiguration.h"
 #include "Tools/Comm/GroundTruthMessageHandler.h"
+#include "Tools/Debugging/Debugging.h"
 
 MAKE_MODULE(GroundTruthConfiguration, Common)
 
@@ -20,6 +21,12 @@ void GroundTruthConfiguration::update(ColorModel& colorModel)
     delete theColorCalibration;
     theColorCalibration = 0;
   }
+  
+  DEBUG_RESPONSE_ONCE("representation:ColorCalibration",
+  {
+    OUTPUT(idColorCalibration, colorCalibration);
+  });
+  
 }
 
 void GroundTruthConfiguration::update(RobotsIdentifiers &robotsIdentifiers)
@@ -97,4 +104,17 @@ void GroundTruthConfiguration::readRobotsIdentifiers()
       theRobotsIdentifiers->identifiers.push_back(robot);
     }
   }
+}
+
+bool GroundTruthConfiguration::handleMessage(MessageQueue& message)
+{
+  if(theInstance && message.getMessageID() == idColorCalibration)
+  {
+    if(!theInstance->theColorCalibration)
+      theInstance->theColorCalibration = new ColorCalibration;
+    message >> *theInstance->theColorCalibration;
+    return true;
+  }
+  else
+    return false;
 }

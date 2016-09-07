@@ -63,6 +63,10 @@ set( GROUNDTRUTH_SRC
   src/Tools/Comm/UdpComm.cpp
   src/Tools/Comm/UdpComm.h
   src/Tools/Debugging/Debugging.h
+  src/Tools/Debugging/DebugRequest.cpp
+  src/Tools/Debugging/DebugRequest.h
+  src/Tools/Debugging/DebugDrawings.cpp
+  src/Tools/Debugging/DebugDrawings.h
   src/Tools/Enum.cpp
   src/Tools/Enum.h
   src/Tools/File.cpp
@@ -111,15 +115,30 @@ set( FIELD_CALIBRATOR
 
 set( CALIBRATOR_SRC_DIR Utils/CalibratorTool)
 
-QT4_WRAP_UI(CALIBRATION_TOOL_UISrcs ${CALIBRATOR_SRC_DIR}/mainwindow.ui)
-QT4_WRAP_CPP(CALIBRATION_TOOL_MOCSrcs ${CALIBRATOR_SRC_DIR}/MainWindow.h ${CALIBRATOR_SRC_DIR}/GroundTruthWrapper.h)
+QT4_WRAP_CPP(CALIBRATION_TOOL_MOCSrcs ${CALIBRATOR_SRC_DIR}/MainWindow.h ${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.h ${CALIBRATOR_SRC_DIR}/Views/ImageView.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.h)
+
+QT4_ADD_RESOURCES(CALIBRATION_TOOL_RESOURCES_RCC ${CALIBRATOR_SRC_DIR}/CalibratorTool.qrc)
 
 set( CALIBRATOR_TOOL_SRC
-  ${CALIBRATOR_SRC_DIR}/Main.cpp
+  ${CALIBRATOR_SRC_DIR}/CalibratorTool.h
+  ${CALIBRATOR_SRC_DIR}/Controller.cpp
+  ${CALIBRATOR_SRC_DIR}/Controller.h
   ${CALIBRATOR_SRC_DIR}/GroundTruthWrapper.cpp
   ${CALIBRATOR_SRC_DIR}/GroundTruthWrapper.h
+  ${CALIBRATOR_SRC_DIR}/Main.cpp
   ${CALIBRATOR_SRC_DIR}/MainWindow.cpp
   ${CALIBRATOR_SRC_DIR}/MainWindow.h
+  ${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.cpp
+  ${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.h
+  ${CALIBRATOR_SRC_DIR}/Synchronization.h
+  ${CALIBRATOR_SRC_DIR}/Views/ImageView.cpp
+  ${CALIBRATOR_SRC_DIR}/Views/ImageView.h
+  ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.cpp
+  ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.h
+  ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.cpp
+  ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.h
+  ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.cpp
+  ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.h
 )
 
 set( VISION_TOOL_SRC_DIR Utils/VisionTool)
@@ -162,6 +181,18 @@ set( VISION_TOOL_SRC
   ${MessageIDsPath}/MessageIDs.h
 )
 
+set( LIBQXT_SRC_DIR Utils/libqxt)
+
+QT4_WRAP_CPP(LIBQXT_MOC_Srcs ${LIBQXT_SRC_DIR}/qxtspanslider_p.h ${LIBQXT_SRC_DIR}/qxtspanslider.h)
+
+set( LIBQXT_SRC
+  ${LIBQXT_SRC_DIR}/qxtglobal.h
+  ${LIBQXT_SRC_DIR}/qxtnamespace.h
+  ${LIBQXT_SRC_DIR}/qxtspanslider_p.h
+  ${LIBQXT_SRC_DIR}/qxtspanslider.cpp
+  ${LIBQXT_SRC_DIR}/qxtspanslider.h
+)
+
 source_group(src\\Processes REGULAR_EXPRESSION "src/Processes/*")
 source_group(src\\Modules REGULAR_EXPRESSION "Modules/*")
 source_group(src\\Representations REGULAR_EXPRESSION "Representations/*")
@@ -173,6 +204,9 @@ source_group(src\\Tools\\Debugging REGULAR_EXPRESSION "Tools/Debugging/*")
 source_group(src\\Tools\\Messages REGULAR_EXPRESSION "Tools/Messages/*")
 source_group(src\\Tools\\Math REGULAR_EXPRESSION "Tools/Math/*")
 source_group(Utils\\CalibratorTool REGULAR_EXPRESSION "Utils/CalibratorTool/*")
+source_group(Utils\\CalibratorTool\\Views REGULAR_EXPRESSION "Utils/CalibratorTool/Views/*")
+source_group(Utils\\CalibratorTool\\Views\\ColorCalibrationView REGULAR_EXPRESSION "Utils/CalibratorTool/Views/ColorCalibrationView/*")
+source_group(Utils\\libqxt REGULAR_EXPRESSION "Utils/libqxt*")
 source_group(Utils\\VisionTool REGULAR_EXPRESSION "Utils/VisionTool/*")
 
 set(CMAKE_CXX_FLAGS "-std=c++11")
@@ -187,10 +221,14 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_definitions(-DWINDOWS)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${MessageIDsPath})
+include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt ${MessageIDsPath})
 
 add_library( groundTruth SHARED ${GROUNDTRUTH_SRC} ${OpenCV_INCLUDE})
 target_link_libraries( groundTruth ${OpenCV_LIBS} )
+
+add_library( libqxt STATIC ${LIBQXT_SRC} ${LIBQXT_MOC_Srcs})
+target_link_libraries(libqxt ${QT_LIBRARIES})
+target_compile_definitions(libqxt PRIVATE QXT_STATIC )
 
 add_executable( calibration ${CAMERA_CALIBRATION} ${OpenCV_INCLUDE})
 target_link_libraries( calibration ${OpenCV_LIBS} )
@@ -203,8 +241,9 @@ target_link_libraries(gt groundTruth)
 
 include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/CalibratorTool  ${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(calibrationTool ${CALIBRATOR_TOOL_SRC} ${CALIBRATION_TOOL_MOCSrcs} ${CALIBRATION_TOOL_UISrcs})
-target_link_libraries(calibrationTool groundTruth ${QT_LIBRARIES} ${OpenCV_LIBS})
+add_executable(calibrationTool ${CALIBRATOR_TOOL_SRC} ${CALIBRATION_TOOL_MOCSrcs} ${CALIBRATION_TOOL_RESOURCES_RCC})
+target_link_libraries(calibrationTool groundTruth libqxt ${QT_LIBRARIES} ${OpenCV_LIBS})
+target_compile_definitions(calibrationTool PRIVATE QXT_STATIC)
 
 add_executable(visionTool ${VISION_TOOL_SRC} ${VISION_TOOL_MOCSrcs} ${OpenCV_INCLUDE})
 target_link_libraries(visionTool ${OpenCV_LIBS} ${QT_LIBRARIES})

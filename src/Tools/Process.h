@@ -1,4 +1,6 @@
 #pragma once
+#include "Tools/Debugging/DebugRequest.h"
+#include "Tools/Debugging/DebugDrawings.h"
 #include "Tools/Messages/MessageQueue.h"
 #include "Tools/ModuleManager/Blackboard.h"
 #include "Tools/Settings.h"
@@ -10,7 +12,7 @@ MessageQueue theDebugOut;
 #define INIT_DEBUGGING \
 Process(theDebugIn,theDebugOut)
 
-class Process {
+class Process : public MessageHandler{
   
 public:
   
@@ -22,9 +24,26 @@ public:
   
 protected:
   
+  /**
+   * The main funtion is called once in each frame.
+   * It must be implemented.
+   * @return Should wait for external trigger?
+   */
   virtual int main() = 0;
   
-  virtual void init() {};
+  /**
+   * That function is called once before the first main(). It can be used
+   * for things that can't be done in the constructor.
+   */
+  virtual void init() {}
+  
+  /**
+   * Is called for every incoming debug message.
+   * @param message An interface to read the message from the queue
+   * @return true if message was handled
+   */
+  virtual bool handleMessage(MessageQueue& message);
+
   
 private:
   bool initialized;
@@ -34,4 +53,6 @@ private:
   MessageQueue& debugIn;
   MessageQueue& debugOut;
   
+  DebugRequestTable debugRequestTable;
+  DrawingManager drawingManager;
 };

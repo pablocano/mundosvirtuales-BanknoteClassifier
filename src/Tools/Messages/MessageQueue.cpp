@@ -61,6 +61,44 @@ void MessageQueue::clear()
   readPosition = 0;
 }
 
+void MessageQueue::copyAllMessages(MessageQueue& other)
+{
+  if(usedSize >= headerSize)
+  {
+    char* dest = other.reserve(usedSize - headerSize);
+    if(dest)
+    {
+      memcpy(dest - headerSize, buf, usedSize);
+      other.numberOfMessages += numberOfMessages;
+      other.usedSize += usedSize;
+      other.writePosition = 0;
+    }
+    else // Not all messages fit in there, so try step by step (some will be missing).
+      for(int i = 0; i < numberOfMessages; ++i)
+        copyMessage(i, other);
+  }
+}
+
+void MessageQueue::moveAllMessages(MessageQueue& other)
+{
+  copyAllMessages(other);
+  clear();
+}
+
+void MessageQueue::patchMessage(int message, int index, char value)
+{
+  setSelectedMessageForReading(message);
+  const_cast<char*>(getData())[index] = value;
+}
+
+void MessageQueue::copyMessage(int message, MessageQueue& other)
+{
+  setSelectedMessageForReading(message);
+  other.write(getData(), getMessageSize());
+  other.finishMessage(getMessageID());
+}
+
+
 char* MessageQueue::reserve(size_t size)
 {
   unsigned currentSize = usedSize + headerSize + writePosition;
@@ -140,4 +178,20 @@ void MessageQueue::read(void* p, size_t size)
 {
   memcpy(p, buf + selectedMessageForReadingPosition + headerSize + readPosition, size);
   readPosition += static_cast<int>(size);
+}
+
+void MessageQueue::writeString(const char *s)
+{
+  size_t size = strlen(s);
+  write(&size, sizeof(unsigned));
+  write(s, size);
+}
+
+void MessageQueue::readString(std::string& s)
+{
+  size_t size = 0;
+  read(&size, sizeof(unsigned));
+  s.resize(size);
+  if(size)
+    read(&s[0], size);
 }

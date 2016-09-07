@@ -4,6 +4,7 @@
 #include "Representations/ColorModel/ColorModel.h"
 #include "Representations/RobotIdentifier.h"
 #include "Tools/ModuleManager/Module.h"
+#include "Tools/Messages/MessageQueue.h"
 
 MODULE(GroundTruthConfiguration,
 {,
@@ -42,4 +43,6 @@ public:
   static void setColorCalibration(const ColorCalibration& newColorCalibration);
   
   static void saveColorCalibration();
+  
+  static bool handleMessage(MessageQueue& message);
 };

@@ -14,6 +14,7 @@
 #include "Modules/GroundTruthConfiguration.h"
 #include "Modules/Segmentator.h"
 #include "Tools/Global.h"
+#include "Tools/SystemCall.h"
 #include "Tools/Comm/SPLStandardMessage.h"
 #include <istream>
 
@@ -63,6 +64,9 @@ int GroundTruth::main()
   segmented = (const SegmentedImage&) Blackboard::getInstance()["SegmentedImage"];
   
   imageName = ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).name;
+  
+  SystemCall::sleep(1);
+  
   return 0;
 }
 
@@ -86,4 +90,9 @@ void GroundTruth::saveColorCalibration()
 void GroundTruth::setSegmentation(bool set)
 {
   Segmentator::setSegmentation(set);
+}
+
+bool GroundTruth::handleMessage(MessageQueue &message)
+{
+  return GroundTruthConfiguration::handleMessage(message) || Process::handleMessage(message);
 }

@@ -15,8 +15,10 @@
 
 class GroundTruth : public Process{
   
-private:
+public:
   DEBUGGING;
+  
+private:
   GROUND_TRUTH_COMM;
   
 protected:
@@ -47,5 +49,12 @@ public:
   void saveColorCalibration();
   
   void setSegmentation(bool set);
+  
+  /**
+   * The function handles incoming debug messages.
+   * @param message the message to handle.
+   * @return Has the message been handled?
+   */
+  virtual bool handleMessage(MessageQueue& message);
 };
 

@@ -24,7 +24,7 @@ MainWindow::MainWindow()
   dockWidget->setWindowTitle(tr("asdf"));
   dockWidget->setFocusPolicy(Qt::ClickFocus);
   addDockWidget(Qt::TopDockWidgetArea, dockWidget);
-  dockWidget->setFloating(true);
+  dockWidget->setFloating(false);
   
   dockWidget->setWidget(visionTool);
 }

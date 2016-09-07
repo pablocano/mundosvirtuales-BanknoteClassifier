@@ -97,9 +97,56 @@ public:
    */
   void handleAllMessages(MessageHandler& handler);
   
+  /**
+   * The method copies all messages from this queue to another queue.
+   * @param other The destination queue.
+   */
+  void copyAllMessages(MessageQueue& other);
+  
+  /**
+   * The method moves all messages from this queue to another queue.
+   * @param other The destination queue.
+   */
+  void moveAllMessages(MessageQueue& other);
+  
+  /**
+   * The method returns whether the queue is empty.
+   * @return Aren't there any messages in the queue?
+   */
+  bool isEmpty() const {return numberOfMessages == 0;}
+  
+  /**
+   * Hacker interface for messages. Allows patching their data after they were added.
+   * @param message The number of the message to be patched.
+   * @param index The index of the byte to be patched in the message.
+   * @param value The new value of the byte.
+   */
+  void patchMessage(int message, int index, char value);
+  
+  /**
+   * The method copies a single message to another queue.
+   * @param message The number of the message.
+   * @param other The other queue.
+   */
+  void copyMessage(int message, MessageQueue& other);
+  
+  /**
+   * The method gives direct read access to the selected message for reading.
+   * @return The address of the first byte of the message
+   */
+  const char* getData() const {return buf + selectedMessageForReadingPosition + headerSize;}
+  
+  MessageQueue& operator<<(const std::string& string){writeString(string.c_str()); return *this;}
+  
+  MessageQueue& operator>>(std::string& string){readString(string); return *this;}
+  
   template <class T> MessageQueue& operator>>(T& t){read(&t, sizeof(T)); return *this;}
   
   template <class T> MessageQueue& operator<<(T& t){write(&t, sizeof(T)); return *this;}
+  
+  void writeString(const char *s);
+  
+  void readString(std::string& s);
   
   void finishMessage(MessageID id);
   

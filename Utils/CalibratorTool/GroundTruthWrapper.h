@@ -11,34 +11,34 @@
 #include "Representations/ColorModel/ColorCalibration.h"
 #include "Representations/ColorModel/ColorModel.h"
 
+class Controller;
+
 class GroundTruthWrapper : public QThread
 {
-  Q_OBJECT
 private:
-  QMutex mutex;
-  QWaitCondition condition;
+  
+  Controller* controller;
+  
   cv::Mat RGBimage;
   cv::Mat RGBSegmentedImage;
-  QImage img;
-  QImage segmented;
+  
+  void send();
+  
+  void receive();
   
   void sendImages();
   
-signals:
-  //Signal to output frame to be displayed
-  void cameraImage(const QImage& image, const QString& name);
-  
-  void segmentedImage(const QImage& image, const QString& name);
 protected:
   void run();
   
 public:
   //Constructor
-  GroundTruthWrapper(QObject *parent = 0);
+  GroundTruthWrapper(Controller* controller);
   //Destructor
   ~GroundTruthWrapper();
   
   ColorCalibration getColorCalibration();
+  
   
   void setColorCalibration(const ColorCalibration& colorCalibration);
   
