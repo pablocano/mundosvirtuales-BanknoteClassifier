@@ -9,8 +9,9 @@
 #include "Controller.h"
 #include "Views/ImageView.h"
 #include "Views/ColorCalibrationView/ColorCalibrationView.h"
-#include "MainWindow.h"
 #include "Tools/SystemCall.h"
+#include "MainWindow.h"
+
 
 Controller::Controller(MainWindow* mainWindow)
 : mainWindow(mainWindow),
@@ -18,8 +19,8 @@ Controller::Controller(MainWindow* mainWindow)
   colorCalibrationChanged(false),
   colorTableTimeStamp(0)
 {
-  debugIn.clear();
-  debugOut.clear();
+  debugIn.setSize(5200000);
+  debugOut.setSize(2800000);
   
   for(int i = 0; i < numOfMessageIDs; ++i)
   {
@@ -28,7 +29,16 @@ Controller::Controller(MainWindow* mainWindow)
   }
   
   groundTruthWrapper = new GroundTruthWrapper(this);
+  poll(idDebugResponse);
   poll(idColorCalibration);
+  
+  SYNC;
+  debugOut << DebugRequest("representation:SegmentedImage");
+  debugOut.finishMessage(idDebugRequest);
+  debugOut << DebugRequest("representation:ImageBGR");
+  debugOut.finishMessage(idDebugRequest);
+  
+  groundTruthWrapper->start();
 }
 
 Controller::~Controller()
@@ -118,20 +128,55 @@ bool Controller::poll(MessageID id)
 
 bool Controller::handleMessage(MessageQueue& message)
 {
+  SYNC;
   switch (message.getMessageID()) {
+    case idProcessBegin:
+    {
+      message >> processIdentifier;
+      if (processIdentifier == 'e') {
+        currentImage = &eastImage;
+        currentSegmentedImage = &eastSegmentedImage;
+      }
+      else
+      {
+        currentImage = &westmage;
+        currentSegmentedImage = &westSegmentedImage;
+      }
+      return true;
+    }
+    case idDebugResponse:
+    {
+      std::string description;
+      bool enable;
+      message >> description >> enable;
+      if(description != "pollingFinished")
+        debugRequestTable.addRequest(DebugRequest(description, enable), true);
+      return true;
+    }
     case idColorCalibration:
+    {
       message >> colorCalibration;
       colorCalibrationChanged = true;
       return true;
-      
+    }
+    case idJPEGImage:
+    {
+      message >> *currentSegmentedImage;
+      return true;
+    }
+    case idImage:
+    {
+      message >> *currentImage;
+      return true;
+    }
     default:
       return false;
   }
 }
 
-bool Controller::receive()
+void Controller::receive()
 {
-  SYNC;
+  SYNC_WITH(*groundTruthWrapper);
   debugIn.handleAllMessages(*this);
   debugIn.clear();
 }

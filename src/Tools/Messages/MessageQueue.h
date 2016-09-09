@@ -41,8 +41,6 @@ public:
   
   ~MessageQueue();
   
-  char* reserve(size_t size);
-  
   void write(const void *p, size_t size);
   
   void write(char *dest);
@@ -116,6 +114,12 @@ public:
   bool isEmpty() const {return numberOfMessages == 0;}
   
   /**
+   * The method returns the number of messages in the queue.
+   * @return The number of messages.
+   */
+  int getNumberOfMessages() const {return numberOfMessages;}
+  
+  /**
    * Hacker interface for messages. Allows patching their data after they were added.
    * @param message The number of the message to be patched.
    * @param index The index of the byte to be patched in the message.
@@ -136,6 +140,25 @@ public:
    */
   const char* getData() const {return buf + selectedMessageForReadingPosition + headerSize;}
   
+  /**
+   * The method removes a message from the queue.
+   */
+  void removeLastMessage() {if(!isEmpty()) removeMessage(getNumberOfMessages() - 1);}
+  
+  /**
+   * The method removes a message from the queue.
+   * @param message The number of the message.
+   */
+  void removeMessage(int message);
+  
+  /**
+   * Operator that writes a string into a stream.
+   * @param out The stream to which is written.
+   * @param value The value that is written.
+   * @return The stream.
+   */
+  MessageQueue& operator<<(const char* value) {writeString(value); return *this;}
+  
   MessageQueue& operator<<(const std::string& string){writeString(string.c_str()); return *this;}
   
   MessageQueue& operator>>(std::string& string){readString(string); return *this;}
@@ -151,6 +174,10 @@ public:
   void finishMessage(MessageID id);
   
   unsigned getSize() {return usedSize + queueHeaderSize;}
+  
+private:
+  
+  char* reserve(size_t size);
   
   char *buf;
   

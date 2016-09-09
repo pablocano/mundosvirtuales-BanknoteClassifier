@@ -10,6 +10,7 @@
 #include "Processes/GroundTruth.h"
 #include "Representations/ColorModel/ColorCalibration.h"
 #include "Representations/ColorModel/ColorModel.h"
+#include "Synchronization.h"
 
 class Controller;
 
@@ -36,6 +37,8 @@ public:
   GroundTruthWrapper(Controller* controller);
   //Destructor
   ~GroundTruthWrapper();
+  
+  DECLARE_SYNC;
   
   ColorCalibration getColorCalibration();
   

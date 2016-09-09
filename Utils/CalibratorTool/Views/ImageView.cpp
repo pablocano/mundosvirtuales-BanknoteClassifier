@@ -18,8 +18,8 @@
 #include <sstream>
 #include <QFileDialog>
 
-ImageView::ImageView(const QString& fullName, Controller& controller, const std::string& name, bool segmented, bool upperCam) :
-upperCam(upperCam), fullName(fullName), icon(":/Icons/tag_green.png"),
+ImageView::ImageView(const QString& fullName, Controller& controller, const std::string& name, bool segmented, bool eastCam) :
+eastCam(eastCam), fullName(fullName), icon(":/Icons/tag_green.png"),
 controller(controller),
 name(name),
 segmented(segmented)
@@ -34,7 +34,8 @@ ImageWidget::ImageWidget(ImageView& imageView)
 : imageView(imageView),
   imageData(0),
   zoom(1.f),
-  offset(0, 0)
+  offset(0, 0),
+  lastTimeStamp(0)
 {
   setFocusPolicy(Qt::StrongFocus);
   setMouseTracking(true);
@@ -58,9 +59,31 @@ void ImageWidget::paint(QPainter& painter)
   SYNC_WITH(imageView.controller);
   
   if (imageView.segmented)
-    imageData = new QImage(imageView.controller.segmented);
+  {
+    if(imageView.controller.eastSegmentedImage.empty())
+      return;
+    cv::Mat rgbImage;
+    cv::cvtColor(imageView.controller.eastSegmentedImage, rgbImage, CV_BGR2RGB);
+    if (!imageData) {
+      imageData = new QImage();
+    }
+    *imageData = QImage((const unsigned char*)(rgbImage.data),
+                                   rgbImage.cols,rgbImage.rows,QImage::Format_RGB888);
+    lastTimeStamp = imageView.controller.eastSegmentedImage.timeStamp;
+  }
   else
-    imageData = new QImage(imageView.controller.img);
+  {
+    if(imageView.controller.eastImage.empty())
+      return;
+    cv::Mat rgbImage;
+    cv::cvtColor(imageView.controller.eastImage, rgbImage, CV_BGR2RGB);
+    if (!imageData) {
+      imageData = new QImage();
+    }
+    *imageData = QImage((const unsigned char*)(rgbImage.data),
+                        rgbImage.cols,rgbImage.rows,QImage::Format_RGB888);
+    lastTimeStamp = imageView.controller.eastImage.timeStamp;
+  }
   
   imageWidth = imageData->width();
   imageHeight = imageData->height();
@@ -83,7 +106,13 @@ void ImageWidget::paintDrawings(QPainter& painter)
 
 bool ImageWidget::needsRepaint() const
 {
-  return true;
+  SYNC_WITH(imageView.controller);
+  if(imageView.segmented)
+  {
+    return imageView.controller.eastSegmentedImage.timeStamp != lastTimeStamp;
+  }
+  else
+    return imageView.controller.eastImage.timeStamp != lastTimeStamp;
 }
 
 void ImageWidget::window2viewport(QPoint& point)
