@@ -9,6 +9,7 @@
 #pragma once
 
 #include "GroundTruthWrapper.h"
+#include "Representations/Image.h"
 #include "Tools/Debugging/DebugDrawings.h"
 #include "Tools/Debugging/DebugRequest.h"
 #include "Synchronization.h"
@@ -28,7 +29,7 @@ private:
    */
   bool poll(MessageID id);
   
-  bool receive();
+  void receive();
   
   int waitingFor[numOfMessageIDs]; /**< Each entry states for how many information packages the process waits. */
   bool polled[numOfMessageIDs]; /**< Each entry states whether certain information is up-to-date (if not waiting for). */
@@ -41,6 +42,8 @@ private:
   GroundTruthWrapper* groundTruthWrapper;
   
 public:
+  
+  DECLARE_SYNC;
   
   Controller(MainWindow* mainWindow);
   
@@ -65,5 +68,13 @@ public:
   QImage img;
   QImage segmented;
   
-  DECLARE_SYNC;
+  ImageBGR eastImage;
+  ImageBGR westmage;
+  ImageBGR* currentImage;
+  
+  SegmentedImage eastSegmentedImage;
+  SegmentedImage westSegmentedImage;
+  SegmentedImage* currentSegmentedImage;
+  
+  char processIdentifier;
 };

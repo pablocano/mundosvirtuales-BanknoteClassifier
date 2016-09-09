@@ -102,10 +102,33 @@ void MessageQueue::copyMessage(int message, MessageQueue& other)
 char* MessageQueue::reserve(size_t size)
 {
   unsigned currentSize = usedSize + headerSize + writePosition;
-  if(currentSize + size > maximumSize)
+  if((unsigned long long) currentSize + size > (unsigned long long) maximumSize)
     return 0;
   else
   {
+    unsigned long long r = reservedSize;
+    if((unsigned long long) currentSize + size >= r)
+    {
+      r *= 2;
+      if((unsigned long long) currentSize + size >= r)
+        r = ((unsigned long long) currentSize + size) * 4;
+    }
+    if(r > (unsigned long long) maximumSize)
+      r = maximumSize;
+    if(r > (unsigned long long) reservedSize)
+    {
+      char* newBuf = (char*) realloc(buf - queueHeaderSize, (size_t) r + queueHeaderSize) + queueHeaderSize;
+      if(newBuf)
+      {
+        buf = newBuf;
+        reservedSize = (unsigned) r;
+      }
+      else
+      {
+        maximumSize = reservedSize;
+        return 0;
+      }
+    }
     writePosition += static_cast<unsigned>(size);
     return buf + currentSize;
   }
@@ -132,6 +155,26 @@ void MessageQueue::write(char *dest)
   memcpy(dest, &usedSize, 4);
   memcpy(dest + 4, &numberOfMessages, 4);
   memcpy(dest + 8, buf, usedSize);
+}
+
+void MessageQueue::removeMessage(int message)
+{
+  selectedMessageForReadingPosition = 0;
+  int i;
+  for(i = 0; i < message; ++i)
+    selectedMessageForReadingPosition += getMessageSize() + headerSize;
+  usedSize = selectedMessageForReadingPosition;
+  for(++i; i < numberOfMessages; ++i)
+  {
+    int mlength = getMessageSize() + headerSize;
+    selectedMessageForReadingPosition += mlength;
+    memcpy(buf + usedSize, buf + selectedMessageForReadingPosition, mlength);
+    usedSize = selectedMessageForReadingPosition;
+  }
+  readPosition = 0;
+  --numberOfMessages;
+  selectedMessageForReadingPosition = 0;
+  lastMessage = 0;
 }
 
 void MessageQueue::append(void* stream)

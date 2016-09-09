@@ -44,6 +44,7 @@ set( GROUNDTRUTH_SRC
   src/Representations/FieldDimensions.h
   src/Representations/FieldDimensions.cpp
   src/Representations/GroundTruthMessages.h
+  src/Representations/Image.cpp
   src/Representations/Image.h
   src/Representations/Regions.cpp
   src/Representations/Regions.h

@@ -38,7 +38,8 @@
   do { \
     if(Global::getDebugRequestTable().poll && Global::getDebugRequestTable().notYetPolled(id)) \
     { \
-      OUTPUT(idDebugResponse, id << Global::getDebugRequestTable().isActive(id)); \
+      bool resp = Global::getDebugRequestTable().isActive(id); \
+      OUTPUT(idDebugResponse, id << resp); \
     } \
     if(Global::getDebugRequestTable().isActive(id)) \
     { \

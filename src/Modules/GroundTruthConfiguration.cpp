@@ -1,6 +1,7 @@
 #include "GroundTruthConfiguration.h"
 #include "Tools/Comm/GroundTruthMessageHandler.h"
 #include "Tools/Debugging/Debugging.h"
+#include "Tools/SystemCall.h"
 
 MAKE_MODULE(GroundTruthConfiguration, Common)
 
@@ -12,6 +13,8 @@ GroundTruthConfiguration::GroundTruthConfiguration()
   
   readColorCalibration();
   readRobotsIdentifiers();
+  
+  last = SystemCall::getCurrentSystemTime();
 }
 
 void GroundTruthConfiguration::update(ColorModel& colorModel)
@@ -36,6 +39,12 @@ void GroundTruthConfiguration::update(RobotsIdentifiers &robotsIdentifiers)
     delete theRobotsIdentifiers;
     theRobotsIdentifiers = 0;
   }
+}
+
+void GroundTruthConfiguration::update(FrameInfo& frameInfo)
+{
+  frameInfo.time += SystemCall::getTimeSince(last);
+  last = SystemCall::getCurrentSystemTime();
 }
 
 void GroundTruthConfiguration::readColorCalibration()

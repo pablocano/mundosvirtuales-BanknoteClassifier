@@ -37,7 +37,7 @@ MainWindow::MainWindow()
 #endif
   
   ctrl.addViews();
-  startTimer(100);
+  startTimer(0);
 }
 
 void MainWindow::registerWidget(CalibratorTool::Object *object, int flag)

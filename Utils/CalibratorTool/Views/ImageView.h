@@ -30,9 +30,9 @@ public:
    * @param segmented The image will be segmented.
    * @param gain The intensity is multiplied with this factor.
    */
-  ImageView(const QString& fullName, Controller& controller, const std::string& name, bool segmented, bool upperCam);
+  ImageView(const QString& fullName, Controller& controller, const std::string& name, bool segmented, bool eastCam);
   
-  bool upperCam; /**< Show upper cams image in this view. */
+  bool eastCam; /**< Show east cam image in this view. */
   
 private:
   const QString fullName; /**< The path to this view in the scene graph */
@@ -70,6 +70,8 @@ private:
   
   float zoom;
   QPoint offset;
+  
+  unsigned lastTimeStamp;
   
   // which classified should be drawn?
   Color drawnColor; /**< "none" means all. */

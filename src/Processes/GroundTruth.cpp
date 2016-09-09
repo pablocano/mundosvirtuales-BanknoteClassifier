@@ -19,10 +19,10 @@
 #include <istream>
 
 GroundTruth::GroundTruth() :
-  INIT_DEBUGGING,
-  INIT_GROUND_TRUTH_COMM,
-  moduleManager({"GroundTruth","Segmentation","Common"}),
-  pause(false)
+INIT_DEBUGGING,
+INIT_GROUND_TRUTH_COMM,
+moduleManager({"GroundTruth","Segmentation","Common"}),
+pause(false)
 {
   theDebugOut.setSize(5200000);
   theDebugIn.setSize(2800000);
@@ -42,10 +42,38 @@ void GroundTruth::init()
 int GroundTruth::main()
 {
   RECEIVE_GROUND_TRUTH_COMM;
+  
+  int numberOfMessages = theDebugOut.getNumberOfMessages();
+  
+  char process = 'e';
+  OUTPUT(idProcessBegin, process);
+  
   moduleManager.execute();
-  if(((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).type == CameraInfo::Type::cam2){
+  
+  if(Blackboard::getInstance().exists("CameraInfo") &&
+     ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).type == CameraInfo::Type::westCam)
+  {
     SEND_GROUND_TRUTH_COMM;
   }
+  
+  if(theDebugOut.getNumberOfMessages() > numberOfMessages + 1)
+  {
+    // messages were sent in this frame -> send process finished
+    if(Blackboard::getInstance().exists("CameraInfo") &&
+       ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).type == CameraInfo::Type::westCam)
+    { // lower camera -> process called 'd'
+      theDebugOut.patchMessage(numberOfMessages, 0, 'w');
+      process = 'e';
+    }
+    else
+      process = 'e';
+    OUTPUT(idProcessFinished, process);
+    
+  }
+  else if(theDebugOut.getNumberOfMessages() == numberOfMessages + 1)
+    theDebugOut.removeLastMessage();
+  
+  
   
   ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
   
@@ -61,7 +89,7 @@ int GroundTruth::main()
   
   image = (const ImageBGR&) Blackboard::getInstance()["ImageBGR"];
   
-  segmented = (const SegmentedImage&) Blackboard::getInstance()["SegmentedImage"];
+  //segmented = (const SegmentedImage&) Blackboard::getInstance()["SegmentedImage"];
   
   imageName = ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).name;
   
@@ -89,7 +117,7 @@ void GroundTruth::saveColorCalibration()
 
 void GroundTruth::setSegmentation(bool set)
 {
-  Segmentator::setSegmentation(set);
+  //Segmentator::setSegmentation(set);
 }
 
 bool GroundTruth::handleMessage(MessageQueue &message)

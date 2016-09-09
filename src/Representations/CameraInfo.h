@@ -15,8 +15,8 @@ class CameraInfo : public Streamable
 {
 public:
     enum Type{
-        cam1,
-        cam2
+        eastCam,
+        westCam
     };
 
     CameraInfo() = default;
