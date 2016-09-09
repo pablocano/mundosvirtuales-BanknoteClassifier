@@ -7,7 +7,8 @@
 //
 
 #include "DebugRequest.h"
-
+#include <cstring>
+#include <cstdio>
 
 DebugRequest::DebugRequest()
 {
