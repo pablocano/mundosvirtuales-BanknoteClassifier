@@ -59,6 +59,7 @@ void MessageQueue::clear()
   selectedMessageForReadingPosition = 0;
   lastMessage = 0;
   readPosition = 0;
+  writingOfLastMessageFailed = false;
 }
 
 void MessageQueue::copyAllMessages(MessageQueue& other)
@@ -136,18 +137,26 @@ char* MessageQueue::reserve(size_t size)
 
 void MessageQueue::write(const void *p, size_t size)
 {
-  char* dest = reserve(size);
-  if(dest)
-    memcpy(dest, p, size);
+  if (!writingOfLastMessageFailed) {
+    char* dest = reserve(size);
+    if(dest)
+      memcpy(dest, p, size);
+    else
+      writingOfLastMessageFailed = true;
+  }
 }
 
 void MessageQueue::finishMessage(MessageID id)
 {
-  memcpy(buf + usedSize, (char*)&id, 1); // write the id of the message
-  memcpy(buf + usedSize + 1, &writePosition, 3); // write the size of the message
-  ++numberOfMessages;
-  usedSize += writePosition + headerSize;
+  if(!writingOfLastMessageFailed){
+    memcpy(buf + usedSize, (char*)&id, 1); // write the id of the message
+    memcpy(buf + usedSize + 1, &writePosition, 3); // write the size of the message
+    ++numberOfMessages;
+    usedSize += writePosition + headerSize;
+  }
+  
   writePosition = 0;
+  writingOfLastMessageFailed = false;
 }
 
 void MessageQueue::write(char *dest)

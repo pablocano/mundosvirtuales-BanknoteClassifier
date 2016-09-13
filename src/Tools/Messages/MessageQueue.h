@@ -167,6 +167,10 @@ public:
   
   template <class T> MessageQueue& operator<<(T& t){write(&t, sizeof(T)); return *this;}
   
+  MessageQueue& operator<<(int t){write(&t, sizeof(int)); return *this;}
+  
+  MessageQueue& operator<<(char t){write(&t, sizeof(char)); return *this;}
+  
   void writeString(const char *s);
   
   void readString(std::string& s);
@@ -193,4 +197,5 @@ private:
   unsigned maximumSize; /**< The maximum queue size (in bytes). */
   unsigned reservedSize; /**< The queue size reserved (in bytes). */
   int readPosition; /**< The position up to where a message is already read. */
+  bool writingOfLastMessageFailed; /**< If true, then the writing of the last message failed because there was not enough space. */
 };

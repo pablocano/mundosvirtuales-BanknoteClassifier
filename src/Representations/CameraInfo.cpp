@@ -1,7 +1,8 @@
 #include "CameraInfo.h"
-#include <opencv2/imgproc/imgproc.hpp>
+#include "Tools/Debugging/DebugDrawings.h"
 
-void CameraInfo::draw(cv::Mat &image) const
+void CameraInfo::draw() const
 {
-    cv::circle(image, cv::Point(fieldCenterInImage.x,fieldCenterInImage.y), 5, cv::Scalar(255,0,0));
+  DECLARE_DEBUG_DRAWING("representation:CameraInfo", "drawingOnImage");
+  CROSS("representation:CameraInfo", fieldCenterInImage.x, fieldCenterInImage.y, 5, 5, Drawings::ps_solid, ColorRGBA::blue);
 }

@@ -297,7 +297,8 @@ a81, a82, a83, a84, a85, a86, a87, a88, a89, a90, a91, a92, a93, a94, a95, a96, 
  * @param x The type name of a representation or the set of all parameters.
  */
 #define _MODULE_DECLARE(x) _MODULE_JOIN(_MODULE_DECLARE_, x)
-#define _MODULE_DECLARE_PROVIDES(type) _MODULE_PROVIDES(type, )
+#define _MODULE_DECLARE_PROVIDES(type) _MODULE_PROVIDES(type, \
+  ModuleBase::draw(r); )
 #define _MODULE_DECLARE_REQUIRES(type) public: const type& the##type = Blackboard::getInstance().alloc<type>(#type);
 #define _MODULE_DECLARE_USES(type) public: const type& the##type = Blackboard::getInstance().alloc<type>(#type);
 

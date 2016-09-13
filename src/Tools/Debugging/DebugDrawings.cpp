@@ -121,7 +121,7 @@ MessageQueue& operator>>(MessageQueue& stream, DrawingManager& drawingManager)
   return stream;
 }
 
-MessageQueue& operator<<(MessageQueue& stream, const DrawingManager& drawingManager)
+MessageQueue& operator<<(MessageQueue& stream, DrawingManager& drawingManager)
 {
   int tmp = (int)drawingManager.types.size();
   stream << tmp;

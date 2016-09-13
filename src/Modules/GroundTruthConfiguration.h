@@ -44,10 +44,6 @@ public:
   
   GroundTruthConfiguration();
   
-  static void getColorCalibration(ColorCalibration& newColorCalibration);
-  
-  static void setColorCalibration(const ColorCalibration& newColorCalibration);
-  
   static void saveColorCalibration();
   
   static bool handleMessage(MessageQueue& message);

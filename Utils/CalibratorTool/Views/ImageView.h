@@ -12,7 +12,7 @@
 #include <QWidget>
 #include <QIcon>
 #include <QPainter>
-
+#include "Representations/Image.h"
 #include "Tools/Math/Vector2.h"
 #include "Tools/ColorClasses.h"
 
@@ -71,7 +71,9 @@ private:
   float zoom;
   QPoint offset;
   
-  unsigned lastTimeStamp;
+  unsigned lastImageTimeStamp;
+  unsigned lastDrawingsTimeStamp;
+  unsigned lastColorTableTimeStamp;
   
   // which classified should be drawn?
   Color drawnColor; /**< "none" means all. */
@@ -79,6 +81,9 @@ private:
   void paintEvent(QPaintEvent* event);
   virtual void paint(QPainter& painter);
   void paintDrawings(QPainter& painter);
+  void copyImage(const ImageBGR& srcImage);
+  void copyImageSegmented(const ImageBGR& srcImage);
+  void paintImage(QPainter& painter, const ImageBGR& srcImage);
   void window2viewport(QPoint& point);
   void keyPressEvent(QKeyEvent* event);
   void wheelEvent(QWheelEvent* event);
@@ -95,10 +100,14 @@ private:
   
   virtual QMenu* createUserMenu() const;
   
+  virtual QMenu* createFileMenu() const;
+  
   friend class ImageView;
   
 private slots:
   
   void colorAct(int color) {drawnColor = (Color) color;}
+  
+  void drDebugDrawing(const QString &debug);
 
 };

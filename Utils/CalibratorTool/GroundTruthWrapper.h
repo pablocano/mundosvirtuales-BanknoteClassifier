@@ -20,14 +20,9 @@ private:
   
   Controller* controller;
   
-  cv::Mat RGBimage;
-  cv::Mat RGBSegmentedImage;
-  
   void send();
   
   void receive();
-  
-  void sendImages();
   
 protected:
   void run();
@@ -39,15 +34,6 @@ public:
   ~GroundTruthWrapper();
   
   DECLARE_SYNC;
-  
-  ColorCalibration getColorCalibration();
-  
-  
-  void setColorCalibration(const ColorCalibration& colorCalibration);
-  
-  void saveColorCalibration();
-  
-  void setSegmentation(bool set);
   
   GroundTruth groundTruth;
   

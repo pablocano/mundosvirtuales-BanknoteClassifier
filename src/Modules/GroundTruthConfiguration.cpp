@@ -30,6 +30,11 @@ void GroundTruthConfiguration::update(ColorModel& colorModel)
     OUTPUT(idColorCalibration, colorCalibration);
   });
   
+  DEBUG_RESPONSE_ONCE("module:GroundTruthConfiguration:saveColorCalibration",
+  {
+    saveColorCalibration();
+  });
+  
 }
 
 void GroundTruthConfiguration::update(RobotsIdentifiers &robotsIdentifiers)
@@ -65,29 +70,10 @@ void GroundTruthConfiguration::writeColorCalibration()
   outputFile << "colorCalibration" << colorCalibration;
 }
 
-void GroundTruthConfiguration::setColorCalibration(const ColorCalibration& newColorCalibration)
-{
-  if (!theInstance) {
-    return;
-  }
-  if (!theInstance->theColorCalibration) {
-    theInstance->theColorCalibration = new ColorCalibration();
-  }
-  *theInstance->theColorCalibration = newColorCalibration;
-}
-
-
 void GroundTruthConfiguration::saveColorCalibration()
 {
   if (theInstance) {
     theInstance->writeColorCalibration();
-  }
-}
-
-void GroundTruthConfiguration::getColorCalibration(ColorCalibration &newColorCalibration)
-{
-  if (theInstance) {
-    newColorCalibration = theInstance->colorCalibration;
   }
 }
 

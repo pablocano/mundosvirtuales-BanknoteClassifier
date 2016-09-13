@@ -7,14 +7,17 @@
 //
 
 #include "Blobs.h"
+#include "Tools/Debugging/DebugDrawings.h"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core/core.hpp>
 #include <ostream>
 
-void Blobs::draw(cv::Mat &image) const
+void Blobs::draw(/*cv::Mat &image*/) const
 {
+  DECLARE_DEBUG_DRAWING("representation:Blobs", "drawingOnImage");
   for(auto& blob : blobs)
   {
-    cv::rectangle(image,cv::Point2i(blob.leftUpper.x, blob.leftUpper.y),cv::Point2i(blob.rightBottom.x, blob.rightBottom.y), DrawingColors::getDrawingColor(blob.color.colors));
+    cv::Scalar color = DrawingColors::getDrawingColor(blob.color.colors);
+    RECTANGLE("representation:Blobs", blob.leftUpper.x, blob.leftUpper.y, blob.rightBottom.x, blob.rightBottom.y, 5, Drawings::ps_solid, ColorRGBA(color[2],color[1],color[0]));
   }
 }

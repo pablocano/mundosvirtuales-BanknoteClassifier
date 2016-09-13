@@ -26,8 +26,6 @@ protected:
   void init();
   
   int main();
-
-  void sendBothCameras();
   
   ModuleManager moduleManager;
   
@@ -36,19 +34,6 @@ protected:
 public:
   
   GroundTruth();
-  
-  void setColorCalibration(const ColorCalibration& colorCalibration);
-  
-  cv::Mat image;
-  cv::Mat segmented;
-  
-  std::string imageName;
-  
-  ColorCalibration getColorCalibration();
-  
-  void saveColorCalibration();
-  
-  void setSegmentation(bool set);
   
   /**
    * The function handles incoming debug messages.

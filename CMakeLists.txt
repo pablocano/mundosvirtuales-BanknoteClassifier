@@ -116,7 +116,7 @@ set( FIELD_CALIBRATOR
 
 set( CALIBRATOR_SRC_DIR Utils/CalibratorTool)
 
-QT4_WRAP_CPP(CALIBRATION_TOOL_MOCSrcs ${CALIBRATOR_SRC_DIR}/MainWindow.h ${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.h ${CALIBRATOR_SRC_DIR}/Views/ImageView.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.h)
+QT4_WRAP_CPP(CALIBRATION_TOOL_MOCSrcs ${CALIBRATOR_SRC_DIR}/ListViewsDockWidget.h ${CALIBRATOR_SRC_DIR}/MainWindow.h ${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.h ${CALIBRATOR_SRC_DIR}/Views/ImageView.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.h)
 
 QT4_ADD_RESOURCES(CALIBRATION_TOOL_RESOURCES_RCC ${CALIBRATOR_SRC_DIR}/CalibratorTool.qrc)
 
@@ -126,6 +126,8 @@ set( CALIBRATOR_TOOL_SRC
   ${CALIBRATOR_SRC_DIR}/Controller.h
   ${CALIBRATOR_SRC_DIR}/GroundTruthWrapper.cpp
   ${CALIBRATOR_SRC_DIR}/GroundTruthWrapper.h
+  ${CALIBRATOR_SRC_DIR}/ListViewsDockWidget.cpp
+  ${CALIBRATOR_SRC_DIR}/ListViewsDockWidget.h
   ${CALIBRATOR_SRC_DIR}/Main.cpp
   ${CALIBRATOR_SRC_DIR}/MainWindow.cpp
   ${CALIBRATOR_SRC_DIR}/MainWindow.h
@@ -140,6 +142,10 @@ set( CALIBRATOR_TOOL_SRC
   ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.h
   ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.cpp
   ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.h
+  ${CALIBRATOR_SRC_DIR}/Visualization/DebugDrawing.cpp
+  ${CALIBRATOR_SRC_DIR}/Visualization/DebugDrawing.h
+  ${CALIBRATOR_SRC_DIR}/Visualization/PaintMethods.cpp
+  ${CALIBRATOR_SRC_DIR}/Visualization/PaintMethods.h
 )
 
 set( VISION_TOOL_SRC_DIR Utils/VisionTool)
@@ -206,6 +212,7 @@ source_group(src\\Tools\\Messages REGULAR_EXPRESSION "Tools/Messages/*")
 source_group(src\\Tools\\Math REGULAR_EXPRESSION "Tools/Math/*")
 source_group(Utils\\CalibratorTool REGULAR_EXPRESSION "Utils/CalibratorTool/*")
 source_group(Utils\\CalibratorTool\\Views REGULAR_EXPRESSION "Utils/CalibratorTool/Views/*")
+source_group(Utils\\CalibratorTool\\Visualization REGULAR_EXPRESSION "Utils/CalibratorTool/Visualization/*")
 source_group(Utils\\CalibratorTool\\Views\\ColorCalibrationView REGULAR_EXPRESSION "Utils/CalibratorTool/Views/ColorCalibrationView/*")
 source_group(Utils\\libqxt REGULAR_EXPRESSION "Utils/libqxt*")
 source_group(Utils\\VisionTool REGULAR_EXPRESSION "Utils/VisionTool/*")

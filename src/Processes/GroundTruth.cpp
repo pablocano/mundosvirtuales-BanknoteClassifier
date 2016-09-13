@@ -50,6 +50,8 @@ int GroundTruth::main()
   
   moduleManager.execute();
   
+  DEBUG_RESPONSE_ONCE("automated requests:DrawingManager", OUTPUT(idDrawingManager, Global::getDrawingManager()););
+  
   if(Blackboard::getInstance().exists("CameraInfo") &&
      ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).type == CameraInfo::Type::westCam)
   {
@@ -63,7 +65,7 @@ int GroundTruth::main()
        ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).type == CameraInfo::Type::westCam)
     { // lower camera -> process called 'd'
       theDebugOut.patchMessage(numberOfMessages, 0, 'w');
-      process = 'e';
+      process = 'w';
     }
     else
       process = 'e';
@@ -73,51 +75,7 @@ int GroundTruth::main()
   else if(theDebugOut.getNumberOfMessages() == numberOfMessages + 1)
     theDebugOut.removeLastMessage();
   
-  
-  
-  ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
-  
-  //((const Regions&) Blackboard::getInstance()["Regions"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
-  
-  ((const Blobs&) Blackboard::getInstance()["Blobs"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
-  
-  ((const RobotsPoses&) Blackboard::getInstance()["RobotsPoses"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
-  
-  //((const RobotPercept&) Blackboard::getInstance()["RobotPercept"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
-  
-  ((const BallPerception&) Blackboard::getInstance()["BallPerception"]).draw((ImageBGR&) Blackboard::getInstance()["ImageBGR"]);
-  
-  image = (const ImageBGR&) Blackboard::getInstance()["ImageBGR"];
-  
-  //segmented = (const SegmentedImage&) Blackboard::getInstance()["SegmentedImage"];
-  
-  imageName = ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).name;
-  
-  SystemCall::sleep(1);
-  
   return 0;
-}
-
-void GroundTruth::setColorCalibration(const ColorCalibration &colorCalibration)
-{
-  GroundTruthConfiguration::setColorCalibration(colorCalibration);
-}
-
-ColorCalibration GroundTruth::getColorCalibration()
-{
-  ColorCalibration colorCalibration;
-  GroundTruthConfiguration::getColorCalibration(colorCalibration);
-  return colorCalibration;
-}
-
-void GroundTruth::saveColorCalibration()
-{
-  GroundTruthConfiguration::saveColorCalibration();
-}
-
-void GroundTruth::setSegmentation(bool set)
-{
-  //Segmentator::setSegmentation(set);
 }
 
 bool GroundTruth::handleMessage(MessageQueue &message)

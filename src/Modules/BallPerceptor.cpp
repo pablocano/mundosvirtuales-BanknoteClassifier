@@ -1,10 +1,12 @@
 #include "BallPerceptor.h"
 #include "Tools/Math/Transformation.h"
+#include "Tools/Debugging/DebugDrawings.h"
 
 MAKE_MODULE(BallPerceptor, GroundTruth)
 
 void BallPerceptor::update(BallPerception& ballPerception)
 {
+  DECLARE_DEBUG_DRAWING("module:BallPerceptor:Image", "drawingOnImage");
   ballPerception.wasSeen = false;
   for(const Blobs::Blob& blob : theBlobs.blobs)
   {

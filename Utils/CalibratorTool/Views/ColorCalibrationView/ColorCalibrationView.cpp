@@ -9,6 +9,7 @@
 #include <QVBoxLayout>
 #include <QSettings>
 #include <QSignalMapper>
+#include "MainWindow.h"
 
 /* ------------------- View -------------------  */
 ColorCalibrationView::ColorCalibrationView(const QString& fullName, Controller& controller)
@@ -37,11 +38,10 @@ ColorCalibrationWidget::ColorCalibrationWidget(ColorCalibrationView& colorCalibr
 {
   setFocusPolicy(Qt::StrongFocus);
 
-  /*QSettings& settings = RoboCupCtrl::application->getLayoutSettings();
+  QSettings& settings = MainWindow::application->getSettings();
   settings.beginGroup(colorCalibrationView.getFullName());
-  currentColor = (ColorClasses::Color) settings.value("CurrentColor", ColorClasses::green).toInt();
-  settings.endGroup();*/
-  currentColor = green;
+  currentColor = (Color) settings.value("CurrentColor", green).toInt();
+  settings.endGroup();
 
   hue = new HueSelector("Hue", this, 0, 255);
   saturation = new SaturationSelector("Saturation", this, 0, 255);
@@ -64,10 +64,10 @@ ColorCalibrationWidget::ColorCalibrationWidget(ColorCalibrationView& colorCalibr
 
 ColorCalibrationWidget::~ColorCalibrationWidget()
 {
-  /*QSettings& settings = RoboCupCtrl::application->getLayoutSettings();
+  QSettings& settings = MainWindow::application->getSettings();
   settings.beginGroup(colorCalibrationView.getFullName());
   settings.setValue("CurrentColor", currentColor);
-  settings.endGroup();*/
+  settings.endGroup();
   colorCalibrationView.widget = nullptr;
 }
 

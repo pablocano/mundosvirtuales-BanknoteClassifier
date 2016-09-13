@@ -30,11 +30,10 @@ Controller::Controller(MainWindow* mainWindow)
   
   groundTruthWrapper = new GroundTruthWrapper(this);
   poll(idDebugResponse);
+  poll(idDrawingManager);
   poll(idColorCalibration);
   
   SYNC;
-  debugOut << DebugRequest("representation:SegmentedImage");
-  debugOut.finishMessage(idDebugRequest);
   debugOut << DebugRequest("representation:ImageBGR");
   debugOut.finishMessage(idDebugRequest);
   
@@ -43,17 +42,25 @@ Controller::Controller(MainWindow* mainWindow)
 
 Controller::~Controller()
 {
+  qDeleteAll(views);
   groundTruthWrapper->quit();
   groundTruthWrapper->wait();
   delete groundTruthWrapper;
 }
 
-void Controller::addViews()
+void Controller::compile()
 {
-  mainWindow->registerWidget(new ImageView("LeftCam", *this, "LeftCam", false, true));
-  mainWindow->registerWidget(new ImageView("RightCam", *this, "RightCam", true, true));
-  mainWindow->registerWidget(new ColorCalibrationView("ColorCalibration",*this));
+  addView(new ImageView("LeftCam", *this, "LeftCam", false, true));
+  addView(new ImageView("RightCam", *this, "RightCam", true, true));
+  addView(new ColorCalibrationView("ColorCalibration",*this));
 }
+
+void Controller::addView(CalibratorTool::Object* object, const CalibratorTool::Object* parent, int flags)
+{
+  views.append(object);
+  mainWindow->registerObject(*object, parent, flags);
+}
+
 
 void Controller::update()
 {
@@ -63,9 +70,12 @@ void Controller::update()
     SYNC;
     colorCalibrationChanged = false;
     colorTableTimeStamp = SystemCall::getCurrentSystemTime();
-    //colorTable.fromColorCalibration(colorCalibration, prevColorCalibration);
-    debugOut << colorCalibration;
-    debugOut.finishMessage(idColorCalibration);
+    colorModel.fromColorCalibration(colorCalibration, prevColorCalibration);
+    {
+      SYNC_WITH(*groundTruthWrapper);
+      debugOut << colorCalibration;
+      debugOut.finishMessage(idColorCalibration);
+    }
   }
 }
 
@@ -76,8 +86,10 @@ void Controller::stop()
 
 void Controller::saveColorCalibration()
 {
-  SYNC;
-  groundTruthWrapper->saveColorCalibration();
+  SYNC_WITH(*groundTruthWrapper);
+  debugOut << DebugRequest("module:GroundTruthConfiguration:saveColorCalibration");
+  debugOut.finishMessage(idDebugRequest);
+  
 }
 
 bool Controller::poll(MessageID id)
@@ -135,12 +147,10 @@ bool Controller::handleMessage(MessageQueue& message)
       message >> processIdentifier;
       if (processIdentifier == 'e') {
         currentImage = &eastImage;
-        currentSegmentedImage = &eastSegmentedImage;
       }
       else
       {
         currentImage = &westmage;
-        currentSegmentedImage = &westSegmentedImage;
       }
       return true;
     }
@@ -159,14 +169,61 @@ bool Controller::handleMessage(MessageQueue& message)
       colorCalibrationChanged = true;
       return true;
     }
-    case idJPEGImage:
-    {
-      message >> *currentSegmentedImage;
-      return true;
-    }
     case idImage:
     {
       message >> *currentImage;
+      return true;
+    }
+    case idDebugDrawing:
+    {
+      if(polled[idDrawingManager] && !waitingFor[idDrawingManager]) // drawing manager not up-to-date
+      {
+        char shapeType,
+        id;
+        message >> shapeType >> id;
+        const char* name = drawingManager.getDrawingName(id); // const char* is required here
+        std::string type = drawingManager.getDrawingType(name);
+        
+        if(type == "drawingOnImage")
+          incompleteImageDrawings[name].addShapeFromQueue(message, (::Drawings::ShapeType)shapeType);
+        //else if(type == "drawingOnField")
+          //incompleteFieldDrawings[name].addShapeFromQueue(message, (::Drawings::ShapeType)shapeType);
+      }
+      return true;
+    }
+    case idProcessFinished:
+    {
+      if(processIdentifier == 'e')
+      {
+        currentImageDrawings = &eastCamImageDrawings;
+      }
+      else //processIdentifier == 'd'
+      {
+        currentImageDrawings = &westCamImageDrawings;
+      }
+      // Delete all image drawings received earlier from the current process
+      for(Drawings::iterator i = currentImageDrawings->begin(), next; i != currentImageDrawings->end(); i = next)
+      {
+        next = i;
+        ++next;
+        if(i->second.processIdentifier == processIdentifier)
+          currentImageDrawings->erase(i);
+      }
+      
+      // Add all image drawings received now from the current process
+      for(Drawings::const_iterator i = incompleteImageDrawings.begin(); i != incompleteImageDrawings.end(); ++i)
+      {
+        DebugDrawing& debugDrawing = (*currentImageDrawings)[i->first];
+        debugDrawing = i->second;
+        debugDrawing.processIdentifier = processIdentifier;
+      }
+      incompleteImageDrawings.clear();
+      return true;
+    }
+    case idDrawingManager:
+    {
+      message >> drawingManager;
+      --waitingFor[idDrawingManager];
       return true;
     }
     default:
@@ -179,4 +236,27 @@ void Controller::receive()
   SYNC_WITH(*groundTruthWrapper);
   debugIn.handleAllMessages(*this);
   debugIn.clear();
+}
+
+void Controller::drDebugDrawing(const std::string &request)
+{
+  SYNC;
+  std::string debugRequest = std::string("debug drawing:") + request;
+  for(int i = 0; i < debugRequestTable.currentNumberOfDebugRequests; ++i)
+  {
+    if(debugRequestTable.debugRequests[i].description == debugRequest)
+    {
+      DebugRequest& d = debugRequestTable.debugRequests[i];
+      if (debugRequestTable.isActive(debugRequest.c_str())) {
+        d.enable = false;
+      }
+      else{
+        d.enable = true;
+      }
+      SYNC_WITH(*groundTruthWrapper);
+      debugOut << (const DebugRequest&)d;
+      debugOut.finishMessage(idDebugRequest);
+      return;
+    }
+  }
 }

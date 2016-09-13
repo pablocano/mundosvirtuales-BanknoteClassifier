@@ -175,11 +175,11 @@ private:
   friend class Process;
   friend class Controller;
   friend MessageQueue& operator>>(MessageQueue& stream, DrawingManager&);
-  friend MessageQueue& operator<<(MessageQueue& stream, const DrawingManager&);
+  friend MessageQueue& operator<<(MessageQueue& stream, DrawingManager&);
 };
 
 MessageQueue& operator>>(MessageQueue& stream, DrawingManager&);
-MessageQueue& operator<<(MessageQueue& stream, const DrawingManager&);
+MessageQueue& operator<<(MessageQueue& stream, DrawingManager&);
 
 #ifdef RELEASE
 
