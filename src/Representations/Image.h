@@ -19,6 +19,8 @@ class MovementImage : public cv::Mat, public Streamable {
 public:
   MovementImage() : cv::Mat() {}
   
+  void draw() const;
+  
   MovementImage(const cv::Mat& m) : cv::Mat(m) {}
 };
 

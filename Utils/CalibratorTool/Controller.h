@@ -36,14 +36,15 @@ private:
   void receive();
   
   void addView(CalibratorTool::Object* object, const CalibratorTool::Object* parent = 0, int flags = 0);
+  void addView(CalibratorTool::Object* object, const QString& category, int flags = 0);
+  CalibratorTool::Object* addCategory(const QString& name, const CalibratorTool::Object* parent, const char* icon = 0);
+  CalibratorTool::Object* addCategory(const QString& name, const QString& parentName);
   
   int waitingFor[numOfMessageIDs]; /**< Each entry states for how many information packages the process waits. */
   bool polled[numOfMessageIDs]; /**< Each entry states whether certain information is up-to-date (if not waiting for). */
   
   DrawingManager drawingManager;
   DebugRequestTable debugRequestTable;
-  
-  MainWindow* mainWindow;
   
   GroundTruthWrapper* groundTruthWrapper;
   
@@ -53,7 +54,9 @@ public:
   
   DECLARE_SYNC;
   
-  Controller(MainWindow* mainWindow);
+  Controller(CalibratorTool::Application& aplication);
+  
+  static CalibratorTool::Application* application; /**< The interface to the SimRobot GUI */
   
   ~Controller();
   
@@ -64,8 +67,6 @@ public:
   void compile();
   
   void saveColorCalibration();
-  
-  MainWindow& getApplication() {return *mainWindow;}
   
   DrawingManager& getDrawingManager() {return drawingManager;}
   DebugRequestTable& getDebugRequestTable() {return debugRequestTable;}

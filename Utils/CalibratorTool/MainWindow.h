@@ -33,10 +33,8 @@ private:
   
   void close();
   
-  void updateMenuAndToolBar();
-  
   void addToolBarButtonsFromMenu(QMenu* menu, QToolBar* toolBar, bool addSeparator);
-  
+  virtual CalibratorTool::Object* resolveObject(const QString& fullName, int kind);
   virtual void timerEvent(QTimerEvent* event);
   
   unsigned int getSystemTime();
@@ -78,5 +76,7 @@ private slots:
   void visibilityChanged(bool visible);
   
   void focusChanged(QWidget *old, QWidget* now);
+  
+  void updateMenuAndToolBar();
 };
 

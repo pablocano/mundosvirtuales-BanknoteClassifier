@@ -15,7 +15,7 @@ public:
 
   };
   
-  void draw(cv::Mat& image) const;
+  void draw() const;
   
   std::vector<RobotPose> robotPoses;
 };

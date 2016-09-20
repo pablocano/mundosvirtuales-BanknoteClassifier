@@ -7,6 +7,7 @@
 //
 
 #include "Image.h"
+#include "Tools/Debugging/DebugDrawings.h"
 
 MessageQueue& operator>>(MessageQueue& stream, ImageBGR& image)
 {
@@ -56,4 +57,23 @@ MessageQueue& operator<<(MessageQueue& stream, SegmentedImage& image)
   stream << size << image.cols << image.rows << image.timeStamp << type;
   stream.write(image.data, size);
   return stream;
+}
+
+void MovementImage::draw() const
+{
+  DECLARE_DEBUG_DRAWING("representation:MovementImage", "drawingOnImage");
+  COMPLEX_DRAWING("representation:MovementImage",
+  {
+    const unsigned char* rgb = data;
+    for(int i = 0; i < rows; i+=4)
+    {
+      for (int j = 0; j < cols; j+=4)
+      {
+        if (*rgb)
+          DOT("representation:MovementImage", j, i, ColorRGBA::red, ColorRGBA::red);
+        rgb+=4;
+      }
+      rgb+=3*cols;
+    }
+  });
 }

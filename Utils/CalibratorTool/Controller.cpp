@@ -13,12 +13,15 @@
 #include "MainWindow.h"
 
 
-Controller::Controller(MainWindow* mainWindow)
-: mainWindow(mainWindow),
-  groundTruthWrapper(0),
+CalibratorTool::Application* Controller::application = 0;
+
+Controller::Controller(CalibratorTool::Application& application)
+: groundTruthWrapper(0),
   colorCalibrationChanged(false),
   colorTableTimeStamp(0)
 {
+  this->application = &application;
+  
   debugIn.setSize(5200000);
   debugOut.setSize(2800000);
   
@@ -50,17 +53,66 @@ Controller::~Controller()
 
 void Controller::compile()
 {
-  addView(new ImageView("LeftCam", *this, "LeftCam", false, true));
-  addView(new ImageView("RightCam", *this, "RightCam", true, true));
-  addView(new ColorCalibrationView("ColorCalibration",*this));
+  addCategory("GroundTruth", 0, ":/Icons/GroundTruth.png");
+  addView(new ImageView("GroundTruth.Images.EastCam", *this, "LeftCam", false, true),"GroundTruth.Images");
+  addView(new ImageView("GroundTruth.Images.EastCamSegmented", *this, "RightCam", true, true),"GroundTruth.Images");
+  addView(new ColorCalibrationView("GroundTruth.Calibrations.ColorCalibration",*this),"GroundTruth.Calibrations");
 }
 
 void Controller::addView(CalibratorTool::Object* object, const CalibratorTool::Object* parent, int flags)
 {
   views.append(object);
-  mainWindow->registerObject(*object, parent, flags);
+  application->registerObject(*object, parent, flags | CalibratorTool::Flag::showParent);
 }
 
+void Controller::addView(CalibratorTool::Object* object, const QString& categoryName, int flags)
+{
+  CalibratorTool::Object* category = application->resolveObject(categoryName);
+  if(!category)
+  {
+    int lio = categoryName.lastIndexOf('.');
+    QString subParentName = categoryName.mid(0, lio);
+    QString name = categoryName.mid(lio + 1);
+    category = addCategory(name, subParentName);
+  }
+  addView(object, category, flags);
+}
+
+CalibratorTool::Object* Controller::addCategory(const QString& name, const CalibratorTool::Object* parent, const char* icon)
+{
+  class Category : public CalibratorTool::Object
+  {
+  public:
+    Category(const QString& name, const QString& fullName, const char* icon) : name(name), fullName(fullName), icon(icon) {}
+    
+  private:
+    QString name;
+    QString fullName;
+    QIcon icon;
+    
+    virtual const QString& getDisplayName() const {return name;}
+    virtual const QString& getFullName() const {return fullName;}
+    virtual const QIcon* getIcon() const {return &icon;}
+  };
+  
+  CalibratorTool::Object* category = new Category(name, parent ? parent->getFullName() + "." + name : name, icon ? icon : ":/Icons/folder.png");
+  views.append(category);
+  application->registerObject(*category, parent, CalibratorTool::Flag::windowless | CalibratorTool::Flag::hidden);
+  return category;
+}
+
+CalibratorTool::Object* Controller::addCategory(const QString& name, const QString& parentName)
+{
+  CalibratorTool::Object* parent = application->resolveObject(parentName);
+  if(!parent)
+  {
+    int lio = parentName.lastIndexOf('.');
+    QString subParentName = parentName.mid(0, lio);
+    QString name = parentName.mid(lio + 1);
+    parent = addCategory(name, subParentName);
+  }
+  return addCategory(name, parent);
+}
 
 void Controller::update()
 {

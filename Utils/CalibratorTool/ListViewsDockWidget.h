@@ -26,7 +26,6 @@ public:
   void unregisterAllObjects();
   bool unregisterObject(const CalibratorTool::Object* object);
   CalibratorTool::Object* resolveObject(const QString& fullName, int kind);
-  CalibratorTool::Object* resolveObject(const CalibratorTool::Object* parent, const QVector<QString>& parts, int kind);
   int getObjectChildCount(const CalibratorTool::Object* object);
   CalibratorTool::Object* getObjectChild(const CalibratorTool::Object* object, int index);
   

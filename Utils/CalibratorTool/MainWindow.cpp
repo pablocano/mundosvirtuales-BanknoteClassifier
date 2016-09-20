@@ -35,8 +35,8 @@ MainWindow::MainWindow(int argc, char *argv[])
   dockWidgetUserMenu(0),
   dockWidgetFileMenu(0),
   activeDockWidget(0),
-  guiUpdateRate(33),
-  lastGuiUpdate(20),
+  guiUpdateRate(20),
+  lastGuiUpdate(0),
   opened(false),
   layoutRestored(true),
   appPath(getAppPath(argv[0])),
@@ -46,6 +46,7 @@ MainWindow::MainWindow(int argc, char *argv[])
   application = this;
   
   setWindowTitle(tr("CalibrationTool"));
+  setWindowIcon(QIcon(":/Icons/GroundTruth.png"));
   setDockNestingEnabled(true);
   setAttribute(Qt::WA_AlwaysShowToolTips);
   setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
@@ -62,7 +63,7 @@ MainWindow::MainWindow(int argc, char *argv[])
 #endif
   
   start = new QAction(QIcon(":/Icons/control_play_blue.png"),tr("&Start"),this);
-  start->setStatusTip(tr("Start or stop the simulation"));
+  start->setStatusTip(tr("Start the simulation"));
   start->setShortcut(QKeySequence(Qt::Key_F5));
   start->setCheckable(true);
   start->setEnabled(true);
@@ -97,7 +98,7 @@ void MainWindow::open()
   restoreGeometry(settings.value("Geometry").toByteArray());
   restoreState(settings.value("WindowState").toByteArray());
   
-  ctrl = new Controller(this);
+  ctrl = new Controller(*this);
   ctrl->compile();
   
   // restore focus
@@ -229,6 +230,11 @@ bool MainWindow::registerObject(CalibratorTool::Object &object, const Calibrator
     }
   }
   return true;
+}
+
+CalibratorTool::Object* MainWindow::resolveObject(const QString& fullName, int kind)
+{
+  return listViewsDockWidget ? listViewsDockWidget->resolveObject(fullName, kind) : 0;
 }
 
 void MainWindow::timerEvent(QTimerEvent* event)

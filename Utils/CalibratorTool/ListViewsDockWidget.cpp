@@ -20,8 +20,8 @@ ListViewsDockWidget::ListViewsDockWidget(QWidget* parent) : QDockWidget(parent)
 {
   setAllowedAreas(Qt::TopDockWidgetArea);
   setFocusPolicy(Qt::ClickFocus);
-  setObjectName(".SceneGraph");
-  setWindowTitle(tr("Scene Graph"));
+  setObjectName(".ListViews");
+  setWindowTitle(tr("List Views"));
   treeWidget = new QTreeWidget(this);
   italicFont = treeWidget->font();
   italicFont.setItalic(true);
@@ -98,6 +98,23 @@ void ListViewsDockWidget::registerObject(CalibratorTool::Object* object, const C
       parentItem->setHidden(false);
       parentItem = parentItem->parent();
     }
+}
+
+CalibratorTool::Object* ListViewsDockWidget::resolveObject(const QString& fullName, int kind)
+{
+  for(QHash<int, QHash<QString, RegisteredObject*>*>::iterator i = kind ? registeredObjectsByKindAndName.find(kind) : registeredObjectsByKindAndName.begin(); i != registeredObjectsByKindAndName.end(); ++i)
+  {
+    QHash<QString, RegisteredObject*>* registeredObjectsByName = *i;
+    if(!registeredObjectsByName)
+      continue;
+    RegisteredObject* object = registeredObjectsByName->value(fullName);
+    if(object)
+      return object->object;
+    
+    if(kind)
+      break;
+  }
+  return 0;
 }
 
 void ListViewsDockWidget::unregisterAllObjects()

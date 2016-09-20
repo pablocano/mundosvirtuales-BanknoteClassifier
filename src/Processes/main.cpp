@@ -31,19 +31,9 @@ int main(int argc, char *argv[])
   
   bool pause = false;
   
-  if (argc == 1) {
-    cv::namedWindow("Camera 1",cv::WINDOW_AUTOSIZE);
-    cv::namedWindow("Camera 2",cv::WINDOW_AUTOSIZE);
-  }
-  
   while(true)
   {
     g.procesMain();
-    
-    if (argc == 1) {
-      cv::imshow(g.imageName, g.image);
-    }
-    
     if(handleKey(pause))
       break;
   }
