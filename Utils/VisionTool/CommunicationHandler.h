@@ -24,6 +24,8 @@ public:
   
   static void handleAllMessages(MessageQueue& receiver);
   
+  int numOfMessagesReceived;
+  
   std::vector<GroundTruthRobot> robots;
   std::vector<GroundTruthBall> balls;
   

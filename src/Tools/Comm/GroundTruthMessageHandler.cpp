@@ -30,7 +30,7 @@ GroundTruthMessageHandler::~GroundTruthMessageHandler()
 
 void GroundTruthMessageHandler::send()
 {
-  if (out.usedSize == 0) {
+  if (out.isEmpty()) {
     //Nothing to send
     return;
   }
@@ -38,7 +38,7 @@ void GroundTruthMessageHandler::send()
   
   SPLStandardMessageWrapper message;
 
-  printf("Number of Messages: %i\n",out.numberOfMessages);
+  printf("Number of Messages: %i\n",out.getNumberOfMessages());
   
   unsigned size = message.fromMessageQueue(out);
   memcpy(buf, (char*)&message, size);

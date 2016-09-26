@@ -1,89 +1,82 @@
 #pragma once
 
 #include <QMainWindow>
-#include <QFileDialog>
-#include <QMessageBox>
-#include <QTime>
-#include <QTreeWidgetItem>
-#include <QtCore/QVariant>
-#include <QtGui/QAction>
-#include <QtGui/QGridLayout>
-#include <QtGui/QDockWidget>
-#include <QtGui/QApplication>
-#include <QtGui/QHeaderView>
-#include <QtGui/QLabel>
-#include <QtGui/QMainWindow>
-#include <QtGui/QMenuBar>
-#include <QtGui/QStatusBar>
-#include <QtGui/QToolBar>
-#include <QtGui/QWidget>
+#include <QMap>
+#include <QDockWidget>
+#include <QSettings>
+#include "CalibratorTool.h"
+#include "Controller.h"
 
-#include "GroundTruthWrapper.h"
+class ListViewsDockWidget;
+class RegisteredDockWidget;
 
-namespace Ui {
-class MainWindow;
-}
-class MainWindow : public QMainWindow
+class MainWindow : public QMainWindow, public CalibratorTool::Application
 {
   Q_OBJECT
   
 public:
-  explicit MainWindow(QWidget *parent = 0);
-  ~MainWindow();
+  static CalibratorTool::Application* application;
+  explicit MainWindow(int argc, char *argv[]);
   
-  public slots:
-  //Display video frame in player UI
-  void updateCameraImage(QImage img, QString name);
+  static QString getAppPath(const char* argv0);
+  static unsigned int getAppLocationSum(const QString& appPath);
   
-  void updateSegmentedImage(QImage img, QString name);
+  virtual const QString& getAppPath() const {return appPath;}
   
-  void closeEvent(QCloseEvent *event);
+  virtual bool registerObject(CalibratorTool::Object& object, const CalibratorTool::Object* parent, int flag = 0);
   
-private slots:
-  void on_pushButton_clicked();
-
-  void on_pushButton_2_clicked();
-
-  void on_pushButton_3_clicked();
-
-  void on_pushButton_4_clicked();
-
-  void on_pushButton_5_clicked();
-
-  void on_pushButton_6_clicked();
-
-  void on_pushButton_7_clicked();
-
-  void on_horizontalSlider_sliderMoved(int position);
-
-  void on_horizontalSlider_2_sliderMoved(int position);
-
-  void on_horizontalSlider_3_sliderMoved(int position);
-
-  void on_horizontalSlider_4_sliderMoved(int position);
-
-  void on_horizontalSlider_5_sliderMoved(int position);
-
-  void on_horizontalSlider_6_sliderMoved(int position);
-
-  void on_pushButton_8_clicked();
-
+  QSettings& getSettings() {return settings;}
+  
 private:
   
-  void uncheckButtons();
+  void open();
   
-  void setSliders(bool white);
+  void close();
   
-  void deactivateSegmentation();
+  void addToolBarButtonsFromMenu(QMenu* menu, QToolBar* toolBar, bool addSeparator);
+  virtual CalibratorTool::Object* resolveObject(const QString& fullName, int kind);
+  virtual void timerEvent(QTimerEvent* event);
   
-  void activateSegmentation();
+  unsigned int getSystemTime();
   
-  ColorCalibration colorCalibration;
-  Color color;
+  ListViewsDockWidget* listViewsDockWidget;
+  Controller *ctrl;
   
-  GroundTruthWrapper* wrapper;
-  Ui::MainWindow *ui;
+  QStringList openedObjects;
+  QMap<QString, RegisteredDockWidget*> openedObjectsByName;
   
-  bool segmenting;
+  QMenuBar* menuBar;
+  QToolBar* toolBar;
+  QMenu* dockWidgetUserMenu;
+  QMenu* dockWidgetFileMenu;
+  QDockWidget* activeDockWidget;
+  QAction* start;
+  
+  int guiUpdateRate;
+  unsigned int lastGuiUpdate;
+  
+  bool opened;
+  bool layoutRestored;
+  
+  QString appPath;
+  QString appString;
+  
+  QSettings settings;
+  
+private slots:
+  
+  void startGT();
+  
+  void closeEvent (QCloseEvent *event);
+  
+  void openObject(const QString& fullName, CalibratorTool::Object* object, int flags);
+  void closeObject(const QString& fullName);
+  void closedObject(const QString& fullName);
+  
+  void visibilityChanged(bool visible);
+  
+  void focusChanged(QWidget *old, QWidget* now);
+  
+  void updateMenuAndToolBar();
 };
 

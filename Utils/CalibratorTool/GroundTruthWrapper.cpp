@@ -1,75 +1,43 @@
 #include "GroundTruthWrapper.h"
+#include "Controller.h"
 #include "Tools/ColorClasses.h"
 
-GroundTruthWrapper::GroundTruthWrapper(QObject *parent)
- : QThread(parent),
+GroundTruthWrapper::GroundTruthWrapper(Controller *controller)
+ : controller(controller),
    shouldStop(false)
 {
   groundTruth.setGlobals();
-  start(NormalPriority);
 }
 
 void GroundTruthWrapper::run()
 {
   while (!shouldStop) {
+    send();
     groundTruth.procesMain();
-    sendImages();
+    receive();
   }
+  return;
 }
 
 GroundTruthWrapper::~GroundTruthWrapper()
 {
-    mutex.lock();
-    condition.wakeOne();
-    mutex.unlock();
-    wait();
 }
 
-ColorCalibration GroundTruthWrapper::getColorCalibration()
+void GroundTruthWrapper::send()
 {
-  return groundTruth.getColorCalibration();
-}
-
-void GroundTruthWrapper::setColorCalibration(const ColorCalibration& colorCalibration)
-{
-  mutex.lock();
-  groundTruth.setColorCalibration(colorCalibration);
-  mutex.unlock();
-}
-
-void GroundTruthWrapper::sendImages()
-{
-  if (groundTruth.image.channels()== 3){
-    cv::cvtColor(groundTruth.image, RGBimage, CV_BGR2RGB);
-    img = QImage((const unsigned char*)(RGBimage.data),
-                 RGBimage.cols,RGBimage.rows,QImage::Format_RGB888);
+  SYNC;
+  if (controller->debugOut.isEmpty()) {
+    return;
   }
-  else
-  {
-    img = QImage((const unsigned char*)(groundTruth.image.data),
-                 groundTruth.image.cols,groundTruth.image.rows,QImage::Format_Indexed8);
-  }
-  emit cameraImage(img,QString::fromStdString(groundTruth.imageName));
-  
-  if (groundTruth.segmented.channels()== 3){
-    cv::cvtColor(groundTruth.segmented, RGBSegmentedImage, CV_BGR2RGB);
-    segmented = QImage((const unsigned char*)(RGBSegmentedImage.data),
-                       RGBSegmentedImage.cols,RGBSegmentedImage.rows,QImage::Format_RGB888);
-  }
-  else
-  {
-    segmented = QImage((const unsigned char*)(groundTruth.segmented.data),
-                       groundTruth.segmented.cols,groundTruth.segmented.rows,QImage::Format_Indexed8);
-  }
-  emit segmentedImage(segmented,QString::fromStdString(groundTruth.imageName));
+  controller->debugOut.moveAllMessages(groundTruth.theDebugIn);
 }
 
-void GroundTruthWrapper::saveColorCalibration()
+void GroundTruthWrapper::receive()
 {
-  groundTruth.saveColorCalibration();
-}
-
-void GroundTruthWrapper::setSegmentation(bool set)
-{
-  groundTruth.setSegmentation(set);
+  SYNC;
+  if (groundTruth.theDebugOut.isEmpty()) {
+    return;
+  }
+  controller->debugIn.clear();
+  groundTruth.theDebugOut.moveAllMessages(controller->debugIn);
 }

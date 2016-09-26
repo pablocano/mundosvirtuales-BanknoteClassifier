@@ -1,6 +1,7 @@
 #include "GroundTruthProvider.h"
 #include "Tools/Comm/GroundTruthMessageHandler.h"
 #include "Tools/Math/Transformation.h"
+#include "Tools/Comm/Comm.h"
 
 MAKE_MODULE(GroundTruthProvider, GroundTruth)
 

@@ -1,5 +1,7 @@
 #include "GroundTruthConfiguration.h"
 #include "Tools/Comm/GroundTruthMessageHandler.h"
+#include "Tools/Debugging/Debugging.h"
+#include "Tools/SystemCall.h"
 
 MAKE_MODULE(GroundTruthConfiguration, Common)
 
@@ -11,6 +13,8 @@ GroundTruthConfiguration::GroundTruthConfiguration()
   
   readColorCalibration();
   readRobotsIdentifiers();
+  
+  last = SystemCall::getCurrentSystemTime();
 }
 
 void GroundTruthConfiguration::update(ColorModel& colorModel)
@@ -20,6 +24,17 @@ void GroundTruthConfiguration::update(ColorModel& colorModel)
     delete theColorCalibration;
     theColorCalibration = 0;
   }
+  
+  DEBUG_RESPONSE_ONCE("representation:ColorCalibration",
+  {
+    OUTPUT(idColorCalibration, colorCalibration);
+  });
+  
+  DEBUG_RESPONSE_ONCE("module:GroundTruthConfiguration:saveColorCalibration",
+  {
+    saveColorCalibration();
+  });
+  
 }
 
 void GroundTruthConfiguration::update(RobotsIdentifiers &robotsIdentifiers)
@@ -29,6 +44,12 @@ void GroundTruthConfiguration::update(RobotsIdentifiers &robotsIdentifiers)
     delete theRobotsIdentifiers;
     theRobotsIdentifiers = 0;
   }
+}
+
+void GroundTruthConfiguration::update(FrameInfo& frameInfo)
+{
+  frameInfo.time += SystemCall::getTimeSince(last);
+  last = SystemCall::getCurrentSystemTime();
 }
 
 void GroundTruthConfiguration::readColorCalibration()
@@ -49,29 +70,10 @@ void GroundTruthConfiguration::writeColorCalibration()
   outputFile << "colorCalibration" << colorCalibration;
 }
 
-void GroundTruthConfiguration::setColorCalibration(const ColorCalibration& newColorCalibration)
-{
-  if (!theInstance) {
-    return;
-  }
-  if (!theInstance->theColorCalibration) {
-    theInstance->theColorCalibration = new ColorCalibration();
-  }
-  *theInstance->theColorCalibration = newColorCalibration;
-}
-
-
 void GroundTruthConfiguration::saveColorCalibration()
 {
   if (theInstance) {
     theInstance->writeColorCalibration();
-  }
-}
-
-void GroundTruthConfiguration::getColorCalibration(ColorCalibration &newColorCalibration)
-{
-  if (theInstance) {
-    newColorCalibration = theInstance->colorCalibration;
   }
 }
 
@@ -97,4 +99,17 @@ void GroundTruthConfiguration::readRobotsIdentifiers()
       theRobotsIdentifiers->identifiers.push_back(robot);
     }
   }
+}
+
+bool GroundTruthConfiguration::handleMessage(MessageQueue& message)
+{
+  if(theInstance && message.getMessageID() == idColorCalibration)
+  {
+    if(!theInstance->theColorCalibration)
+      theInstance->theColorCalibration = new ColorCalibration;
+    message >> *theInstance->theColorCalibration;
+    return true;
+  }
+  else
+    return false;
 }

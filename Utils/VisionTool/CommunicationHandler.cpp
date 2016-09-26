@@ -13,6 +13,7 @@
 CommunicationHandler* CommunicationHandler::theInstance = 0;
 
 CommunicationHandler::CommunicationHandler()
+: numOfMessagesReceived(0)
 {
   theInstance = this;
 }
@@ -23,12 +24,12 @@ bool CommunicationHandler::handleMessage(MessageQueue &message)
   GroundTruthBall ball;
   switch (message.getMessageID()) {
     case idGroundTruthMessageBall:
-      message >> &ball;
+      message >> ball;
       balls.push_back(ball);
       return true;
       
     case idGroundTruthMessageRobot:
-      message >> &robot;
+      message >> robot;
       robots.push_back(robot);
       return true;
       
@@ -42,7 +43,8 @@ void CommunicationHandler::handleAllMessages(MessageQueue &receiver)
   if(theInstance){
     theInstance->robots.clear();
     theInstance->balls.clear();
-    printf("Numbers of Messages: %i\n",receiver.numberOfMessages);
+    theInstance->numOfMessagesReceived = receiver.getNumberOfMessages();
+    printf("Numbers of Messages: %i\n",theInstance->numOfMessagesReceived);
     receiver.handleAllMessages(*theInstance);
   }
   

@@ -41,13 +41,21 @@ public:
   
   ~MessageQueue();
   
-  void clear();
-  
-  char* reserve(size_t size);
-  
   void write(const void *p, size_t size);
   
   void write(char *dest);
+  
+  /**
+   * The method sets the size of memory which is allocated for the queue.
+   * In the simulator, this is only the maximum size (dynamic allocation).
+   * @param size The maximum size of the queue in Bytes.
+   */
+  void setSize(unsigned size);
+  
+  /**
+   * The method removes all messages from the queue.
+   */
+  void clear();
   
   /**
    * The method reads all messages from a stream and appends them to this message queue.
@@ -87,17 +95,96 @@ public:
    */
   void handleAllMessages(MessageHandler& handler);
   
-  template <class T> void operator>>(T* t){read(t, sizeof(T));}
+  /**
+   * The method copies all messages from this queue to another queue.
+   * @param other The destination queue.
+   */
+  void copyAllMessages(MessageQueue& other);
   
-  template <class T> void operator<<(T* t){write(t, sizeof(T));}
+  /**
+   * The method moves all messages from this queue to another queue.
+   * @param other The destination queue.
+   */
+  void moveAllMessages(MessageQueue& other);
+  
+  /**
+   * The method returns whether the queue is empty.
+   * @return Aren't there any messages in the queue?
+   */
+  bool isEmpty() const {return numberOfMessages == 0;}
+  
+  /**
+   * The method returns the number of messages in the queue.
+   * @return The number of messages.
+   */
+  int getNumberOfMessages() const {return numberOfMessages;}
+  
+  /**
+   * Hacker interface for messages. Allows patching their data after they were added.
+   * @param message The number of the message to be patched.
+   * @param index The index of the byte to be patched in the message.
+   * @param value The new value of the byte.
+   */
+  void patchMessage(int message, int index, char value);
+  
+  /**
+   * The method copies a single message to another queue.
+   * @param message The number of the message.
+   * @param other The other queue.
+   */
+  void copyMessage(int message, MessageQueue& other);
+  
+  /**
+   * The method gives direct read access to the selected message for reading.
+   * @return The address of the first byte of the message
+   */
+  const char* getData() const {return buf + selectedMessageForReadingPosition + headerSize;}
+  
+  /**
+   * The method removes a message from the queue.
+   */
+  void removeLastMessage() {if(!isEmpty()) removeMessage(getNumberOfMessages() - 1);}
+  
+  /**
+   * The method removes a message from the queue.
+   * @param message The number of the message.
+   */
+  void removeMessage(int message);
+  
+  /**
+   * Operator that writes a string into a stream.
+   * @param out The stream to which is written.
+   * @param value The value that is written.
+   * @return The stream.
+   */
+  MessageQueue& operator<<(const char* value) {writeString(value); return *this;}
+  
+  MessageQueue& operator<<(const std::string& string){writeString(string.c_str()); return *this;}
+  
+  MessageQueue& operator>>(std::string& string){readString(string); return *this;}
+  
+  template <class T> MessageQueue& operator>>(T& t){read(&t, sizeof(T)); return *this;}
+  
+  template <class T> MessageQueue& operator<<(T& t){write(&t, sizeof(T)); return *this;}
+  
+  MessageQueue& operator<<(int t){write(&t, sizeof(int)); return *this;}
+  
+  MessageQueue& operator<<(char t){write(&t, sizeof(char)); return *this;}
+  
+  void writeString(const char *s);
+  
+  void readString(std::string& s);
   
   void finishMessage(MessageID id);
   
   unsigned getSize() {return usedSize + queueHeaderSize;}
   
+private:
+  
+  char* reserve(size_t size);
+  
   char *buf;
   
-  unsigned maxSize;
   unsigned usedSize;
   unsigned writePosition;
   int numberOfMessages;
@@ -107,5 +194,8 @@ public:
   
   static const int headerSize = 4; /**< The size of the header of each message in bytes. */
   static const int queueHeaderSize = 2 * sizeof(unsigned); /**< The size of the header in a streamed queue. */
-  
+  unsigned maximumSize; /**< The maximum queue size (in bytes). */
+  unsigned reservedSize; /**< The queue size reserved (in bytes). */
+  int readPosition; /**< The position up to where a message is already read. */
+  bool writingOfLastMessageFailed; /**< If true, then the writing of the last message failed because there was not enough space. */
 };

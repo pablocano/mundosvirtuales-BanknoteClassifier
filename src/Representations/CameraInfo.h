@@ -15,8 +15,8 @@ class CameraInfo : public Streamable
 {
 public:
     enum Type{
-        cam1,
-        cam2
+        eastCam,
+        westCam
     };
 
     CameraInfo() = default;
@@ -47,7 +47,7 @@ public:
         pix2World = other.pix2World;
     }
 
-    void draw(cv::Mat& image) const;
+    void draw() const;
 
     // variables
     Type type;                      // Cam 1 or Cam 2

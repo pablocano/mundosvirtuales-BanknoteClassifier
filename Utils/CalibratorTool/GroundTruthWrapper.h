@@ -10,41 +10,30 @@
 #include "Processes/GroundTruth.h"
 #include "Representations/ColorModel/ColorCalibration.h"
 #include "Representations/ColorModel/ColorModel.h"
+#include "Synchronization.h"
+
+class Controller;
 
 class GroundTruthWrapper : public QThread
 {
-  Q_OBJECT
 private:
-  QMutex mutex;
-  QWaitCondition condition;
-  cv::Mat RGBimage;
-  cv::Mat RGBSegmentedImage;
-  QImage img;
-  QImage segmented;
   
-  void sendImages();
+  Controller* controller;
   
-signals:
-  //Signal to output frame to be displayed
-  void cameraImage(const QImage& image, const QString& name);
+  void send();
   
-  void segmentedImage(const QImage& image, const QString& name);
+  void receive();
+  
 protected:
   void run();
   
 public:
   //Constructor
-  GroundTruthWrapper(QObject *parent = 0);
+  GroundTruthWrapper(Controller* controller);
   //Destructor
   ~GroundTruthWrapper();
   
-  ColorCalibration getColorCalibration();
-  
-  void setColorCalibration(const ColorCalibration& colorCalibration);
-  
-  void saveColorCalibration();
-  
-  void setSegmentation(bool set);
+  DECLARE_SYNC;
   
   GroundTruth groundTruth;
   

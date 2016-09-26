@@ -1,11 +1,11 @@
 #include "Regions.h"
-#include <opencv2/imgproc/imgproc.hpp>
+#include "Tools/Debugging/DebugDrawings.h"
 
-void Regions::draw(cv::Mat &image) const
+void Regions::draw() const
 {
+  DECLARE_DEBUG_DRAWING("representation:Region", "drawingOnImage");
   for (auto& region : regions) {
-    cv::Point pt1 = cv::Point(region.right.x, region.right.y);
-    cv::Point pt2 = cv::Point(region.left.x, region.left.y);
-    cv::line(image, pt1, pt2, DrawingColors::getDrawingColor(region.color.colors));
+    cv::Scalar color = DrawingColors::getDrawingColor(region.color.colors);
+    LINE("representation:Region", region.right.x, region.right.y, region.left.x, region.left.y, 1, Drawings::ps_solid, ColorRGBA(color[2],color[1],color[0]));
   }
 }

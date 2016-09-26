@@ -11,7 +11,7 @@ class BallPerception : public Streamable
 public:
     using Color = ColorModel::Colors;
     
-    void draw(cv::Mat& image) const;
+    void draw() const;
 	
     Vector2<int> positionInImage;
     Vector2<int> position;

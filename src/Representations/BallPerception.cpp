@@ -1,14 +1,11 @@
 #include "BallPerception.h"
-#include <opencv2/imgproc/imgproc.hpp>
+#include "Tools/Debugging/DebugDrawings.h"
 
-void BallPerception::draw(cv::Mat &image) const
+void BallPerception::draw() const
 {
-    if (wasSeen)
-    {
-        cv::Mat copy;
-        image.copyTo(copy);
-        cv::circle(copy, cv::Point(positionInImage.x,positionInImage.y), radius, cv::Scalar(0,128,255), -1);
-        cv::circle(copy, cv::Point(positionInImage.x,positionInImage.y), radius, cv::Scalar(0,0,0));
-        cv::addWeighted(image, 0.3, copy, 0.7, 0, image);
-    }
+  DECLARE_DEBUG_DRAWING("representation:BallPerception", "drawingOnImage");
+  if (wasSeen)
+  {
+    CIRCLE("representation:BallPerception", positionInImage.x, positionInImage.y, radius, 1, Drawings::ps_solid, ColorRGBA::black, Drawings::bs_solid, ColorRGBA(255, 128, 0, 80));
+  }
 }

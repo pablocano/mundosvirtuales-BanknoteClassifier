@@ -1,5 +1,5 @@
 #include "Camera.h"
-#include "Tools/SystemCall.h"
+#include "Tools/Debugging/Debugging.h"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <sstream>
 
@@ -71,7 +71,7 @@ Camera::Camera(): index(0)
     file1["Pixel_to_World"] >> pix2World;
     file1["Field_Center"] >> fieldCenter;
     file1.release();
-    cam1 = CameraInfo(CameraInfo::cam1, "Camera 1", K, d, fieldCenter, pix2World);
+    cam1 = CameraInfo(CameraInfo::eastCam, "Camera 1", K, d, fieldCenter, pix2World);
 
 
     // Load Camera 2 config
@@ -85,20 +85,13 @@ Camera::Camera(): index(0)
     file2["Pixel_to_World"] >> pix2World;
     file2["Field_Center"] >> fieldCenter;
     file2.release();
-    cam2 = CameraInfo(CameraInfo::cam2, "Camera 2", K, d, fieldCenter, pix2World);
+    cam2 = CameraInfo(CameraInfo::westCam, "Camera 2", K, d, fieldCenter, pix2World);
 
     // fill the arrays
     cameras[0] = &video0;
     cameras[1] = &video1;
     camerasInfo[0] = &cam1;
     camerasInfo[1] = &cam2;
-    last = SystemCall::getCurrentSystemTime();
-}
-
-void Camera::update(FrameInfo& frameInfo)
-{
-  frameInfo.time += SystemCall::getTimeSince(last);
-  last = SystemCall::getCurrentSystemTime();
 }
 
 void Camera::update(CameraInfo& cameraInfo)
@@ -121,6 +114,13 @@ void Camera::update(ImageBGR& image)
   cv::undistort(tmp, undistorted, camerasInfo[index]->K, camerasInfo[index]->d);
   rotateImage90(undistorted, rotated, index == 0? ANGLES::COUNTERCLOCKWISE : ANGLES::CLOCKWISE);
   image = ImageBGR(rotated);
+  image.timeStamp = theFrameInfo.time;
+  
+  DEBUG_RESPONSE("representation:ImageBGR",
+  {
+    OUTPUT(idImage,image);
+  });
+  
 }
 
 void Camera::update(Image& image)

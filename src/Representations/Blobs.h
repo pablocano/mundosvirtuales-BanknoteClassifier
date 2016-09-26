@@ -17,7 +17,7 @@ public:
     ColorModel::Colors color;
   };
   
-  void draw(cv::Mat& image) const;
+  void draw(/*cv::Mat& image*/) const;
   
   std::vector<Blob> blobs;
 };

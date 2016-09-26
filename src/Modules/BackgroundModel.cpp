@@ -11,7 +11,7 @@ MAKE_MODULE(BackgroundModel, GroundTruth)
 
 void BackgroundModel::update(MovementImage& movementImage)
 {
-    if(theCameraInfo.type == CameraInfo::cam1)
+    if(theCameraInfo.type == CameraInfo::eastCam)
         currentModel = &model1;
     else
         currentModel = &model2;
