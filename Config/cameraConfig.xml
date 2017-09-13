@@ -2,5 +2,5 @@
 <opencv_storage>
   <!-- Image width & height -->
   <imgWidth>640</imgWidth>
-  <imgHeight>480</imgHeight>
+  <imgHeight>360</imgHeight>
 </opencv_storage>

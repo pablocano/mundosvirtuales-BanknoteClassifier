@@ -1,4 +1,4 @@
-#include "Processes/GroundTruth.h"
+#include "Processes/BanknoteClassifier.h"
 #include <opencv2/highgui/highgui.hpp>
 
 bool handleKey(bool& pause)
@@ -25,15 +25,15 @@ bool handleKey(bool& pause)
 
 int main(int argc, char *argv[])
 {
-  GroundTruth g;
+  BanknoteClassifier b;
   
-  g.setGlobals();
+  b.setGlobals();
   
   bool pause = false;
   
   while(true)
   {
-    g.procesMain();
+    b.procesMain();
     if(handleKey(pause))
       break;
   }

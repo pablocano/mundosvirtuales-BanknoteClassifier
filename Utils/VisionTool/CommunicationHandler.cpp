@@ -7,7 +7,7 @@
 //
 
 #include "CommunicationHandler.h"
-#include "MessageIDs.h"
+#include "Tools/MessageIDs.h"
 #include <iostream>
 
 CommunicationHandler* CommunicationHandler::theInstance = 0;
@@ -20,7 +20,7 @@ CommunicationHandler::CommunicationHandler()
 
 bool CommunicationHandler::handleMessage(MessageQueue &message)
 {
-  GroundTruthRobot robot;
+  /*GroundTruthRobot robot;
   GroundTruthBall ball;
   switch (message.getMessageID()) {
     case idGroundTruthMessageBall:
@@ -35,14 +35,13 @@ bool CommunicationHandler::handleMessage(MessageQueue &message)
       
     default:
       return false;
-  }
+  }*/
+  return false;
 }
 
 void CommunicationHandler::handleAllMessages(MessageQueue &receiver)
 {
   if(theInstance){
-    theInstance->robots.clear();
-    theInstance->balls.clear();
     theInstance->numOfMessagesReceived = receiver.getNumberOfMessages();
     printf("Numbers of Messages: %i\n",theInstance->numOfMessagesReceived);
     receiver.handleAllMessages(*theInstance);

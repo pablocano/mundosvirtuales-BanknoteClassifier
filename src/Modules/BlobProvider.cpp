@@ -9,7 +9,7 @@
 #include "BlobProvider.h"
 #include "Tools/Math/Transformation.h"
 
-MAKE_MODULE(BlobProvider, GroundTruth);
+MAKE_MODULE(BlobProvider, BanknoteClassifier)
 
 void BlobProvider::update(Blobs &blobs)
 {
@@ -28,7 +28,7 @@ void BlobProvider::createBlobs()
 {
   segments.clear();
   for(auto const& segment: theRegions.regions)
-    if(segment.right.x - segment.left.x > 3 && !segment.color.is(none) && !segment.color.is(green))
+    if(segment.right.x - segment.left.x > 3 && !segment.color.is(none))
       segments.push_back(Segment(segment));
   
   groups.clear();

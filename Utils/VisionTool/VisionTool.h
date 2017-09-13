@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Tools/Comm/GroundTruthMessageHandler.h"
+#include "Tools/Comm/BanknoteClassifierMessageHandler.h"
 #include "CommunicationHandler.h"
 
 class VisionTool{
   
 private:
-  GROUND_TRUTH_COMM;
+  BANKNOTE_CLASSIFIER_COMM;
   
 public:
   

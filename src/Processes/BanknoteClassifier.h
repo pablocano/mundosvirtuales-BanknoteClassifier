@@ -7,19 +7,19 @@
 #pragma once
 
 #include "Representations/ColorModel/ColorCalibration.h"
-#include "Tools/Comm/GroundTruthMessageHandler.h"
+#include "Tools/Comm/BanknoteClassifierMessageHandler.h"
 #include "Tools/ModuleManager/ModuleManager.h"
 #include "Tools/Process.h"
 #include <opencv2/core/core.hpp>
 #include <string>
 
-class GroundTruth : public Process{
+class BanknoteClassifier : public Process{
   
 public:
   DEBUGGING;
   
 private:
-  GROUND_TRUTH_COMM;
+  BANKNOTE_CLASSIFIER_COMM;
   
 protected:
   
@@ -33,7 +33,7 @@ protected:
   
 public:
   
-  GroundTruth();
+  BanknoteClassifier();
   
   /**
    * The function handles incoming debug messages.

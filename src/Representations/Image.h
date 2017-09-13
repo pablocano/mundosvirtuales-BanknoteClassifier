@@ -6,6 +6,8 @@
 
 class Image : public cv::Mat, public Streamable {};
 
+class GrayScaleImage : public cv::Mat, public Streamable {};
+
 class SegmentedImage : public cv::Mat, public Streamable {
 public:
   SegmentedImage() : cv::Mat(), timeStamp(0) {}

@@ -6,7 +6,7 @@
  */
 
 #include "SPLStandardMessageWrapper.h"
-#include "MessageIDs.h"
+#include "Tools/MessageIDs.h"
 #include "Tools/SystemCall.h"
 #include <algorithm>
 #include <iostream>

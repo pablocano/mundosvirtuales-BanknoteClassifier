@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "MessageIDs.h"
+#include "Tools/MessageIDs.h"
 #include <string>
 
 /**

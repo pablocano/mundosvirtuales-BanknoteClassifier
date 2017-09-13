@@ -10,5 +10,5 @@
  * @param expression A streamable expression.
  */
 #define SEND_MESSAGE(type,expression) \
-{ Global::geCommunicationOut() << expression;\
+{ Global::geCommunicationOut() << expression; \
 Global::geCommunicationOut().finishMessage(type); }

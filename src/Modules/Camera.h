@@ -14,6 +14,7 @@ MODULE(Camera,
   PROVIDES(ImageBGR),
   REQUIRES(ImageBGR),
   PROVIDES(Image),
+  PROVIDES(GrayScaleImage),
 });
 
 
@@ -25,6 +26,8 @@ public:
   void update(CameraInfo& cameraInfo);
   
   void update(Image& image);
+
+  void update(GrayScaleImage& grayScaleImage);
   
   void update(ImageBGR& image);
   cv::VideoCapture video0;

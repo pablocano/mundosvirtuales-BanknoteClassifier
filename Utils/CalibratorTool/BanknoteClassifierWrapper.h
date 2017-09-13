@@ -7,14 +7,14 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include "Processes/GroundTruth.h"
+#include "Processes/BanknoteClassifier.h"
 #include "Representations/ColorModel/ColorCalibration.h"
 #include "Representations/ColorModel/ColorModel.h"
 #include "Synchronization.h"
 
 class Controller;
 
-class GroundTruthWrapper : public QThread
+class BanknoteClassifierWrapper : public QThread
 {
 private:
   
@@ -29,13 +29,13 @@ protected:
   
 public:
   //Constructor
-  GroundTruthWrapper(Controller* controller);
+  BanknoteClassifierWrapper(Controller* controller);
   //Destructor
-  ~GroundTruthWrapper();
+  ~BanknoteClassifierWrapper();
   
   DECLARE_SYNC;
   
-  GroundTruth groundTruth;
+  BanknoteClassifier banknoteClassifier;
   
   bool shouldStop;
 

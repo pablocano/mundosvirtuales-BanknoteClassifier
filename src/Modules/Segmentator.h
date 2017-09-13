@@ -10,7 +10,7 @@ MODULE(Segmentator,
   REQUIRES(Image),
   REQUIRES(ColorModel),
   REQUIRES(FrameInfo),
-	PROVIDES(SegmentedImage),
+  PROVIDES(SegmentedImage),
 });
 
 class Segmentator : public SegmentatorBase

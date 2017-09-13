@@ -21,9 +21,9 @@ private:
   
   void drawField(QPainter& painter);
   
-  void drawRobot(QPainter& painter, const GroundTruthRobot& robot);
+  void drawRobot(QPainter& painter);
   
-  void drawBall(QPainter& painter, const GroundTruthBall& ball);
+  void drawBall(QPainter& painter);
   
   VisionTool visionTool;
   

@@ -1,6 +1,6 @@
 //
 //  MainWindow.cpp
-//  GroundTruth
+//  BanknoteClassifier
 //
 //  Created by Pablo Cano Montecinos on 01-09-16.
 //

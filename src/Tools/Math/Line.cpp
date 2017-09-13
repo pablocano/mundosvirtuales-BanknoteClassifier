@@ -5,6 +5,8 @@
  */
 
 #include "Line.h"
+#include "opencv2/imgproc.hpp"
+#include "opencv2/highgui.hpp"
 
 Line::Line(Vector2<int> point1, Vector2<int> point2): point1(point1), point2(point2)
 {

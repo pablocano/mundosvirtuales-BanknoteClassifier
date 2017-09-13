@@ -102,18 +102,20 @@ void Camera::update(CameraInfo& cameraInfo)
 
 void Camera::update(ImageBGR& image)
 {
-  cv::Mat tmp, undistorted, rotated;
-  *cameras[index] >> tmp;
-  //if (image.empty()) {
+  cv::Mat tmp, undistorted;
+  do{
+    *cameras[index] >> tmp;
+    //if (image.empty()) {
     //cameras[index]->set(CV_CAP_PROP_POS_AVI_RATIO , 0);
     //*cameras[index] >> tmp;
-  //}
-  if(tmp.empty())
-      return;
+    //}
+  }
+  while(tmp.empty());
+
   // correct and rotate images
-  cv::undistort(tmp, undistorted, camerasInfo[index]->K, camerasInfo[index]->d);
-  rotateImage90(undistorted, rotated, index == 0? ANGLES::COUNTERCLOCKWISE : ANGLES::CLOCKWISE);
-  image = ImageBGR(rotated);
+  //cv::undistort(tmp, undistorted, camerasInfo[index]->K, camerasInfo[index]->d);
+  //rotateImage90(undistorted, rotated, index == 0? ANGLES::COUNTERCLOCKWISE : ANGLES::CLOCKWISE);
+  image = ImageBGR(tmp);
   image.timeStamp = theFrameInfo.time;
   
   DEBUG_RESPONSE("representation:ImageBGR",
@@ -126,6 +128,11 @@ void Camera::update(ImageBGR& image)
 void Camera::update(Image& image)
 {
   cv::cvtColor(theImageBGR, image, CV_BGR2YCrCb);
+}
+
+void Camera::update(GrayScaleImage& image)
+{
+  cv::cvtColor(theImageBGR, image, CV_BGR2GRAY);
 }
 
 

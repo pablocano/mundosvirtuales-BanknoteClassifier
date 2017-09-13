@@ -2,7 +2,7 @@
 #include "Tools/Math/Pose2D.h"
 #include "Tools/Streamable.h"
 
-struct GroundTruthRobot
+/*struct GroundTruthRobot
 {
   int teamNumber;
   int robotNumber;
@@ -11,7 +11,7 @@ struct GroundTruthRobot
 
 struct GroundTruthBall {
   Vector2<> ballPosition;
-};
+};*/
 
-class GroundTruthMessageOutput : public Streamable {
+class BanknoteClassifierMessageOutput : public Streamable {
 };

@@ -57,7 +57,7 @@ public:
   static DebugRequestTable& getDebugRequestTable() {return *theDebugRequestTable;}
   
   friend class Process; // The class Process can set these pointers.
-  friend class GroundTruth; // The class Cognition can set theTeamOut.
+  friend class BanknoteClassifier; // The class BanknoteClassifier can set theTeamOut.
   friend class VisionTool;
   friend class Settings; // The class Settings can set a default StreamHandler.
 };

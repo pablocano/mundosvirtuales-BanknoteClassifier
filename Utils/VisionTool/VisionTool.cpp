@@ -17,12 +17,12 @@ VisionTool::VisionTool(): INIT_GROUND_TRUTH_COMM
 void VisionTool::init()
 {
   std::string bcastAddr = UdpComm::getWifiBroadcastAddress();
-  theGroundTruthCommHandler.start(10021, bcastAddr.c_str());
+  theBanknoteClassifierCommHandler.start(10021, bcastAddr.c_str());
 }
 
 int VisionTool::execute()
 {
-  RECEIVE_GROUND_TRUTH_COMM;
+  RECEIVE_BANKNOTE_CLASSIFIER_COMM;
   CommunicationHandler::handleAllMessages(theCommReceiver);
   return 0;
 }

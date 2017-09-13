@@ -16,7 +16,7 @@
 CalibratorTool::Application* Controller::application = 0;
 
 Controller::Controller(CalibratorTool::Application& application)
-: groundTruthWrapper(0),
+: banknoteClassifierWrapper(0),
   colorCalibrationChanged(false),
   colorTableTimeStamp(0)
 {
@@ -31,7 +31,7 @@ Controller::Controller(CalibratorTool::Application& application)
     polled[i] = false;
   }
   
-  groundTruthWrapper = new GroundTruthWrapper(this);
+  banknoteClassifierWrapper = new BanknoteClassifierWrapper(this);
   poll(idDebugResponse);
   poll(idDrawingManager);
   poll(idColorCalibration);
@@ -40,15 +40,15 @@ Controller::Controller(CalibratorTool::Application& application)
   debugOut << DebugRequest("representation:ImageBGR");
   debugOut.finishMessage(idDebugRequest);
   
-  groundTruthWrapper->start();
+  banknoteClassifierWrapper->start();
 }
 
 Controller::~Controller()
 {
   qDeleteAll(views);
-  groundTruthWrapper->quit();
-  groundTruthWrapper->wait();
-  delete groundTruthWrapper;
+  banknoteClassifierWrapper->quit();
+  banknoteClassifierWrapper->wait();
+  delete banknoteClassifierWrapper;
 }
 
 void Controller::compile()
@@ -124,7 +124,7 @@ void Controller::update()
     colorTableTimeStamp = SystemCall::getCurrentSystemTime();
     colorModel.fromColorCalibration(colorCalibration, prevColorCalibration);
     {
-      SYNC_WITH(*groundTruthWrapper);
+      SYNC_WITH(*banknoteClassifierWrapper);
       debugOut << colorCalibration;
       debugOut.finishMessage(idColorCalibration);
     }
@@ -133,12 +133,12 @@ void Controller::update()
 
 void Controller::stop()
 {
-  groundTruthWrapper->shouldStop = true;
+  banknoteClassifierWrapper->shouldStop = true;
 }
 
 void Controller::saveColorCalibration()
 {
-  SYNC_WITH(*groundTruthWrapper);
+  SYNC_WITH(*banknoteClassifierWrapper);
   debugOut << DebugRequest("module:GroundTruthConfiguration:saveColorCalibration");
   debugOut.finishMessage(idDebugRequest);
   
@@ -285,7 +285,7 @@ bool Controller::handleMessage(MessageQueue& message)
 
 void Controller::receive()
 {
-  SYNC_WITH(*groundTruthWrapper);
+  SYNC_WITH(*banknoteClassifierWrapper);
   debugIn.handleAllMessages(*this);
   debugIn.clear();
 }
@@ -305,7 +305,7 @@ void Controller::drDebugDrawing(const std::string &request)
       else{
         d.enable = true;
       }
-      SYNC_WITH(*groundTruthWrapper);
+      SYNC_WITH(*banknoteClassifierWrapper);
       debugOut << (const DebugRequest&)d;
       debugOut.finishMessage(idDebugRequest);
       return;

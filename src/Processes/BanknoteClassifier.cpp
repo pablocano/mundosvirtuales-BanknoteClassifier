@@ -4,24 +4,21 @@
  * @author Pablo Cano Montecinos
  */
 
-#include "GroundTruth.h"
+#include "BanknoteClassifier.h"
 #include "Representations/Blobs.h"
-#include "Representations/RobotPose.h"
 #include "Representations/CameraInfo.h"
 #include "Representations/Regions.h"
-#include "Representations/RobotPercept.h"
-#include "Representations/BallPerception.h"
-#include "Modules/GroundTruthConfiguration.h"
+#include "Modules/BanknoteClassifierConfiguration.h"
 #include "Modules/Segmentator.h"
 #include "Tools/Global.h"
 #include "Tools/SystemCall.h"
 #include "Tools/Comm/SPLStandardMessage.h"
 #include <istream>
 
-GroundTruth::GroundTruth() :
+BanknoteClassifier::BanknoteClassifier() :
 INIT_DEBUGGING,
 INIT_GROUND_TRUTH_COMM,
-moduleManager({"GroundTruth","Segmentation","Common"}),
+moduleManager({"BanknoteClassifier","Segmentation","Common"}),
 pause(false)
 {
   theDebugOut.setSize(5200000);
@@ -30,18 +27,18 @@ pause(false)
   theCommReceiver.setSize(5 * sizeof(SPLStandardMessage)); // more than 4 because of additional data
 }
 
-void GroundTruth::init()
+void BanknoteClassifier::init()
 {
   Global::theCommunicationOut = &theCommSender;
-  START_GROUND_TRUTH_COMM;
+  START_BANKNOTE_CLASSIFIER_COMM;
   moduleManager.load();
 }
 
 
 /* Main del programa*/
-int GroundTruth::main()
+int BanknoteClassifier::main()
 {
-  RECEIVE_GROUND_TRUTH_COMM;
+  RECEIVE_BANKNOTE_CLASSIFIER_COMM;
   
   int numberOfMessages = theDebugOut.getNumberOfMessages();
   
@@ -55,7 +52,7 @@ int GroundTruth::main()
   if(Blackboard::getInstance().exists("CameraInfo") &&
      ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).type == CameraInfo::Type::westCam)
   {
-    SEND_GROUND_TRUTH_COMM;
+    SEND_BANKNOTE_CLASSIFIER_COMM;
   }
   
   if(theDebugOut.getNumberOfMessages() > numberOfMessages + 1)
@@ -78,7 +75,7 @@ int GroundTruth::main()
   return 0;
 }
 
-bool GroundTruth::handleMessage(MessageQueue &message)
+bool BanknoteClassifier::handleMessage(MessageQueue &message)
 {
-  return GroundTruthConfiguration::handleMessage(message) || Process::handleMessage(message);
+  return BanknoteClassifierConfiguration::handleMessage(message) || Process::handleMessage(message);
 }

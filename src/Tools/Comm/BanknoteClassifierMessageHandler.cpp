@@ -1,11 +1,11 @@
-#include "GroundTruthMessageHandler.h"
+#include "BanknoteClassifierMessageHandler.h"
 #include "Tools/Comm/SPLStandardMessageWrapper.h"
 #include <string.h>
 
-GroundTruthMessageHandler* GroundTruthMessageHandler::theInstance = 0;
+BanknoteClassifierMessageHandler* BanknoteClassifierMessageHandler::theInstance = 0;
 
 
-GroundTruthMessageHandler::GroundTruthMessageHandler(MessageQueue& in, MessageQueue& out) :
+BanknoteClassifierMessageHandler::BanknoteClassifierMessageHandler(MessageQueue& in, MessageQueue& out) :
 in(in),
 out(out),
 port(0)
@@ -13,7 +13,7 @@ port(0)
   theInstance = this;
 }
 
-void GroundTruthMessageHandler::start(int port, const char* subnet)
+void BanknoteClassifierMessageHandler::start(int port, const char* subnet)
 {
   this->port = port;
   socket.setBlocking(false);
@@ -23,12 +23,12 @@ void GroundTruthMessageHandler::start(int port, const char* subnet)
   socket.setLoopback(false);
 }
 
-GroundTruthMessageHandler::~GroundTruthMessageHandler()
+BanknoteClassifierMessageHandler::~BanknoteClassifierMessageHandler()
 {
   theInstance = 0;
 }
 
-void GroundTruthMessageHandler::send()
+void BanknoteClassifierMessageHandler::send()
 {
   if (out.isEmpty()) {
     //Nothing to send
@@ -50,7 +50,7 @@ void GroundTruthMessageHandler::send()
   }
 }
 
-unsigned GroundTruthMessageHandler::receive()
+unsigned BanknoteClassifierMessageHandler::receive()
 {
   in.clear();
   if(!port)
@@ -80,7 +80,7 @@ unsigned GroundTruthMessageHandler::receive()
   return receivedSize;
 }
 
-MessageQueue& GroundTruthMessageHandler::getOutQueue()
+MessageQueue& BanknoteClassifierMessageHandler::getOutQueue()
 {
   return theInstance->out;
 }

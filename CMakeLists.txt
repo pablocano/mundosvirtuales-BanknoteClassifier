@@ -1,63 +1,56 @@
 cmake_minimum_required(VERSION 3.1.0)
 
-PROJECT (GroundTruth)
+PROJECT (BanknoteClassifier)
 find_package(OpenCV REQUIRED)
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
-set( MessageIDsPath ${CMAKE_CURRENT_SOURCE_DIR}/../uchile-robotics-team/Src/Tools/MessageQueue CACHE PATH "Path to MessageIDs file used by BHuman code")
 
-set( GROUNDTRUTH_SRC
+set( BANCKNOTECLASSIFIER_SRC
   src/Modules/Camera.cpp
   src/Modules/Camera.h
-  src/Modules/BackgroundModel.cpp
-  src/Modules/BackgroundModel.h
-  src/Modules/BallPerceptor.cpp
-  src/Modules/BallPerceptor.h
   src/Modules/BlobProvider.cpp
   src/Modules/BlobProvider.h
-  src/Modules/GroundTruthConfiguration.cpp
-  src/Modules/GroundTruthConfiguration.h
-  src/Modules/GroundTruthProvider.cpp
-  src/Modules/GroundTruthProvider.h
+  src/Modules/BanknoteClassifierConfiguration.cpp
+  src/Modules/BanknoteClassifierConfiguration.h
+  src/Modules/BanknotePositionProvider.cpp
+  src/Modules/BanknotePositionProvider.h
+  src/Modules/BanknoteClassifierProvider.cpp
+  src/Modules/BanknoteClassifierProvider.h
+  src/Modules/FeaturesProvider.cpp
+  src/Modules/FeaturesProvider.h
   src/Modules/Regionizer.cpp
   src/Modules/Regionizer.h
-  src/Modules/RobotPerceptor.cpp
-  src/Modules/RobotPerceptor.h
-  src/Modules/RobotPoseProvider.cpp
-  src/Modules/RobotPoseProvider.h
   src/Modules/Segmentator.cpp
   src/Modules/Segmentator.h
-  src/Processes/GroundTruth.cpp
-  src/Processes/GroundTruth.h
-  src/Representations/BallPerception.cpp
-  src/Representations/BallPerception.h
+  src/Processes/BanknoteClassifier.cpp
+  src/Processes/BanknoteClassifier.h
   src/Representations/Blobs.cpp
   src/Representations/Blobs.h
+  src/Representations/BanknotePosition.cpp
+  src/Representations/BanknotePosition.h
   src/Representations/CameraInfo.cpp
   src/Representations/CameraInfo.h
   src/Representations/ColorModel/ColorCalibration.h
   src/Representations/ColorModel/ColorModel.cpp
   src/Representations/ColorModel/ColorModel.h
+  src/Representations/Features.cpp
+  src/Representations/Features.h
   src/Representations/FrameInfo.h
   src/Representations/FieldDimensions.h
   src/Representations/FieldDimensions.cpp
-  src/Representations/GroundTruthMessages.h
+  src/Representations/BanknoteClassifierMessages.h
   src/Representations/Image.cpp
   src/Representations/Image.h
   src/Representations/Regions.cpp
   src/Representations/Regions.h
-  src/Representations/RobotPercept.cpp
-  src/Representations/RobotPercept.h
-  src/Representations/RobotPose.cpp
-  src/Representations/RobotPose.h
   src/Tools/ColorClasses.cpp
   src/Tools/ColorClasses.h
   src/Tools/ColorModelConversions.h
   src/Tools/Comm/Comm.h
-  src/Tools/Comm/GroundTruthMessageHandler.cpp
-  src/Tools/Comm/GroundTruthMessageHandler.h
+  src/Tools/Comm/BanknoteClassifierMessageHandler.cpp
+  src/Tools/Comm/BanknoteClassifierMessageHandler.h
   src/Tools/Comm/SPLStandardMessage.h
   src/Tools/Comm/SPLStandardMessageWrapper.cpp
   src/Tools/Comm/SPLStandardMessageWrapper.h
@@ -96,8 +89,7 @@ set( GROUNDTRUTH_SRC
   src/Tools/Streamable.h
   src/Tools/SystemCall.cpp
   src/Tools/SystemCall.h
-
-  ${MessageIDsPath}/MessageIDs.h
+  src/Tools/MessageIDs.h
 )
 
 
@@ -124,8 +116,8 @@ set( CALIBRATOR_TOOL_SRC
   ${CALIBRATOR_SRC_DIR}/CalibratorTool.h
   ${CALIBRATOR_SRC_DIR}/Controller.cpp
   ${CALIBRATOR_SRC_DIR}/Controller.h
-  ${CALIBRATOR_SRC_DIR}/GroundTruthWrapper.cpp
-  ${CALIBRATOR_SRC_DIR}/GroundTruthWrapper.h
+  ${CALIBRATOR_SRC_DIR}/BanknoteClassifierWrapper.cpp
+  ${CALIBRATOR_SRC_DIR}/BanknoteClassifierWrapper.h
   ${CALIBRATOR_SRC_DIR}/ListViewsDockWidget.cpp
   ${CALIBRATOR_SRC_DIR}/ListViewsDockWidget.h
   ${CALIBRATOR_SRC_DIR}/Main.cpp
@@ -162,8 +154,8 @@ set( VISION_TOOL_SRC
   ${VISION_TOOL_SRC_DIR}/VisionTool.h
   ${VISION_TOOL_SRC_DIR}/VisionToolWidget.cpp
   ${VISION_TOOL_SRC_DIR}/VisionToolWidget.h
-  src/Tools/Comm/GroundTruthMessageHandler.cpp
-  src/Tools/Comm/GroundTruthMessageHandler.h
+  src/Tools/Comm/BanknoteClassifierMessageHandler.cpp
+  src/Tools/Comm/BanknoteClassifierMessageHandler.h
   src/Tools/Comm/SPLStandardMessage.h
   src/Tools/Comm/SPLStandardMessageWrapper.cpp
   src/Tools/Comm/SPLStandardMessageWrapper.h
@@ -185,7 +177,7 @@ set( VISION_TOOL_SRC
   src/Tools/SystemCall.cpp
   src/Tools/SystemCall.h
 
-  ${MessageIDsPath}/MessageIDs.h
+  src/Tools/MessageIDs.h
 )
 
 set( LIBQXT_SRC_DIR Utils/libqxt)
@@ -229,10 +221,10 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_definitions(-DWINDOWS)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt ${MessageIDsPath})
+include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
 
-add_library( groundTruth SHARED ${GROUNDTRUTH_SRC} ${OpenCV_INCLUDE})
-target_link_libraries( groundTruth ${OpenCV_LIBS} )
+add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE})
+target_link_libraries( banknoteClassifier ${OpenCV_LIBS} )
 
 add_library( libqxt STATIC ${LIBQXT_SRC} ${LIBQXT_MOC_Srcs})
 target_link_libraries(libqxt ${QT_LIBRARIES})
@@ -244,13 +236,13 @@ target_link_libraries( calibration ${OpenCV_LIBS} )
 add_executable( fieldCalibrator ${FIELD_CALIBRATOR} ${OpenCV_INCLUDE})
 target_link_libraries( fieldCalibrator ${OpenCV_LIBS} )
 
-add_executable(gt src/Processes/main.cpp)
-target_link_libraries(gt groundTruth)
+add_executable(bc src/Processes/main.cpp)
+target_link_libraries(bc banknoteClassifier)
 
 include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/CalibratorTool  ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(calibrationTool ${CALIBRATOR_TOOL_SRC} ${CALIBRATION_TOOL_MOCSrcs} ${CALIBRATION_TOOL_RESOURCES_RCC})
-target_link_libraries(calibrationTool groundTruth libqxt ${QT_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries(calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES} ${OpenCV_LIBS})
 target_compile_definitions(calibrationTool PRIVATE QXT_STATIC)
 
 add_executable(visionTool ${VISION_TOOL_SRC} ${VISION_TOOL_MOCSrcs} ${OpenCV_INCLUDE})

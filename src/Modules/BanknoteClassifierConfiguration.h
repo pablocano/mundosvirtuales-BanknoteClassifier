@@ -7,18 +7,18 @@
 #include "Tools/ModuleManager/Module.h"
 #include "Tools/Messages/MessageQueue.h"
 
-MODULE(GroundTruthConfiguration,
+MODULE(BanknoteClassifierConfiguration,
 {,
   PROVIDES(ColorModel),
   PROVIDES(RobotsIdentifiers),
   PROVIDES(FrameInfo),
 });
 
-class GroundTruthConfiguration : public GroundTruthConfigurationBase
+class BanknoteClassifierConfiguration : public BanknoteClassifierConfigurationBase
 {
 private:
 
-  static GroundTruthConfiguration *theInstance;
+  static BanknoteClassifierConfiguration *theInstance;
   
   void update(ColorModel& colorModel);
   
@@ -42,7 +42,7 @@ private:
   
 public:
   
-  GroundTruthConfiguration();
+  BanknoteClassifierConfiguration();
   
   static void saveColorCalibration();
   

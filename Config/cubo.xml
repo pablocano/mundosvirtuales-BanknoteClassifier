@@ -2,9 +2,9 @@
 <opencv_storage>
 <colorCalibration>
   <whiteThreshold>
-    <minR>106</minR>
-    <minB>92</minB>
-    <minRB>250</minRB></whiteThreshold>
+    <minR>227</minR>
+    <minB>187</minB>
+    <minRB>508</minRB></whiteThreshold>
   <ranges>
     <_>
       <hue>
@@ -28,53 +28,53 @@
         <max>0</max></intensity></_>
     <_>
       <hue>
-        <min>79</min>
-        <max>139</max></hue>
+        <min>47</min>
+        <max>84</max></hue>
       <saturation>
-        <min>102</min>
-        <max>255</max></saturation>
+        <min>66</min>
+        <max>178</max></saturation>
       <intensity>
-        <min>6</min>
+        <min>67</min>
         <max>255</max></intensity></_>
     <_>
       <hue>
-        <min>142</min>
-        <max>190</max></hue>
+        <min>99</min>
+        <max>143</max></hue>
       <saturation>
-        <min>114</min>
-        <max>255</max></saturation>
+        <min>39</min>
+        <max>193</max></saturation>
       <intensity>
-        <min>32</min>
-        <max>106</max></intensity></_>
+        <min>60</min>
+        <max>181</max></intensity></_>
     <_>
       <hue>
-        <min>199</min>
-        <max>255</max></hue>
+        <min>227</min>
+        <max>21</max></hue>
       <saturation>
-        <min>60</min>
+        <min>91</min>
         <max>255</max></saturation>
       <intensity>
-        <min>0</min>
-        <max>195</max></intensity></_>
+        <min>30</min>
+        <max>255</max></intensity></_>
     <_>
       <hue>
         <min>0</min>
         <max>0</max></hue>
       <saturation>
-        <min>126</min>
-        <max>255</max></saturation>
+        <min>0</min>
+        <max>0</max></saturation>
       <intensity>
-        <min>160</min>
-        <max>255</max></intensity></_>
+        <min>0</min>
+        <max>0</max></intensity></_>
     <_>
       <hue>
-        <min>14</min>
-        <max>42</max></hue>
+        <min>162</min>
+        <max>231</max></hue>
       <saturation>
-        <min>67</min>
+        <min>26</min>
         <max>255</max></saturation>
       <intensity>
-        <min>181</min>
+        <min>0</min>
         <max>255</max></intensity></_>
     <_>
       <hue>

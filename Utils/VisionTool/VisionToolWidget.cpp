@@ -21,7 +21,7 @@ void VisionToolWidget::paintEvent(QPaintEvent *event)
 {
   QPainter painter(this);
   drawField(painter);
-  for(const GroundTruthRobot& robot : visionTool.communicationHandler.robots)
+  /*for(const GroundTruthRobot& robot : visionTool.communicationHandler.robots)
   {
     drawRobot(painter, robot);
   }
@@ -29,7 +29,7 @@ void VisionToolWidget::paintEvent(QPaintEvent *event)
   for (const GroundTruthBall& ball : visionTool.communicationHandler.balls)
   {
     drawBall(painter, ball);
-  }
+  }*/
   //resize(700, 500);
 }
 
@@ -95,8 +95,9 @@ void VisionToolWidget::drawField(QPainter &painter)
   
 }
 
-void VisionToolWidget::drawRobot(QPainter &painter, const GroundTruthRobot& robot)
+void VisionToolWidget::drawRobot(QPainter &painter)
 {
+    /*
   Vector2<> point1 = (Vector2<>(60.f,100.f).rotate(robot.robotPose.rotation) + robot.robotPose.position).mirrorY()/10.f + Vector2<>(350, 250);
   Vector2<> point2 = (Vector2<>(60.f,-100.f).rotate(robot.robotPose.rotation) + robot.robotPose.position).mirrorY()/10.f + Vector2<>(350, 250);
   Vector2<> point3 = (Vector2<>(-60.f,-100.f).rotate(robot.robotPose.rotation) + robot.robotPose.position).mirrorY()/10.f + Vector2<>(350, 250);
@@ -114,19 +115,22 @@ void VisionToolWidget::drawRobot(QPainter &painter, const GroundTruthRobot& robo
     QPointF(point3.x,point3.y),
     QPointF(point4.x,point4.y)
   };
+
   
   painter.drawConvexPolygon(points, 4);
   
-  painter.drawLine(QPoint(directionA.x,directionA.y), QPoint(directionB.x,directionB.y));
+  painter.drawLine(QPoint(directionA.x,directionA.y), QPoint(directionB.x,directionB.y));*/
   
 }
 
-void VisionToolWidget::drawBall(QPainter &painter, const GroundTruthBall &ball)
+void VisionToolWidget::drawBall(QPainter &painter)
 {
+    /*
   painter.setPen(Qt::red);
   painter.setBrush(Qt::red);
   Vector2<> ballPosition = ball.ballPosition/10.f;
   ballPosition.mirrorY();
   ballPosition += Vector2<>(350, 250);
   painter.drawEllipse(QPointF(ballPosition.x,ballPosition.y), 5,5);
+  */
 }

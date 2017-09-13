@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "GroundTruthWrapper.h"
+#include "BanknoteClassifierWrapper.h"
 #include "CalibratorTool.h"
 #include "Visualization/DebugDrawing.h"
 #include "Representations/Image.h"
@@ -46,7 +46,7 @@ private:
   DrawingManager drawingManager;
   DebugRequestTable debugRequestTable;
   
-  GroundTruthWrapper* groundTruthWrapper;
+  BanknoteClassifierWrapper* banknoteClassifierWrapper;
   
   QList<CalibratorTool::Object*> views;
   

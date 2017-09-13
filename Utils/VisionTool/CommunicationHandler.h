@@ -8,7 +8,7 @@
 
 #pragma once
 #include "Tools/Messages/MessageQueue.h"
-#include "Representations/GroundTruthMessages.h"
+#include "Representations/BanknoteClassifierMessages.h"
 #include <vector>
 
 class CommunicationHandler : public MessageHandler{
@@ -26,7 +26,7 @@ public:
   
   int numOfMessagesReceived;
   
-  std::vector<GroundTruthRobot> robots;
-  std::vector<GroundTruthBall> balls;
+  //std::vector<GroundTruthRobot> robots;
+  //std::vector<GroundTruthBall> balls;
   
 };

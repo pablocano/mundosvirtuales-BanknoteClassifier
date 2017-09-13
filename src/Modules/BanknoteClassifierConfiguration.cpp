@@ -1,13 +1,13 @@
-#include "GroundTruthConfiguration.h"
-#include "Tools/Comm/GroundTruthMessageHandler.h"
+#include "BanknoteClassifierConfiguration.h"
+#include "Tools/Comm/BanknoteClassifierMessageHandler.h"
 #include "Tools/Debugging/Debugging.h"
 #include "Tools/SystemCall.h"
 
-MAKE_MODULE(GroundTruthConfiguration, Common)
+MAKE_MODULE(BanknoteClassifierConfiguration, Common)
 
-GroundTruthConfiguration* GroundTruthConfiguration::theInstance = 0;
+BanknoteClassifierConfiguration* BanknoteClassifierConfiguration::theInstance = 0;
 
-GroundTruthConfiguration::GroundTruthConfiguration()
+BanknoteClassifierConfiguration::BanknoteClassifierConfiguration()
 {
   theInstance = this;
   
@@ -17,7 +17,7 @@ GroundTruthConfiguration::GroundTruthConfiguration()
   last = SystemCall::getCurrentSystemTime();
 }
 
-void GroundTruthConfiguration::update(ColorModel& colorModel)
+void BanknoteClassifierConfiguration::update(ColorModel& colorModel)
 {
   if (theColorCalibration) {
     colorModel.fromColorCalibration(*theColorCalibration, colorCalibration);
@@ -37,7 +37,7 @@ void GroundTruthConfiguration::update(ColorModel& colorModel)
   
 }
 
-void GroundTruthConfiguration::update(RobotsIdentifiers &robotsIdentifiers)
+void BanknoteClassifierConfiguration::update(RobotsIdentifiers &robotsIdentifiers)
 {
   if (theRobotsIdentifiers) {
     robotsIdentifiers = *theRobotsIdentifiers;
@@ -46,13 +46,13 @@ void GroundTruthConfiguration::update(RobotsIdentifiers &robotsIdentifiers)
   }
 }
 
-void GroundTruthConfiguration::update(FrameInfo& frameInfo)
+void BanknoteClassifierConfiguration::update(FrameInfo& frameInfo)
 {
   frameInfo.time += SystemCall::getTimeSince(last);
   last = SystemCall::getCurrentSystemTime();
 }
 
-void GroundTruthConfiguration::readColorCalibration()
+void BanknoteClassifierConfiguration::readColorCalibration()
 {
   cv::FileStorage inputFile(std::string(File::getGTDir())+"/Config/cubo.xml", cv::FileStorage::READ);
   
@@ -63,21 +63,21 @@ void GroundTruthConfiguration::readColorCalibration()
   inputFile["colorCalibration"] >> *theColorCalibration;
 }
 
-void GroundTruthConfiguration::writeColorCalibration()
+void BanknoteClassifierConfiguration::writeColorCalibration()
 {
   cv::FileStorage outputFile(std::string(File::getGTDir())+"/Config/cubo.xml", cv::FileStorage::WRITE);
   
   outputFile << "colorCalibration" << colorCalibration;
 }
 
-void GroundTruthConfiguration::saveColorCalibration()
+void BanknoteClassifierConfiguration::saveColorCalibration()
 {
   if (theInstance) {
     theInstance->writeColorCalibration();
   }
 }
 
-void GroundTruthConfiguration::readRobotsIdentifiers()
+void BanknoteClassifierConfiguration::readRobotsIdentifiers()
 {
   cv::FileStorage file( std::string(File::getGTDir())+"/Config/robotsIdentifiers.xml", cv::FileStorage::READ);
   
@@ -101,7 +101,7 @@ void GroundTruthConfiguration::readRobotsIdentifiers()
   }
 }
 
-bool GroundTruthConfiguration::handleMessage(MessageQueue& message)
+bool BanknoteClassifierConfiguration::handleMessage(MessageQueue& message)
 {
   if(theInstance && message.getMessageID() == idColorCalibration)
   {
