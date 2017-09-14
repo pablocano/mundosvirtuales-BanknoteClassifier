@@ -12,7 +12,7 @@
 #include <opencv2/core/core.hpp>
 #include <ostream>
 
-void Blobs::draw(/*cv::Mat &image*/) const
+void Blobs::draw() const
 {
   DECLARE_DEBUG_DRAWING("representation:Blobs", "drawingOnImage");
   for(auto& blob : blobs)

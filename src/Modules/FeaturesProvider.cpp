@@ -4,8 +4,10 @@ MAKE_MODULE(FeaturesProvider, BanknoteClassifier)
 
 FeaturesProvider::FeaturesProvider()
 {
-    detector = cv::FastFeatureDetector::create();
-    extractor = cv::xfeatures2d::FREAK::create();
+    //detector = cv::FastFeatureDetector::create();
+    //extractor = cv::xfeatures2d::FREAK::create();
+    detector = cv::xfeatures2d::SurfFeatureDetector::create();
+    extractor = cv::xfeatures2d::SurfDescriptorExtractor::create();
 }
 
 void FeaturesProvider::update(Features &features)

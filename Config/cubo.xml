@@ -2,8 +2,8 @@
 <opencv_storage>
 <colorCalibration>
   <whiteThreshold>
-    <minR>227</minR>
-    <minB>187</minB>
+    <minR>223</minR>
+    <minB>214</minB>
     <minRB>508</minRB></whiteThreshold>
   <ranges>
     <_>
