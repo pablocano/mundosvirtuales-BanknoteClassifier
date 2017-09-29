@@ -1,44 +1,140 @@
 ﻿#include "BanknotePositionProvider.h"
-#include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
-#include <opencv2/xfeatures2d.hpp>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/highgui.hpp>
 #include "Tools/Debugging/DebugDrawings.h"
+#include <algorithm>
+#include <iostream>
 
 MAKE_MODULE(BanknotePositionProvider, BanknoteClassifier)
 
+bool nonzero(int i) { return i !=0;}
+
+void resize_image(std::map<std::string,cv::Mat>* dict, float scale, cv::Ptr<cv::CLAHE>* clahe_){
+    for(auto& x : *dict){
+        std::cout<<x.first<<std::endl;
+        //resize
+        cv::resize(x.second,x.second,cv::Size(), scale, scale, CV_INTER_AREA);
+
+        //Equalize histogram
+        (*clahe_)->apply(x.second, x.second);
+    }
+}
+
+std::vector<cv::Point2f> create_corners(cv::Mat* img_, std::vector<cv::Point2f>* obj_corners_){
+    obj_corners_->resize(4);
+    (*obj_corners_)[0] = cv::Point(0,0);
+    (*obj_corners_)[1] = cv::Point( (*img_).cols, 0 );
+    (*obj_corners_)[2] = cv::Point( (*img_).cols, (*img_).rows );
+    (*obj_corners_)[3] = cv::Point( 0, (*img_).rows );
+    return *obj_corners_;
+
+}
+
+std::string compare(const cv::Mat* des_query,std::map<std::string, cv::Mat>* dict_des_model,cv::BFMatcher* matcher, std::vector<cv::DMatch>*matches){
+    std::string aux_name = "Ninguno";
+    int aux_n_matches = 0;
+    std::vector<cv::DMatch> aux_matches;
+
+    for(auto& x : *dict_des_model){
+        matcher->match(*des_query,x.second,aux_matches);
+
+        //ordenar maches, tomar 50 primeros y promediar
+
+        if(aux_matches.size()>aux_n_matches){
+
+            aux_name = x.first;
+            std::cout<<aux_name<<std::endl;
+            aux_n_matches = aux_matches.size();
+            *matches = aux_matches;
+        }
+    }
+
+    return aux_name;
+}
+
+
+
 BanknotePositionProvider::BanknotePositionProvider()
 {
-    imageModel1A = cv::imread(std::string(File::getGTDir())+"/Config/Banknotes/mil.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+    imageModel["1000_Cara"] = cv::imread(std::string(File::getGTDir())+"/Config/Banknotes/mil_real.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+    imageModel["1000_Sello"]= cv::imread(std::string(File::getGTDir())+"/Config/Banknotes/milB_real.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+    imageModel["2000_Cara"] = cv::imread(std::string(File::getGTDir())+"/Config/Banknotes/dosmil_real.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+    imageModel["2000_Sello"] = cv::imread(std::string(File::getGTDir())+"/Config/Banknotes/dosmilB_real.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+    imageModel["5000_Cara"] = cv::imread(std::string(File::getGTDir())+"/Config/Banknotes/cincomil_real.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+    imageModel["5000_Sello"] = cv::imread(std::string(File::getGTDir())+"/Config/Banknotes/cincomilB_real.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+    imageModel["10000_Cara"] = cv::imread(std::string(File::getGTDir())+"/Config/Banknotes/diezmil_real.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+    imageModel["10000_Sello"] = cv::imread(std::string(File::getGTDir())+"/Config/Banknotes/diezmilB_real.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+    imageModel["20000_Cara"] = cv::imread(std::string(File::getGTDir())+"/Config/Banknotes/veintemil_real.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+    imageModel["20000_Sello"] = cv::imread(std::string(File::getGTDir())+"/Config/Banknotes/veintemilB_real.jpg", CV_LOAD_IMAGE_GRAYSCALE);
 
-    coloredImageModel1A = cv::imread(std::string(File::getGTDir())+"/Config/Banknotes/mil.jpg", CV_LOAD_IMAGE_COLOR);
+    // CLAHE
+    clahe = cv::createCLAHE(2.0, cv::Size(4,4));
 
-    cv::resize(imageModel1A,imageModel1A,cv::Size(), 0.15,0.15, CV_INTER_AREA);
-    cv::resize(coloredImageModel1A,coloredImageModel1A,cv::Size(), 0.15,0.15, CV_INTER_AREA);
+    resize_image(&imageModel, 0.18, &clahe);
 
-    //cv::Ptr<cv::FeatureDetector> detector = cv::FastFeatureDetector::create();
-    //cv::Ptr<cv::DescriptorExtractor> extractor = cv::xfeatures2d::FREAK::create();
+    //Matcher
+    matcher.create(cv::NORM_L2, true);
 
-    cv::Ptr<cv::FeatureDetector>detector = cv::xfeatures2d::SurfFeatureDetector::create();
-    cv::Ptr<cv::DescriptorExtractor> extractor = cv::xfeatures2d::SurfDescriptorExtractor::create();
 
-    detector->detect(imageModel1A, keyPointsModel1A);
+    //Descriptor
+    surf = cv::xfeatures2d::SURF::create(400,3,2,false,false);
+    for(auto& img : imageModel){
+        surf->detectAndCompute(img.second,cv::noArray(),keyPointsModel1A,descriptorModel1A,false);
+        dict_kp[img.first] = keyPointsModel1A;
+        dict_des[img.first] = descriptorModel1A;
 
-    extractor->compute(imageModel1A, keyPointsModel1A, descriptorModel1A);
+        dict_corners[img.first] = create_corners(&(img.second), &obj_corners);
 
-    obj_corners.resize(4);
-    obj_corners[0] = cv::Point(0,0);
-    obj_corners[1] = cv::Point( imageModel1A.cols, 0 );
-    obj_corners[2] = cv::Point( imageModel1A.cols, imageModel1A.rows );
-    obj_corners[3] = cv::Point( 0, imageModel1A.rows );
+    }
 }
 
 void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
 {
     DECLARE_DEBUG_DRAWING("module:BanknotePosition:position","drawingOnImage");
 
-    std::vector<cv::DMatch> matches;
+
+    if (!theFeatures.descriptors.empty()){
+        //Matching
+        std::string best_match = compare(&(theFeatures.descriptors), &dict_des, &matcher, &matches);
+        //-- Localize the object
+        std::vector<cv::Point2f> obj;
+        std::vector<cv::Point2f> scene;
+        for( int i = 0; i < matches.size(); i++ ){
+            //-- Get the keypoints from the good matches
+            obj.push_back( (dict_kp[best_match])[ matches[i].trainIdx ].pt );
+            scene.push_back( theFeatures.keypoints[ matches[i].queryIdx ].pt );
+        }
+        std::vector<int> mask;
+        cv::Mat H = cv::findHomography(obj, scene, mask,CV_RANSAC,5.0 );
+
+        //int count = count_if(mask.begin(),mask.end(),nonzero);
+
+
+        if (!H.empty()){
+            std::vector<cv::Point2f> scene_corners(4);
+            perspectiveTransform( dict_corners[best_match], scene_corners, H);
+            //-- Draw lines between the corners (the mapped object in the scene - image_2 )
+            LINE( "module:BanknotePosition:position", scene_corners[0].x, scene_corners[0].y , scene_corners[1].x, scene_corners[1].y, 3, Drawings::ps_solid, ColorRGBA::red );
+            LINE( "module:BanknotePosition:position", scene_corners[1].x, scene_corners[1].y , scene_corners[2].x, scene_corners[2].y, 3, Drawings::ps_solid, ColorRGBA::red );
+            LINE( "module:BanknotePosition:position", scene_corners[2].x, scene_corners[2].y , scene_corners[3].x, scene_corners[3].y, 3, Drawings::ps_solid, ColorRGBA::red );
+            LINE( "module:BanknotePosition:position", scene_corners[3].x, scene_corners[3].y , scene_corners[0].x, scene_corners[0].y, 3, Drawings::ps_solid, ColorRGBA::red );
+
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+    /*std::vector<cv::DMatch> matches;
     matcher.match(descriptorModel1A, theFeatures.descriptors,matches);
 
     double max_dist = 0; double min_dist = 1000;
@@ -88,4 +184,5 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
     LINE( "module:BanknotePosition:position", scene_corners[1].x, scene_corners[1].y , scene_corners[2].x, scene_corners[2].y, 3, Drawings::ps_solid, ColorRGBA::red );
     LINE( "module:BanknotePosition:position", scene_corners[2].x, scene_corners[2].y , scene_corners[3].x, scene_corners[3].y, 3, Drawings::ps_solid, ColorRGBA::red );
     LINE( "module:BanknotePosition:position", scene_corners[3].x, scene_corners[3].y , scene_corners[0].x, scene_corners[0].y, 3, Drawings::ps_solid, ColorRGBA::red );
+    */
 }

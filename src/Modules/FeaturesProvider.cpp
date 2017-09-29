@@ -4,17 +4,14 @@ MAKE_MODULE(FeaturesProvider, BanknoteClassifier)
 
 FeaturesProvider::FeaturesProvider()
 {
-    //detector = cv::FastFeatureDetector::create();
-    //extractor = cv::xfeatures2d::FREAK::create();
-    detector = cv::xfeatures2d::SurfFeatureDetector::create();
-    extractor = cv::xfeatures2d::SurfDescriptorExtractor::create();
+    surf_ = cv::xfeatures2d::SURF::create(400,3,2,false,false);
+
 }
 
 void FeaturesProvider::update(Features &features)
 {
     features.keypoints.clear();
 
-    detector->detect(theGrayScaleImage,features.keypoints);
+    surf_->detectAndCompute(theGrayScaleImageEq,cv::noArray(),features.keypoints,features.descriptors);
 
-    extractor->compute(theGrayScaleImage, features.keypoints, features.descriptors);
 }

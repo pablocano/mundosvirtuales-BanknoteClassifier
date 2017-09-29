@@ -7,7 +7,7 @@
 
 MODULE(FeaturesProvider,
 {,
-    REQUIRES(GrayScaleImage),
+    REQUIRES(GrayScaleImageEq),
     PROVIDES(Features),
 });
 
@@ -16,8 +16,7 @@ class FeaturesProvider : public FeaturesProviderBase
 public:
     FeaturesProvider();
 
-    cv::Ptr<cv::FeatureDetector> detector;
-    cv::Ptr<cv::DescriptorExtractor> extractor;
+    cv::Ptr<cv::xfeatures2d::SURF> surf_;
 
 
     void update(Features & features);

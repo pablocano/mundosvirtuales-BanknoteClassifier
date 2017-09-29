@@ -18,6 +18,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/BanknotePositionProvider.h
   src/Modules/BanknoteClassifierProvider.cpp
   src/Modules/BanknoteClassifierProvider.h
+  src/Modules/Equalizer.cpp
+  src/Modules/Equalizer.h
   src/Modules/FeaturesProvider.cpp
   src/Modules/FeaturesProvider.h
   src/Modules/Regionizer.cpp
