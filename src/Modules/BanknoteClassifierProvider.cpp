@@ -5,7 +5,18 @@
 
 MAKE_MODULE(BanknoteClassifierProvider, BanknoteClassifier)
 
-void BanknoteClassifierProvider::update(BanknoteClassifierMessageOutput& banknoteClassifierMessageOutput)
+
+BanknoteClassifierProvider::BanknoteClassifierProvider()
+{
+    cv::FileStorage file( std::string(File::getGTDir())+"/Data/keypoints/ckp1000_Cara.yaml", cv::FileStorage::READ);
+
+    cv::Mat descriptors;
+    file["descriptors"] >> descriptors;
+
+    int a = 0;
+}
+
+void BanknoteClassifierProvider::update(Classification &classification)
 {
 }
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Representations/CameraInfo.h"
-#include "Representations/BanknoteClassifierMessages.h"
+#include "Representations/Classification.h"
 #include "Representations/FrameInfo.h"
 #include "Tools/ModuleManager/Module.h"
 
@@ -9,12 +9,14 @@ MODULE(BanknoteClassifierProvider,
 {,
   REQUIRES(CameraInfo),
   REQUIRES(FrameInfo),
-  PROVIDES(BanknoteClassifierMessageOutput),
+  PROVIDES(Classification),
 });
 
 class BanknoteClassifierProvider : public BanknoteClassifierProviderBase
 {
 public:
+
+  BanknoteClassifierProvider();
   
-  void update(BanknoteClassifierMessageOutput& banknoteClassifierMessageOutput);
+  void update(Classification& classification);
 };

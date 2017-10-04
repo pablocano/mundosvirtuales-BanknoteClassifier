@@ -23,7 +23,8 @@ Camera::Camera(): index(0)
     /**
      * Prepare cameras
     */
-    video0 = cv::VideoCapture(0);
+    //video0 = cv::VideoCapture(0);
+    video0 = cv::VideoCapture(std::string(File::getGTDir()) + "/Data/vid/video1.mp4");
     if(!video0.isOpened())  // check if we succeeded
     {
         cam1.available = false;

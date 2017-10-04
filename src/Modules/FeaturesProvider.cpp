@@ -4,7 +4,7 @@ MAKE_MODULE(FeaturesProvider, BanknoteClassifier)
 
 FeaturesProvider::FeaturesProvider()
 {
-    surf_ = cv::xfeatures2d::SURF::create(400,3,2,false,false);
+    surf_ = cv::xfeatures2d::SURF::create(400,3,3,true,false);
 
 }
 

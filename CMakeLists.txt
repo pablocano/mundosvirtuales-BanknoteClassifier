@@ -34,6 +34,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/BanknotePosition.h
   src/Representations/CameraInfo.cpp
   src/Representations/CameraInfo.h
+  src/Representations/Classification.cpp
+  src/Representations/Classification.h
   src/Representations/ColorModel/ColorCalibration.h
   src/Representations/ColorModel/ColorModel.cpp
   src/Representations/ColorModel/ColorModel.h
