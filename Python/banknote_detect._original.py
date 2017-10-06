@@ -15,8 +15,8 @@ clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(5,5))
 clahe_frame = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(6,6))
 
 # create surf
-descriptor = cv2.xfeatures2d.SURF_create(800, nOctaves = 2, upright = False, extended = 1)
-descriptor_frame = cv2.xfeatures2d.SURF_create(800, nOctaves =4, upright = False, extended = 1)
+descriptor = cv2.xfeatures2d.SURF_create(1500, nOctaves = 8, upright = False, extended = 1)
+descriptor_frame = cv2.xfeatures2d.SURF_create(1500, nOctaves =3, upright = False, extended = 1)
 # create Orb
 #descriptor = cv2.ORB_create(nfeatures = 500)
 
@@ -68,7 +68,7 @@ def draw_countour(img_in, M, img_out, text):
         img_out = cv2.polylines(img_out,[np.int32(dst)],True,255,3, cv2.LINE_AA)
     return h, w
 
-MIN_MATCHES = 8
+MIN_MATCHES = 15
 def compare(kp_dict, kp_query, des_query):
     aux = 0 
     flag = 0
@@ -148,7 +148,7 @@ def predict(kp_des, des_query):
 
 
 def read_image(img):
-    img_ = cv2.resize((cv2.imread(img,1)),(150,300))
+    img_ = cv2.resize((cv2.imread(img,1)),(600,300))
     img_gray = clahe.apply(cv2.cvtColor(img_, cv2.COLOR_BGR2GRAY))
     #print(img_.shape)
     
@@ -186,7 +186,7 @@ for img, name in zip(gt_list, gt_name):
  
   
 #init cam
-video_capture = cv2.VideoCapture("../Data/vid/10000_Cara.mp4")
+video_capture = cv2.VideoCapture("../Data/vid/5000_Sello.mp4")
 ret, frame = video_capture.read()
 
 while(ret):
@@ -282,7 +282,7 @@ while(ret):
             name = 'none'
                 
     cv2.imshow('Frame', output) 
-    if (name != '10000_Cara' and name != 'blanco' and name != 'none'):
+    if (name != '5000_Sello' and name != 'blanco' and name != 'none'):
         print('wrong : ', name)
         cv2.waitKey(0)
 
