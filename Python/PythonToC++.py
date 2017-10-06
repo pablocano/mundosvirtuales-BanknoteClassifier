@@ -11,7 +11,7 @@ import numpy as np
 import cPickle
 
 class PCKeyPoint(yaml.YAMLObject):
-    yaml_tag = u"tag:yaml.org,2002:PCKeypoint5"
+    yaml_tag = u"tag:yaml.org,2002:PCKeypoints"
     def __init__(self, keyPoint):
         self.pos = [keyPoint.pt[0],keyPoint.pt[1]]
         self.size = keyPoint.size
@@ -29,21 +29,28 @@ class PCMat(yaml.YAMLObject):
     def __init__(self, mat):
         self.rows = int(mat.shape[0])
         self.cols = int(mat.shape[1])
-        self.dt = 'd'
+        self.dt = 'f'
         self.data = mat.reshape(-1).tolist()
     def __repr__(self):
          return "%s(rows=%r, cols=%r, dt=%r, data=%r)" % (self.__class__.__name__, self.rows, self.cols, self.dt, self.data)
+
+class MyDumper(yaml.Dumper):
+
+    def increase_indent(self, flow=False, indentless=False):
+        return super(MyDumper, self).increase_indent(flow, False)
      
-gt_name = ['1000_Cara', '1000_Sello', '2000_Cara', '2000_Sello', '10000_Cara', '10000_Sello', '5000_Cara', '5000_Sello']
+gt_name = ['UNO_C','UNO_S','DOS_C','DOS_S','CINCO_C','CINCO_S','DIEZ_C','DIEZ_S']
+
+stream = file('../Data/keypoints/trained_keypoints.yaml', 'w')
+    
+stream.write("%YAML:1.0\n")
 
 for name in gt_name:
     
-    stream = file('../Data/keypoints/ckp' + name + '.yaml', 'w')
     
-    stream.write("%YAML:1.0\n")
     
     #Read the pickle
-    aux_list = cPickle.loads(open("../Data/keypoints/kp3" + name + ".txt").read())
+    aux_list = cPickle.loads(open("../Data/keypoints/kp3_" + name + ".txt").read())
     kp_original = list()
     des_original = np.float32(np.zeros((len(aux_list),128)))
     i = 0
@@ -53,7 +60,8 @@ for name in gt_name:
         kp_original.append(PCKeyPoint(temp))
         des_original[i] = point[6]
         i += 1
-        
-    yaml.dump({"keypoints": kp_original, "descriptors": PCMat(des_original)},stream)
-    stream.close()
+     
+    yaml.dump({"features_" + name: {"descriptors": PCMat(des_original), "keypoints": kp_original}},stream, Dumper=MyDumper)   
+
+stream.close()
     

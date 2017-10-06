@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <iostream>
 
-MAKE_MODULE(BanknotePositionProvider, BanknoteClassifier)
+MAKE_MODULE(BanknotePositionProvider, BanknoteClassifier2)
 
 bool nonzero(int i) { return i !=0;}
 
