@@ -31,21 +31,21 @@
         <min>47</min>
         <max>84</max></hue>
       <saturation>
-        <min>66</min>
+        <min>31</min>
         <max>178</max></saturation>
       <intensity>
         <min>67</min>
         <max>255</max></intensity></_>
     <_>
       <hue>
-        <min>99</min>
-        <max>143</max></hue>
+        <min>119</min>
+        <max>162</max></hue>
       <saturation>
-        <min>39</min>
-        <max>193</max></saturation>
+        <min>44</min>
+        <max>255</max></saturation>
       <intensity>
-        <min>60</min>
-        <max>181</max></intensity></_>
+        <min>0</min>
+        <max>255</max></intensity></_>
     <_>
       <hue>
         <min>227</min>

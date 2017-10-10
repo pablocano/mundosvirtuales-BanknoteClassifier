@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <iostream>
 
-MAKE_MODULE(BanknotePositionProvider, BanknoteClassifier)
+MAKE_MODULE(BanknotePositionProvider, BanknoteClassifier2)
 
 BanknotePositionProvider::BanknotePositionProvider()
 {

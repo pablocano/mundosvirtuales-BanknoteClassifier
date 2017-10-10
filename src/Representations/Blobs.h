@@ -10,10 +10,9 @@ public:
   
   struct Blob
   {
-    Blob(const Vector2<int>& center, const Vector2<int> &leftUpper, const Vector2<int>& rightBottom, const ColorModel::Colors& color) : center(center), leftUpper(leftUpper), rightBottom(rightBottom), color(color) {}
+    Blob(const Vector2<int>& center, const std::vector<Vector2<int>> &borders, const ColorModel::Colors& color) : center(center), borders(borders), color(color) {}
     Vector2<int> center;
-    Vector2<int> leftUpper;
-    Vector2<int> rightBottom;
+    std::vector<Vector2<int> > borders;
     ColorModel::Colors color;
   };
   

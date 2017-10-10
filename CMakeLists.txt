@@ -73,6 +73,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/Global.h
   src/Tools/Math/Line.cpp
   src/Tools/Math/Line.h
+  src/Tools/Math/Geometry.cpp
+  src/Tools/Math/Geometry.h
   src/Tools/Math/Pose2D.h
   src/Tools/Math/Range.h
   src/Tools/Math/Transformation.cpp

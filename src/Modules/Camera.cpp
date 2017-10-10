@@ -113,7 +113,7 @@ void Camera::update(ImageBGR& image)
         *cameras[index] >> tmp;
     }
   }
-  while(tmp.empty() || i < 15);
+  while(tmp.empty() || i < 0);
 
   cv::resize(tmp,tmp,cv::Size(750,375));
 
