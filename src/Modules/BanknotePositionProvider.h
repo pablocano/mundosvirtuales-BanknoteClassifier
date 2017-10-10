@@ -2,9 +2,11 @@
 
 #include "Tools/ModuleManager/Module.h"
 #include "Representations/BanknotePosition.h"
+#include "Representations/Classification.h"
 #include "Representations/Features.h"
 #include "Representations/FrameInfo.h"
 #include "Representations/Image.h"
+#include "Tools/Debugging/DebugDrawings.h"
 #include <opencv2/xfeatures2d.hpp>
 #include <opencv2/imgproc.hpp>
 #include <map>
@@ -21,24 +23,38 @@ MODULE(BanknotePositionProvider,
 class BanknotePositionProvider : public BanknotePositionProviderBase
 {
 public:
+    /**
+     * @brief Default constructor
+     */
     BanknotePositionProvider();
 
-    std::map<std::string, cv::Mat> imageModel;
-    std::map<std::string, std::vector<cv::KeyPoint>> dict_kp;
-    std::map<std::string, cv::Mat> dict_des;
-    std::map<std::string, std::vector<cv::Point2f>> dict_corners;
+    /**
+     * @brief update
+     * @param banknotePosition
+     */
+    void update(BanknotePosition& banknotePosition);
 
-    std::vector<cv::KeyPoint> keyPointsModel1A;
-    cv::Mat descriptorModel1A;
+    /**
+     * @brief Resize the image and aplicates and clane equalization
+     * @param image the image to resize
+     */
+    void resizeImage(cv::Mat& image);
+
+    int compare(cv::Mat& resultHomography);
+
+    void getColorAndStyle(Classification::Banknote banknote, ColorRGBA& color, Drawings::PenStyle &style);
+
+    // Models features
+    std::vector<cv::Mat> modelsImage;
+    std::vector<Features> modelsFeatures;
+    std::vector<cv::Point2f> modelsCorners;
+
     std::vector<cv::DMatch> matches;
-    std::vector<cv::Point2f> obj_corners;
 
+    // Tools
     cv::BFMatcher matcher;
     cv::Ptr<cv::CLAHE> clahe;
     cv::Ptr<cv::xfeatures2d::SURF> surf;
-
-
-    void update(BanknotePosition& banknotePosition);
 
 };
 

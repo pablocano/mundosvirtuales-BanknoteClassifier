@@ -7,7 +7,7 @@
 #include <map>
 #include <iostream>
 
-MAKE_MODULE(BanknoteClassifierProvider, BanknoteClassifier)
+MAKE_MODULE(BanknoteClassifierProvider, BanknoteClassifier2)
 
 
 BanknoteClassifierProvider::BanknoteClassifierProvider() : matches(Classification::numOfBanknotes)
@@ -29,9 +29,9 @@ BanknoteClassifierProvider::BanknoteClassifierProvider() : matches(Classificatio
     matcher.create(cv::NORM_L2, true);
 
     obj_scene.push_back(cv::Point(0,0));
-    obj_scene.push_back(cv::Point(820,0));
-    obj_scene.push_back(cv::Point(820,1350));
-    obj_scene.push_back(cv::Point(0,1350));
+    obj_scene.push_back(cv::Point(260,0));
+    obj_scene.push_back(cv::Point(260,450));
+    obj_scene.push_back(cv::Point(0,450));
 }
 
 void BanknoteClassifierProvider::update(Classification &classification)
@@ -63,7 +63,7 @@ void BanknoteClassifierProvider::update(Classification &classification)
     {
         // Extract the current match list
         int index = it->second;
-        const std::vector<cv::DMatch>& currentMatches = matches[index];
+        const std::vector<BCMatch>& currentMatches = matches[index];
 
         // Skip if the matches are below the threshold
         if(currentMatches.size() < 30)
@@ -76,8 +76,8 @@ void BanknoteClassifierProvider::update(Classification &classification)
         for( int j = 0; j < currentMatches.size(); j++ )
         {
           // Get the keypoints from the matches
-          obj[j] = templatesFeatures[index].keypoints[currentMatches[j].queryIdx].pt;
-          scene[j] = theFeatures.keypoints[ currentMatches[j].trainIdx].pt;
+          obj[j] = templatesFeatures[index].keypoints[currentMatches[j].trainIdx].pt;
+          scene[j] = theFeatures.keypoints[ currentMatches[j].queryIdx].pt;
         }
 
         // Get the homography
@@ -107,19 +107,25 @@ void BanknoteClassifierProvider::update(Classification &classification)
     }
 }
 
-float BanknoteClassifierProvider::match(const Features &train, const Features &query, std::vector<cv::DMatch> &matches)
+float BanknoteClassifierProvider::match(const Features &train, const Features &query, std::vector<BCMatch> &matches)
 {
-    matcher.match(query.descriptors, train.descriptors, matches);
+    /*
+    std::vector<cv::DMatch> aux;
+    matcher.match(query.descriptors, train.descriptors, aux);
 
+    matches.clear();
     float averageDistance = 0;
-    for(auto& match : matches)
+    for(auto& match : aux)
     {
         averageDistance += match.distance;
+        BCMatch b = {match.trainIdx, match.queryIdx, match.distance};
+        matches.push_back(b);
     }
 
     return averageDistance/matches.size();
+    */
 
-    /*
+
     // Reserve the space for the current process
     used_matches_mask.resize(query.keypoints.size());
     std::fill(used_matches_mask.begin(),used_matches_mask.end(),0);
@@ -149,7 +155,7 @@ float BanknoteClassifierProvider::match(const Features &train, const Features &q
                 continue;
 
             // Calculates the distance between the two keypoints
-            dist = cv::norm(train.descriptors.row(i) - query.descriptors.row(j));
+            dist = cv::norm(train.descriptors.row(i),query.descriptors.row(j));
 
             // Store the minimum distance
             if(dist < min_dist)
@@ -173,6 +179,5 @@ float BanknoteClassifierProvider::match(const Features &train, const Features &q
 
     // Return the average distace
     return average_dist/matches.size();
-    */
 }
 

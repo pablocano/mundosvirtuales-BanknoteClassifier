@@ -15,9 +15,9 @@ public:
          CINCO_C,
          CINCO_S,
          DIEZ_C,
-         DIEZ_S//,
-         //VEINTE_C,
-         //VEINTE_S
+         DIEZ_S,
+         VEINTE_C,
+         VEINTE_S
     );
 
 

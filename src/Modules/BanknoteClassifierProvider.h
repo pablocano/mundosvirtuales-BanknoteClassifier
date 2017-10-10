@@ -20,6 +20,13 @@ class BanknoteClassifierProvider : public BanknoteClassifierProviderBase
 
 public:
 
+    struct BCMatch
+    {
+        int trainIdx;
+        int queryIdx;
+        float distance;
+    };
+
     /**
      * @brief Constructor of the class
      *
@@ -39,7 +46,7 @@ public:
      * @param matches the result of the match processa
      * @return the average distance of all the matches
      */
-    float match(const Features &train, const Features &query, std::vector<cv::DMatch> &matches);
+    float match(const Features &train, const Features &query, std::vector<BCMatch> &matches);
 
     /**
      * @brief templatesFeatures
@@ -55,7 +62,7 @@ public:
     /**
      * @brief The matches of the current process
      */
-    std::deque<std::vector<cv::DMatch> > matches;
+    std::deque<std::vector<BCMatch> > matches;
 
     std::vector<cv::Point2f> obj_scene;
 
