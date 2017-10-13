@@ -7,3 +7,25 @@
 
 #include "Geometry.h"
 
+
+int Geometry::isLeft(const Vector2<int> &point1, const Vector2<int> &point2, const Vector2<int> &testPoint)
+{
+    return ( (point2.x - point1.x) * (testPoint.y - point1.y)
+            - (testPoint.x -  point1.x) * (point2.y - point1.y) );
+}
+
+float Geometry::polygonArea(Polygon &polygon)
+{
+    // Accumulates area in the loop
+    float area = 0.f;
+
+    // The last vertex is the 'previous' one to the first
+    int j = polygon.vertex.size() - 1;
+
+    for (int i = 0; i < polygon.vertex.size(); i++)
+    {
+        area = area +  (polygon.vertex[j].x + polygon.vertex[i].x) * (polygon.vertex[j].y - polygon.vertex[i].y);//  (X[j]+X[i]) * (Y[j]-Y[i]);
+        j = i;  //j is previous vertex to i
+    }
+    return area/2.f;
+}

@@ -13,6 +13,7 @@
 
 MODULE(BanknotePositionProvider,
 {,
+ REQUIRES(Classification),
  REQUIRES(Features),
  REQUIRES(FrameInfo),
  PROVIDES(BanknotePosition),

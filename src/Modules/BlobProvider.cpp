@@ -8,11 +8,12 @@
 
 #include "BlobProvider.h"
 #include "Tools/Math/Transformation.h"
+#include "Tools/Math/Geometry.h"
 
 MAKE_MODULE(BlobProvider, BanknoteClassifier)
 
 
-BlobProvider::BlobProvider() : minNumOfSegments(30), minSegmentSize(3), maxDistanceInSameDepth(100), maxDepthDistance(50) {}
+BlobProvider::BlobProvider() : minNumOfSegments(100), minSegmentSize(3), maxDistanceInSameDepth(100), maxDepthDistance(100) {}
 
 void BlobProvider::update(Blobs &blobs)
 {
@@ -27,9 +28,14 @@ void BlobProvider::update(Blobs &blobs)
   {
     if(grup.segments.size() > minNumOfSegments)
     {
-      blobs.blobs.push_back(Blobs::Blob(grup.getCenter(),grup.getCorners(),grup.color));
+      Geometry::Polygon p;
+      p.vertex = grup.getConvexHull();
+      blobs.blobs.push_back(Blobs::Blob(grup.getCenter(), p.vertex, Geometry::polygonArea(p), grup.color));
     }
   }
+
+  // Order it by its area
+  std::sort(blobs.blobs.begin(),blobs.blobs.end());
 }
 
 void BlobProvider::createBlobs()
@@ -127,7 +133,7 @@ Vector2<int> BlobProvider::Group::getCenter()
   return center/count;
 }
 
-std::vector<Vector2<int> > BlobProvider::Group::getCorners()
+std::vector<Vector2<int> > BlobProvider::Group::getBorders()
 {
   std::vector<Vector2<int> > corners;
 
@@ -156,27 +162,89 @@ std::vector<Vector2<int> > BlobProvider::Group::getCorners()
   return corners;
 }
 
-/*
-std::vector<Vector2<int> > BlobProvider::Group::getCorners()
-{
-  std::vector<Vector2<int> > corners;
 
+std::vector<Vector2<int> > BlobProvider::Group::getConvexHull()
+{
+  std::vector<Vector2<int> > leftPoints;
+  std::vector<Vector2<int> > rightPoints;
+
+  // Order the segments using its depth (height) in the image
   std::sort(segments.begin(), segments.end());
 
+  // Find the leftmost and rightmost point of every depth
   for(int i = 0; i < segments.size(); i++)
   {
-
+      // Store the current Y coordinate and the lefmost point
       int left = segments[i].left.x;
       int currentY = segments[i].left.y;
+      leftPoints.push_back(Vector2<int>(left,currentY));
+
+      // Itare until the segments change of depth
       do
       {
           i++;
       }
       while(segments[i].left.y == currentY);
+
+      // Store the rightmost point
       i--;
       int right = segments[i].right.x;
+      rightPoints.push_back(Vector2<int>(right,currentY));
   }
 
-  return corners;
+  // Start the convex hull
+  std::vector<Vector2<int> > polygon;
+
+  // Start with the left side of the polygon
+  int j = 0;
+  polygon.insert(polygon.begin(), leftPoints.begin(), leftPoints.begin() + 2);
+
+  if(leftPoints.size() > 2)
+  {
+      // Analize triples of point to create the convex hull
+      for(int i = 2; i < leftPoints.size(); i++)
+      {
+          //  Add the current point as a vertex candidate
+          polygon.push_back(leftPoints[i]);
+
+          // Going backwards if the current triple is not convex
+          while( j >= 0 && Geometry::isLeft(polygon[j],polygon[j + 2], polygon[j + 1]) <= 0)
+          {
+              polygon[j + 1 ] = polygon[j + 2];
+              j--;
+          }
+          polygon.resize(j + 3);
+          j++;
+      }
+      j+=2;
+  }
+
+  // Invert the right points (for the construction of the polygon)
+  std::reverse(rightPoints.begin(),rightPoints.end());
+
+  // Finish with the right side of the polygon
+  polygon.insert(polygon.end(), rightPoints.begin(), rightPoints.begin() + 2);
+  int k = j;
+  if(rightPoints.size() > 2)
+  {
+      // Same process as  before
+      for(int i = 2; i < rightPoints.size(); i++)
+      {
+          //  Add the current point as a vertex candidate
+          polygon.push_back(rightPoints[i]);
+
+          // Going backwards if the current triple is not convex
+          while( k >= j && Geometry::isLeft(polygon[k+2],polygon[k], polygon[k + 1]) >= 0)
+          {
+              polygon[k + 1] = polygon[k + 2];
+              k--;
+          }
+          polygon.resize(k + 3);
+          k++;
+      }
+  }
+
+  // return the convex hull
+  return polygon;
 }
-*/
+

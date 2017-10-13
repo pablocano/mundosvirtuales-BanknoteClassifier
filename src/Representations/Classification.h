@@ -17,7 +17,8 @@ public:
          DIEZ_C,
          DIEZ_S,
          VEINTE_C,
-         VEINTE_S
+         VEINTE_S,
+         NONE
     );
 
 

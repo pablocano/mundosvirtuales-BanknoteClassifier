@@ -24,7 +24,7 @@ Camera::Camera(): index(0)
      * Prepare cameras
     */
     //video0 = cv::VideoCapture(0);
-    video0 = cv::VideoCapture(std::string(File::getGTDir()) + "/Data/vid/todos.mp4");
+    video0 = cv::VideoCapture(std::string(File::getGTDir()) + "/Data/vid/varios.mp4");
     if(!video0.isOpened())  // check if we succeeded
     {
         cam1.available = false;
@@ -34,11 +34,12 @@ Camera::Camera(): index(0)
     {
         std::cout << "Camera 1 was successfully opened"<< std::endl;
         cam1.available = true;
+
         video0.set(CV_CAP_PROP_FRAME_HEIGHT, height);
         video0.set(CV_CAP_PROP_FRAME_WIDTH, width);
     }
     // open second camera
-    video1 = cv::VideoCapture(1);
+    //video1 = cv::VideoCapture(1);
     if(!video1.isOpened())  // check if we succeeded
     {
         cam2.available = false;
@@ -132,7 +133,7 @@ void Camera::update(ImageBGR& image)
 
 void Camera::update(Image& image)
 {
-  cv::cvtColor(theImageBGR, image, CV_BGR2YCrCb);
+    cv::cvtColor(theImageBGR, image, CV_BGR2YCrCb);
 }
 
 void Camera::update(GrayScaleImage& image)

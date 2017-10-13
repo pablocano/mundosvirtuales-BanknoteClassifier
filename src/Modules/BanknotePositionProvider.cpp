@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <iostream>
 
-MAKE_MODULE(BanknotePositionProvider, BanknoteClassifier2)
+MAKE_MODULE(BanknotePositionProvider, BanknoteClassifier)
 
 BanknotePositionProvider::BanknotePositionProvider()
 {
@@ -16,7 +16,7 @@ BanknotePositionProvider::BanknotePositionProvider()
     surf = cv::xfeatures2d::SURF::create(500,4,3,true,false);
 
     // Import and analize each template image
-    for(unsigned i = 0; i < Classification::numOfBanknotes; i++)
+    for(unsigned i = 0; i < Classification::numOfBanknotes - 1; i++)
     {
         // Read the image and resize it
         cv::Mat image = cv::imread(std::string(File::getGTDir()) + "/Data/img_scan/" + Classification::getName((Classification::Banknote)i) + ".jpg", CV_LOAD_IMAGE_GRAYSCALE);
@@ -42,8 +42,7 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
 {
     DECLARE_DEBUG_DRAWING("module:BanknotePosition:position","drawingOnImage");
 
-
-    if (!theFeatures.descriptors.empty()){
+    if (!theFeatures.descriptors.empty() && theClassification.result != Classification::NONE){
         //Matching
         cv::Mat H;
         int banknote = compare(H);
@@ -73,7 +72,7 @@ int BanknotePositionProvider::compare(cv::Mat &resultHomography){
 
     int result = -1;
 
-    for(int i = 0; i < Classification::numOfBanknotes; i++){
+    for(int i = theClassification.result; i < theClassification.result + 2; i++){
 
         aux_matches.clear();
         matcher.knnMatch(modelsFeatures[i].descriptors, theFeatures.descriptors, aux_matches, 2);
@@ -81,13 +80,13 @@ int BanknotePositionProvider::compare(cv::Mat &resultHomography){
         good_matches.clear();
         for(auto& match : aux_matches)
         {
-            if(match[0].distance < 0.8f * match[1].distance)
+            if(match[0].distance < 0.85f * match[1].distance)
             {
                 good_matches.push_back(match[0]);
             }
         }
 
-        if(good_matches.size() > 25)
+        if(good_matches.size() > 20)
         {
             // Localize the object
             std::vector<cv::Point2f> obj;
