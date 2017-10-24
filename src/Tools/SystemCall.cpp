@@ -124,3 +124,20 @@ void SystemCall::sleep(unsigned int ms)
   usleep(ms * 1000);
 #endif
 }
+
+std::string SystemCall::get_date(void)
+{
+   time_t now;
+   char the_date[12];
+
+   the_date[0] = '\0';
+
+   now = time(NULL);
+
+   if (now != -1)
+   {
+      strftime(the_date, 12, "%d_%m_%Y", gmtime(&now));
+   }
+
+   return std::string(the_date);
+}

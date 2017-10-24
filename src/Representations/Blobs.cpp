@@ -28,3 +28,16 @@ void Blobs::draw() const
     }
   }
 }
+
+void Blobs::Blob::calculateRec(Vector2<int> &leftUpper, Vector2<int> &rightLower) const
+{
+    leftUpper = Vector2<int>(10000000,10000000);
+    rightLower  = Vector2<int>(0,0);
+    for(const auto& vertex : borders)
+    {
+        leftUpper.x = vertex.x < leftUpper.x ? vertex.x : leftUpper.x;
+        leftUpper.y = vertex.y < leftUpper.y ? vertex.y : leftUpper.y;
+        rightLower.x = vertex.x > rightLower.x ? vertex.x : rightLower.x;
+        rightLower.y = vertex.y > rightLower.y ? vertex.y : rightLower.y;
+    }
+}

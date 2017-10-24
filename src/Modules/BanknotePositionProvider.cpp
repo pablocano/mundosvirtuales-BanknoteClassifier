@@ -5,10 +5,11 @@
 #include "Tools/Debugging/DebugDrawings.h"
 #include <algorithm>
 #include <iostream>
+#include "Tools/SystemCall.h"
 
 MAKE_MODULE(BanknotePositionProvider, BanknoteClassifier)
 
-BanknotePositionProvider::BanknotePositionProvider()
+BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000)
 {
     // Initialize the used tools
     clahe = cv::createCLAHE(2.0, cv::Size(5,5));
@@ -40,26 +41,39 @@ BanknotePositionProvider::BanknotePositionProvider()
 
 void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
 {
-    DECLARE_DEBUG_DRAWING("module:BanknotePosition:position","drawingOnImage");
+    DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:ransac_result","drawingOnImage");
 
     if (!theFeatures.descriptors.empty() && theClassification.result != Classification::NONE){
         //Matching
         cv::Mat H;
         int banknote = compare(H);
 
-        if (!H.empty() && banknote != -1){
+        banknotePosition.banknote = Classification::NONE;
+
+        if (!H.empty() && banknote != Classification::NONE){
             std::vector<cv::Point2f> scene_corners(4);
             perspectiveTransform( modelsCorners, scene_corners, H);
-            //-- Draw lines between the corners (the mapped object in the scene - image_2 )
-            ColorRGBA color;
-            Drawings::PenStyle penStyle;
-            getColorAndStyle((Classification::Banknote)banknote, color, penStyle);
 
-            LINE( "module:BanknotePosition:position", scene_corners[0].x, scene_corners[0].y , scene_corners[1].x, scene_corners[1].y, 3, penStyle, color );
-            LINE( "module:BanknotePosition:position", scene_corners[1].x, scene_corners[1].y , scene_corners[2].x, scene_corners[2].y, 3, penStyle, color );
-            LINE( "module:BanknotePosition:position", scene_corners[2].x, scene_corners[2].y , scene_corners[3].x, scene_corners[3].y, 3, penStyle, color );
-            LINE( "module:BanknotePosition:position", scene_corners[3].x, scene_corners[3].y , scene_corners[0].x, scene_corners[0].y, 3, penStyle, color);
+            LINE("module:BanknotePositionProvider:ransac_result", scene_corners[0].x, scene_corners[0].y , scene_corners[1].x, scene_corners[1].y, 1, Drawings::ps_solid, ColorRGBA::red );
+            LINE("module:BanknotePositionProvider:ransac_result", scene_corners[1].x, scene_corners[1].y , scene_corners[2].x, scene_corners[2].y, 1, Drawings::ps_solid, ColorRGBA::red );
+            LINE("module:BanknotePositionProvider:ransac_result", scene_corners[2].x, scene_corners[2].y , scene_corners[3].x, scene_corners[3].y, 1, Drawings::ps_solid, ColorRGBA::red );
+            LINE("module:BanknotePositionProvider:ransac_result", scene_corners[3].x, scene_corners[3].y , scene_corners[0].x, scene_corners[0].y, 1, Drawings::ps_solid, ColorRGBA::red );
+
+            if(analyzeArea(scene_corners))
+            {
+               banknotePosition.banknote = (Classification::Banknote)banknote;
+
+               scene_corners.push_back(scene_corners.front());
+               banknotePosition.corners = scene_corners;
+            }
+
+            /*const Blobs::Blob& biggestBlob = theBlobs.blobs[0];
+            Vector2<int> leftUpper, rightLower;
+            biggestBlob.calculateRec(leftUpper, rightLower);
+
+            cv::imwrite(std::string(File::getGTDir()) + "/Data/training_imgs/" + std::string(Classification::getName((Classification::Banknote)banknote))  + "/" + SystemCall::get_date() + std::to_string(SystemCall::getCurrentSystemTime()) + ".jpg", theImageBGR(cv::Rect(leftUpper.x,leftUpper.y,rightLower.x - leftUpper.x, rightLower.y - leftUpper.y)));*/
         }
+
     }
 }
 
@@ -70,7 +84,7 @@ int BanknotePositionProvider::compare(cv::Mat &resultHomography){
 
     int max_good_matches = 0;
 
-    int result = -1;
+    int result = Classification::NONE;
 
     for(int i = theClassification.result; i < theClassification.result + 2; i++){
 
@@ -121,6 +135,43 @@ int BanknotePositionProvider::compare(cv::Mat &resultHomography){
     return result;
 }
 
+bool BanknotePositionProvider::analyzeArea(std::vector<cv::Point2f> &corners)
+{
+    // Get the size of the array
+    int size = corners.size();
+
+    // Area acumulator
+    double  area=0. ;
+
+    // Access to the last element of the list
+    int j = size - 1;
+
+    // Boolean used to validate convexity of the polygon
+    bool positive = true, negative = true;
+
+    // Iterate over all the vertexs
+    for(int i = 0; i < size; i++)
+    {
+        // Analyze the angle between two edges of the polygon
+        cv::Point2f a,b;
+        a = corners[(i + 2)%size] - corners[(i + 1)%size];
+        b = corners[(i + 1)%size] - corners[i%size];
+
+        // Analyze if all the angles are negative or positive
+        positive &= a.cross(b) >= 0;
+        negative &= a.cross(b) < 0;
+
+        // Calculates the area of the polygon
+        area+=(corners[j].x+corners[i].x)*(corners[j].y-corners[i].y);
+
+        // Access to the next vertex
+        j = i;
+    }
+
+    // Final calculation of the area
+    area *= 0.5;
+    return std::abs(area) > minAreaPolygon && (positive || negative);
+}
 
 void BanknotePositionProvider::resizeImage(cv::Mat& image)
 {
@@ -129,50 +180,4 @@ void BanknotePositionProvider::resizeImage(cv::Mat& image)
 
     //Equalize histogram
     clahe->apply(image,image);
-}
-
-void BanknotePositionProvider::getColorAndStyle(Classification::Banknote banknote, ColorRGBA &color, Drawings::PenStyle &style)
-{
-    switch (banknote) {
-    case Classification::UNO_C:
-        color = ColorRGBA::green;
-        style = Drawings::ps_solid;
-        break;
-    case Classification::UNO_S:
-        color = ColorRGBA::green;
-        style = Drawings::ps_dash;
-        break;
-    case Classification::DOS_C:
-        color = ColorRGBA::yellow;
-        style = Drawings::ps_solid;
-        break;
-    case Classification::DOS_S:
-        color = ColorRGBA::yellow;
-        style = Drawings::ps_dash;
-        break;
-    case Classification::CINCO_C:
-        color = ColorRGBA::red;
-        style = Drawings::ps_solid;
-        break;
-    case Classification::CINCO_S:
-        color = ColorRGBA::red;
-        style = Drawings::ps_dash;
-        break;
-    case Classification::DIEZ_C:
-        color = ColorRGBA::blue;
-        style = Drawings::ps_solid;
-        break;
-    case Classification::DIEZ_S:
-        color = ColorRGBA::blue;
-        style = Drawings::ps_dash;
-        break;
-    case Classification::VEINTE_C:
-        color = ColorRGBA::orange;
-        style = Drawings::ps_solid;
-        break;
-    case Classification::VEINTE_S:
-        color = ColorRGBA::orange;
-        style = Drawings::ps_dash;
-        break;
-    }
 }

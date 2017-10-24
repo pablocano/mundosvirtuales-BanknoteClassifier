@@ -13,7 +13,7 @@
 MAKE_MODULE(BlobProvider, BanknoteClassifier)
 
 
-BlobProvider::BlobProvider() : minNumOfSegments(100), minSegmentSize(3), maxDistanceInSameDepth(100), maxDepthDistance(100) {}
+BlobProvider::BlobProvider() : minNumOfSegments(60), minSegmentSize(3), maxDistanceInSameDepth(80), maxDepthDistance(40) {}
 
 void BlobProvider::update(Blobs &blobs)
 {
@@ -132,36 +132,6 @@ Vector2<int> BlobProvider::Group::getCenter()
   }
   return center/count;
 }
-
-std::vector<Vector2<int> > BlobProvider::Group::getBorders()
-{
-  std::vector<Vector2<int> > corners;
-
-  Vector2<int> leftUpper(1000000,0);
-  Vector2<int> leftLower(0,-1);
-  Vector2<int> rightUpper(0,10000000);
-  Vector2<int> rightLower(-1,0);
-
-  for(auto& segment: segments)
-  {
-    if(segment.left.x < leftUpper.x || (segment.left.x == leftUpper.x && segment.left.y < leftUpper.y))
-      leftUpper = Vector2<int>(segment.left.x, segment.left.y);
-    if(segment.left.y > leftLower.y || (segment.left.y == leftLower.y && segment.left.x < leftLower.x))
-      leftLower = Vector2<int>(segment.left.x, segment.left.y);
-    if(segment.right.y < rightUpper.y || (segment.right.y == rightUpper.y && segment.right.x > rightUpper.x))
-      rightUpper = Vector2<int>(segment.right.x, segment.right.y);
-    if(segment.right.x > rightLower.x || (segment.right.x == rightLower.x && segment.right.y > rightLower.y))
-      rightLower = Vector2<int>(segment.right.x, segment.right.y);
-  }
-
-  corners.push_back(leftUpper);
-  corners.push_back(leftLower);
-  corners.push_back(rightLower);
-  corners.push_back(rightUpper);
-
-  return corners;
-}
-
 
 std::vector<Vector2<int> > BlobProvider::Group::getConvexHull()
 {

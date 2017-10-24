@@ -38,7 +38,6 @@ private:
     std::vector<Segment> segments;
     bool itBelongs(const Segment& line, int segment, int maxDistanceInSameDepth, int maxDepthDistance);
     Vector2<int> getCenter();
-    std::vector<Vector2<int> > getBorders();
     std::vector<Vector2<int> > getConvexHull();
     ColorModel::Colors color;
   };

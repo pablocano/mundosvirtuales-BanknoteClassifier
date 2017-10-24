@@ -1,5 +1,6 @@
 #include "FeaturesProvider.h"
 #include <opencv2/highgui.hpp>
+#include <iostream>
 
 MAKE_MODULE(FeaturesProvider, BanknoteClassifier)
 
@@ -19,12 +20,10 @@ void FeaturesProvider::update(Features &features)
 
     if(!theBlobs.blobs.empty())
     {
-        auxPolygon.clear();
-        for(const auto& vertex : theBlobs.blobs[0].borders)
-        {
-            auxPolygon.push_back(cv::Point(vertex.x, vertex.y));
-        }
-        cv::fillConvexPoly( mask, &auxPolygon[0], auxPolygon.size(), cv::Scalar(255) );
+        const Blobs::Blob& biggestBlob = theBlobs.blobs[0];
+        Vector2<int> leftUpper, rightLower;
+        biggestBlob.calculateRec(leftUpper, rightLower);
+        mask(cv::Rect(leftUpper.x,leftUpper.y,rightLower.x - leftUpper.x,rightLower.y - leftUpper.y)) = 1;
     }
 
     surf_->detectAndCompute(theGrayScaleImageEq,mask,features.keypoints,features.descriptors);

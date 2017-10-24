@@ -22,7 +22,5 @@ public:
 
     cv::Mat mask;
 
-    std::vector<cv::Point> auxPolygon;
-
     void update(Features & features);
 };

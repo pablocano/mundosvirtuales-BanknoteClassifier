@@ -27,9 +27,9 @@ public:
     static int isLeft(const Vector2<int> &point1, const Vector2<int> &point2, const Vector2<int> &testPoint);
 
     /**
-     * @brief polygonArea
-     * @param polygon
-     * @return
+     * @brief polygonArea Calculates the area of the polygon
+     * @param polygon the Polygon which area is going to be calculated
+     * @return the area of the polygon
      */
     static float polygonArea(Polygon &polygon);
 };
