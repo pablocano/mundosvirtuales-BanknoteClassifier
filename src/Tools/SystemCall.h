@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <string>
 
 /**
  * static class for system calls
@@ -51,4 +52,10 @@ public:
    * \param ms The amout of milliseconds.
    */
   static void sleep(unsigned int ms);
+
+  /**
+   * @brief get_date
+   * @return
+   */
+  static std::string get_date(void);
 };

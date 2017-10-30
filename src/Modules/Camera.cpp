@@ -23,7 +23,8 @@ Camera::Camera(): index(0)
     /**
      * Prepare cameras
     */
-    video0 = cv::VideoCapture(0);
+    //video0 = cv::VideoCapture(0);
+    video0 = cv::VideoCapture(std::string(File::getGTDir()) + "/Data/vid/caja_muchos.mp4");
     if(!video0.isOpened())  // check if we succeeded
     {
         cam1.available = false;
@@ -33,11 +34,12 @@ Camera::Camera(): index(0)
     {
         std::cout << "Camera 1 was successfully opened"<< std::endl;
         cam1.available = true;
+
         video0.set(CV_CAP_PROP_FRAME_HEIGHT, height);
         video0.set(CV_CAP_PROP_FRAME_WIDTH, width);
     }
     // open second camera
-    video1 = cv::VideoCapture(1);
+    //video1 = cv::VideoCapture(1);
     if(!video1.isOpened())  // check if we succeeded
     {
         cam2.available = false;
@@ -103,14 +105,18 @@ void Camera::update(CameraInfo& cameraInfo)
 void Camera::update(ImageBGR& image)
 {
   cv::Mat tmp, undistorted;
+  int i = 0;
   do{
     *cameras[index] >> tmp;
-    //if (image.empty()) {
-    //cameras[index]->set(CV_CAP_PROP_POS_AVI_RATIO , 0);
-    //*cameras[index] >> tmp;
-    //}
+    i++;
+    if (tmp.empty()) {
+        cameras[index]->set(CV_CAP_PROP_POS_AVI_RATIO , 0);
+        *cameras[index] >> tmp;
+    }
   }
-  while(tmp.empty());
+  while(tmp.empty() || i < 0);
+
+  cv::resize(tmp,tmp,cv::Size(1500,750));
 
   // correct and rotate images
   //cv::undistort(tmp, undistorted, camerasInfo[index]->K, camerasInfo[index]->d);
@@ -127,7 +133,7 @@ void Camera::update(ImageBGR& image)
 
 void Camera::update(Image& image)
 {
-  cv::cvtColor(theImageBGR, image, CV_BGR2YCrCb);
+    cv::cvtColor(theImageBGR, image, CV_BGR2YCrCb);
 }
 
 void Camera::update(GrayScaleImage& image)

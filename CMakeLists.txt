@@ -22,6 +22,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/Equalizer.h
   src/Modules/FeaturesProvider.cpp
   src/Modules/FeaturesProvider.h
+  src/Modules/PreviousBanknoteCheck.cpp
+  src/Modules/PreviousBanknoteCheck.h
   src/Modules/Regionizer.cpp
   src/Modules/Regionizer.h
   src/Modules/Segmentator.cpp
@@ -34,6 +36,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/BanknotePosition.h
   src/Representations/CameraInfo.cpp
   src/Representations/CameraInfo.h
+  src/Representations/Classification.cpp
+  src/Representations/Classification.h
   src/Representations/ColorModel/ColorCalibration.h
   src/Representations/ColorModel/ColorModel.cpp
   src/Representations/ColorModel/ColorModel.h
@@ -71,6 +75,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/Global.h
   src/Tools/Math/Line.cpp
   src/Tools/Math/Line.h
+  src/Tools/Math/Geometry.cpp
+  src/Tools/Math/Geometry.h
   src/Tools/Math/Pose2D.h
   src/Tools/Math/Range.h
   src/Tools/Math/Transformation.cpp

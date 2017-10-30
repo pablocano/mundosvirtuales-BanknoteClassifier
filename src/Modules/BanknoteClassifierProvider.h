@@ -1,20 +1,26 @@
 #pragma once
 
-#include "Representations/CameraInfo.h"
-#include "Representations/BanknoteClassifierMessages.h"
-#include "Representations/FrameInfo.h"
 #include "Tools/ModuleManager/Module.h"
+#include "Representations/BanknotePosition.h"
+#include "Representations/Blobs.h"
+#include "Representations/Classification.h"
+#include <deque>
 
 MODULE(BanknoteClassifierProvider,
 {,
-  REQUIRES(CameraInfo),
-  REQUIRES(FrameInfo),
-  PROVIDES(BanknoteClassifierMessageOutput),
+  REQUIRES(Blobs),
+  REQUIRES(PreviousBanknotePosition),
+  PROVIDES(Classification),
 });
 
 class BanknoteClassifierProvider : public BanknoteClassifierProviderBase
 {
+
 public:
-  
-  void update(BanknoteClassifierMessageOutput& banknoteClassifierMessageOutput);
+
+    /**
+     * @brief update the classification representation
+     * @param classification the result of this module
+     */
+    void update(Classification& classification);
 };

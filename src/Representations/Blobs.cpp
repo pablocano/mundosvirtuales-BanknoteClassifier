@@ -17,7 +17,14 @@ void Blobs::draw() const
   DECLARE_DEBUG_DRAWING("representation:Blobs", "drawingOnImage");
   for(auto& blob : blobs)
   {
+
+    const std::vector<Vector2<int> >& borders = blob.borders;
     cv::Scalar color = DrawingColors::getDrawingColor(blob.color.colors);
-    RECTANGLE("representation:Blobs", blob.leftUpper.x, blob.leftUpper.y, blob.rightBottom.x, blob.rightBottom.y, 5, Drawings::ps_solid, ColorRGBA(color[2],color[1],color[0]));
+
+    for(int i = 0; i < borders.size(); i++)
+    {
+        int a = (i + 1)%borders.size();
+        LINE("representation:Blobs", borders[i].x, borders[i].y, borders[(i + 1)%borders.size()].x, borders[(i + 1)%borders.size()].y, 5, Drawings::ps_solid, ColorRGBA(color[2],color[1],color[0]));
+    }
   }
 }

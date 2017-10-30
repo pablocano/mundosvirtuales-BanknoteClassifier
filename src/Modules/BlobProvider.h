@@ -1,13 +1,15 @@
 #pragma once
 
+#include "Tools/ModuleManager/Module.h"
 #include "Representations/CameraInfo.h"
 #include "Representations/Regions.h"
 #include "Representations/Blobs.h"
-#include "Tools/ModuleManager/Module.h"
+#include "Representations/BanknotePosition.h"
 
 MODULE(BlobProvider,
 {,
   REQUIRES(CameraInfo),
+  REQUIRES(PreviousBanknotePosition),
   REQUIRES(Regions),
   PROVIDES(Blobs),
 });
@@ -15,6 +17,9 @@ MODULE(BlobProvider,
 class BlobProvider : public BlobProviderBase {
   
 public:
+
+  BlobProvider();
+
   void update(Blobs &blobs);
   
 private:
@@ -22,16 +27,20 @@ private:
   {
     Segment(const Regions::Line& line) : Regions::Line(line.left,line.right,line.depth,line.color), label(0) {}
     int label;
+
+    bool operator<(const Segment& other) const
+    {
+        return depth < other.depth || (depth == other.depth && right.x < other.left.x);
+    }
   };
   
   struct Group
   {
     Group() = default;
     std::vector<Segment> segments;
-    bool itBelongs(const Segment& line, int segment);
+    bool itBelongs(const Segment& line, int segment, int maxDistanceInSameDepth, int maxDepthDistance);
     Vector2<int> getCenter();
-    Vector2<int> getLeftUpper();
-    Vector2<int> getRightBottom();
+    std::vector<Vector2<int> > getConvexHull();
     ColorModel::Colors color;
   };
   
@@ -39,4 +48,11 @@ private:
   
   std::vector<Segment> segments;
   std::vector<Group> groups;
+
+  // Parameters
+  int minNumOfSegments;
+  int minSegmentSize;
+
+  int maxDistanceInSameDepth;
+  int maxDepthDistance;
 };

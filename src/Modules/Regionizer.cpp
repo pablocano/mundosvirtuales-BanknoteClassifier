@@ -5,6 +5,9 @@ MAKE_MODULE(Regionizer, BanknoteClassifier)
 
 void Regionizer::update(Regions& regions)
 {
+  if(thePreviousBanknotePosition.banknote != Classification::NONE)
+        return;
+
   regions.regions.clear();
   int depth = 0;
   for (int i = step; i < theImage.rows; i += step) {

@@ -2,6 +2,7 @@
 #pragma once
 
 #include "Representations/Image.h"
+#include "Representations/BanknotePosition.h"
 #include "Representations/ColorModel/ColorModel.h"
 #include "Representations/Regions.h"
 #include "Tools/ModuleManager/Module.h"
@@ -10,6 +11,7 @@ MODULE(Regionizer,
 {,
   REQUIRES(ColorModel),
   REQUIRES(Image),
+  REQUIRES(PreviousBanknotePosition),
   PROVIDES(Regions),
 });
 
