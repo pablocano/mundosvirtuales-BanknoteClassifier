@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Tools/Math/Vector2.h"
+#include <opencv2/core.hpp>
 #include <vector>
 
 class Geometry
@@ -32,5 +33,21 @@ public:
      * @return the area of the polygon
      */
     static float polygonArea(Polygon &polygon);
+
+    /**
+     * @brief calculateRect calculate the boundary rect of a list of points
+     * @param points the list of points
+     * @param leftUpper the left upper corner of the rect
+     * @param rightLower the right lower corner of the rect
+     */
+    static void calculateRect(const std::vector<Vector2<int> >& points, Vector2<int>& leftUpper, Vector2<int>& rightLower);
+
+    /**
+     * @brief calculateRect calculate the boundary rect of a list of points
+     * @param points the list of points
+     * @param leftUpper the left upper corner of the rect
+     * @param rightLower the right lower corner of the rect
+     */
+    static void calculateRect(const std::vector<cv::Point2f>& points, Vector2<int>& leftUpper, Vector2<int>& rightLower);
 };
 

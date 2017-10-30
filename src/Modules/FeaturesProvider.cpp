@@ -1,4 +1,5 @@
 #include "FeaturesProvider.h"
+#include "Tools/Math/Geometry.h"
 #include <opencv2/highgui.hpp>
 #include <iostream>
 
@@ -11,6 +12,9 @@ FeaturesProvider::FeaturesProvider()
 
 void FeaturesProvider::update(Features &features)
 {
+    if(thePreviousBanknotePosition.banknote != Classification::NONE)
+        return;
+
     features.keypoints.clear();
 
     if(mask.empty())
@@ -22,7 +26,7 @@ void FeaturesProvider::update(Features &features)
     {
         const Blobs::Blob& biggestBlob = theBlobs.blobs[0];
         Vector2<int> leftUpper, rightLower;
-        biggestBlob.calculateRec(leftUpper, rightLower);
+        Geometry::calculateRect(biggestBlob.borders, leftUpper, rightLower);
         mask(cv::Rect(leftUpper.x,leftUpper.y,rightLower.x - leftUpper.x,rightLower.y - leftUpper.y)) = 1;
     }
 

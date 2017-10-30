@@ -2,27 +2,28 @@
 
 #include "Tools/ModuleManager/Module.h"
 #include "Representations/BanknotePosition.h"
-#include "Representations/Blobs.h"
 #include "Representations/Features.h"
 #include "Representations/Image.h"
 #include <opencv2/xfeatures2d.hpp>
 
-MODULE(FeaturesProvider,
+MODULE(PreviousBanknoteCheck,
 {,
-    REQUIRES(Blobs),
     REQUIRES(GrayScaleImageEq),
-    REQUIRES(PreviousBanknotePosition),
-    PROVIDES(Features),
+    USES(BanknotePosition),
+    PROVIDES(PreviousBanknotePosition),
 });
 
-class FeaturesProvider : public FeaturesProviderBase
+class PreviousBanknoteCheck : public PreviousBanknoteCheckBase
 {
 public:
-    FeaturesProvider();
+
+    PreviousBanknoteCheck();
+
+    void update(PreviousBanknotePosition& previousBanknotePosition);
 
     cv::Ptr<cv::xfeatures2d::SURF> surf_;
 
     cv::Mat mask;
 
-    void update(Features & features);
+    Features features;
 };

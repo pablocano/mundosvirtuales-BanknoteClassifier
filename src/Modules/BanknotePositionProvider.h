@@ -19,6 +19,7 @@ MODULE(BanknotePositionProvider,
  REQUIRES(Features),
  REQUIRES(FrameInfo),
  REQUIRES(ImageBGR),
+ REQUIRES(PreviousBanknotePosition),
  PROVIDES(BanknotePosition),
 });
 
@@ -27,6 +28,9 @@ MODULE(BanknotePositionProvider,
 class BanknotePositionProvider : public BanknotePositionProviderBase
 {
 public:
+
+    static BanknotePositionProvider *theInstance;
+
     /**
      * @brief Default constructor
      */
@@ -49,14 +53,23 @@ public:
      * @param resultHomography the resulting homography between the template and the current image
      * @return the banknote detected
      */
-    int compare(cv::Mat& resultHomography);
+    int compare(cv::Mat& resultHomography, int start, int amount);
 
     /**
      * @brief analyze the resulting area given by the perpective transformation
      * @param corners the corners of the area to analyse
      * @return if the area is valid
      */
-    bool analyzeArea(std::vector<cv::Point2f>& corners);
+    static bool analyzeArea(const cv::Mat &homography, std::vector<cv::Point2f>& corners);
+
+    /**
+     * @brief compare the current image with the acoording template using the Classification representation
+     * @param resultHomography the resulting homography between the template and the current image
+     * @param fisrt the fisrt banknote to compare
+     * @param last the last banknote to compare
+     * @return the banknote detected
+     */
+    static int compare(const Features& features, cv::Mat& resultHomography, int first, int last);
 
     // Models features
     std::vector<cv::Mat> modelsImage;

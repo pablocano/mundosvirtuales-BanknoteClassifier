@@ -21,8 +21,6 @@ public:
         return area > other.area;
     }
 
-    void calculateRec(Vector2<int>& leftUpper, Vector2<int>& rightLower) const;
-
   };
   
   void draw() const;

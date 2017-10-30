@@ -1,13 +1,15 @@
 #pragma once
 
+#include "Tools/ModuleManager/Module.h"
 #include "Representations/CameraInfo.h"
 #include "Representations/Regions.h"
 #include "Representations/Blobs.h"
-#include "Tools/ModuleManager/Module.h"
+#include "Representations/BanknotePosition.h"
 
 MODULE(BlobProvider,
 {,
   REQUIRES(CameraInfo),
+  REQUIRES(PreviousBanknotePosition),
   REQUIRES(Regions),
   PROVIDES(Blobs),
 });

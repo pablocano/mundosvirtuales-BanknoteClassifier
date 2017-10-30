@@ -24,7 +24,7 @@ Camera::Camera(): index(0)
      * Prepare cameras
     */
     //video0 = cv::VideoCapture(0);
-    video0 = cv::VideoCapture(std::string(File::getGTDir()) + "/Data/vid/todos.mp4");
+    video0 = cv::VideoCapture(std::string(File::getGTDir()) + "/Data/vid/caja_muchos.mp4");
     if(!video0.isOpened())  // check if we succeeded
     {
         cam1.available = false;
@@ -109,14 +109,14 @@ void Camera::update(ImageBGR& image)
   do{
     *cameras[index] >> tmp;
     i++;
-    /*if (tmp.empty()) {
+    if (tmp.empty()) {
         cameras[index]->set(CV_CAP_PROP_POS_AVI_RATIO , 0);
         *cameras[index] >> tmp;
-    }*/
+    }
   }
   while(tmp.empty() || i < 0);
 
-  cv::resize(tmp,tmp,cv::Size(750,375));
+  cv::resize(tmp,tmp,cv::Size(1500,750));
 
   // correct and rotate images
   //cv::undistort(tmp, undistorted, camerasInfo[index]->K, camerasInfo[index]->d);

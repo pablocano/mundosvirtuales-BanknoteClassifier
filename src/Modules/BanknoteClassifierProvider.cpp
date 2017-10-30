@@ -11,6 +11,9 @@ MAKE_MODULE(BanknoteClassifierProvider, BanknoteClassifier)
 
 void BanknoteClassifierProvider::update(Classification &classification)
 {
+    if(thePreviousBanknotePosition.banknote != Classification::NONE)
+        return;
+
     classification.result = Classification::NONE;
 
     if(theBlobs.blobs.empty())

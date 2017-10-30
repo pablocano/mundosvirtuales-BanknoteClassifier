@@ -22,6 +22,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/Equalizer.h
   src/Modules/FeaturesProvider.cpp
   src/Modules/FeaturesProvider.h
+  src/Modules/PreviousBanknoteCheck.cpp
+  src/Modules/PreviousBanknoteCheck.h
   src/Modules/Regionizer.cpp
   src/Modules/Regionizer.h
   src/Modules/Segmentator.cpp

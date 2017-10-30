@@ -29,3 +29,29 @@ float Geometry::polygonArea(Polygon &polygon)
     }
     return area/2.f;
 }
+
+void Geometry::calculateRect(const std::vector<Vector2<int> > &points, Vector2<int> &leftUpper, Vector2<int> &rightLower)
+{
+    leftUpper = Vector2<int>(10000000,10000000);
+    rightLower  = Vector2<int>(0,0);
+    for(const auto& vertex : points)
+    {
+        leftUpper.x = vertex.x < leftUpper.x ? vertex.x : leftUpper.x;
+        leftUpper.y = vertex.y < leftUpper.y ? vertex.y : leftUpper.y;
+        rightLower.x = vertex.x > rightLower.x ? vertex.x : rightLower.x;
+        rightLower.y = vertex.y > rightLower.y ? vertex.y : rightLower.y;
+    }
+}
+
+void Geometry::calculateRect(const std::vector<cv::Point2f> &points, Vector2<int> &leftUpper, Vector2<int> &rightLower)
+{
+    leftUpper = Vector2<int>(10000000,10000000);
+    rightLower  = Vector2<int>(0,0);
+    for(const auto& vertex : points)
+    {
+        leftUpper.x = vertex.x < leftUpper.x ? vertex.x : leftUpper.x;
+        leftUpper.y = vertex.y < leftUpper.y ? vertex.y : leftUpper.y;
+        rightLower.x = vertex.x > rightLower.x ? vertex.x : rightLower.x;
+        rightLower.y = vertex.y > rightLower.y ? vertex.y : rightLower.y;
+    }
+}

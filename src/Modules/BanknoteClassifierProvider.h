@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Tools/ModuleManager/Module.h"
+#include "Representations/BanknotePosition.h"
 #include "Representations/Blobs.h"
 #include "Representations/Classification.h"
 #include <deque>
@@ -8,6 +9,7 @@
 MODULE(BanknoteClassifierProvider,
 {,
   REQUIRES(Blobs),
+  REQUIRES(PreviousBanknotePosition),
   PROVIDES(Classification),
 });
 

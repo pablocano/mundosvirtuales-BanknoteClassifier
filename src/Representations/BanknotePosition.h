@@ -11,6 +11,8 @@ class BanknotePosition : public Streamable
 {
 public:
 
+    BanknotePosition() : banknote(Classification::NONE){}
+
     void getColorAndStyle(ColorRGBA& color, Drawings::PenStyle &style) const;
 
     void draw() const;
@@ -19,3 +21,6 @@ public:
 
     std::vector<cv::Point2f> corners;
 };
+
+class PreviousBanknotePosition : public BanknotePosition
+{};
