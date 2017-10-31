@@ -144,10 +144,24 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
     return Classification::NONE;
 }
 
-bool BanknotePositionProvider::analyzeArea(const cv::Mat& homography, std::vector<cv::Point2f>& corners)
+bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<cv::Point2f>& corners)
 {
     if(theInstance)
     {
+        std::vector<Vector3d> corners2(4);
+
+        Eigen::Map<Eigen::Matrix<double,3,3,Eigen::RowMajor>> h(homography.ptr<double>());
+
+        for(int i = 0; i < 4; i++)
+        {
+            corners2[i] = h * Vector3d(theInstance->modelsCorners[i].x, theInstance->modelsCorners[i].y, 1);
+            corners2[i] /= corners2[i].z();
+        }
+
+        std::cout << homography << std::endl;
+
+        std::cout << h << std::endl;
+
         corners.resize(4);
         perspectiveTransform( theInstance->modelsCorners, corners, homography);
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Tools/Math/Vector2.h"
+#include "Tools/Math/Eigen.h"
 #include <opencv2/core.hpp>
 #include <vector>
 
@@ -10,11 +10,11 @@ public:
 
     struct Polygon
     {
-        std::vector<Vector2<int> > vertex;
+        std::vector<Vector2i > vertex;
     };
 
 
-    static bool isPointInPolygon(const Polygon& polygon, const Vector2<int> point);
+    static bool isPointInPolygon(const Polygon& polygon, const Vector2i point);
 
     /**
      * @brief isLeft tests if a point is Left|On|Right of an infinite line.
@@ -25,7 +25,7 @@ public:
      *         =0 for testPoint on the line
      *         <0 for testPoint right of the line
      */
-    static int isLeft(const Vector2<int> &point1, const Vector2<int> &point2, const Vector2<int> &testPoint);
+    static int isLeft(const Vector2i &point1, const Vector2i &point2, const Vector2i &testPoint);
 
     /**
      * @brief polygonArea Calculates the area of the polygon
@@ -40,7 +40,7 @@ public:
      * @param leftUpper the left upper corner of the rect
      * @param rightLower the right lower corner of the rect
      */
-    static void calculateRect(const std::vector<Vector2<int> >& points, Vector2<int>& leftUpper, Vector2<int>& rightLower);
+    static void calculateRect(const std::vector<Vector2i >& points, Vector2i& leftUpper, Vector2i& rightLower);
 
     /**
      * @brief calculateRect calculate the boundary rect of a list of points
@@ -48,6 +48,6 @@ public:
      * @param leftUpper the left upper corner of the rect
      * @param rightLower the right lower corner of the rect
      */
-    static void calculateRect(const std::vector<cv::Point2f>& points, Vector2<int>& leftUpper, Vector2<int>& rightLower);
+    static void calculateRect(const std::vector<cv::Point2f>& points, Vector2i& leftUpper, Vector2i& rightLower);
 };
 

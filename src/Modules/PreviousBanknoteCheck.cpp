@@ -21,15 +21,15 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
         else
             mask.setTo(cv::Scalar(0));
 
-        Vector2<int> leftUpper, rightLower;
+        Vector2i leftUpper, rightLower;
         Geometry::calculateRect(theBanknotePosition.corners, leftUpper, rightLower);
 
-        leftUpper.x = leftUpper.x < 0 ? 0 : (leftUpper.x >= theGrayScaleImageEq.cols ? theGrayScaleImageEq.cols - 1 : leftUpper.x);
-        leftUpper.y = leftUpper.y < 0 ? 0 : (leftUpper.y >= theGrayScaleImageEq.rows ? theGrayScaleImageEq.rows - 1 : leftUpper.y);
-        rightLower.x = rightLower.x < 0 ? 0 : (rightLower.x >= theGrayScaleImageEq.cols ? theGrayScaleImageEq.cols - 1 : rightLower.x);
-        rightLower.y = rightLower.y < 0 ? 0 : (rightLower.y >= theGrayScaleImageEq.rows ? theGrayScaleImageEq.rows - 1 : rightLower.y);
+        leftUpper.x() = leftUpper.x() < 0 ? 0 : (leftUpper.x() >= theGrayScaleImageEq.cols ? theGrayScaleImageEq.cols - 1 : leftUpper.x());
+        leftUpper.y() = leftUpper.y() < 0 ? 0 : (leftUpper.y() >= theGrayScaleImageEq.rows ? theGrayScaleImageEq.rows - 1 : leftUpper.y());
+        rightLower.x() = rightLower.x() < 0 ? 0 : (rightLower.x() >= theGrayScaleImageEq.cols ? theGrayScaleImageEq.cols - 1 : rightLower.x());
+        rightLower.y() = rightLower.y() < 0 ? 0 : (rightLower.y() >= theGrayScaleImageEq.rows ? theGrayScaleImageEq.rows - 1 : rightLower.y());
 
-        mask(cv::Rect(leftUpper.x,leftUpper.y,rightLower.x - leftUpper.x,rightLower.y - leftUpper.y)) = 1;
+        mask(cv::Rect(leftUpper.x(),leftUpper.y(),rightLower.x() - leftUpper.x(),rightLower.y() - leftUpper.y())) = 1;
 
         surf_->detectAndCompute(theGrayScaleImageEq,mask,features.keypoints,features.descriptors);
 

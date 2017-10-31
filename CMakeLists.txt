@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.1.0)
 PROJECT (BanknoteClassifier)
 find_package(OpenCV REQUIRED)
 find_package(Qt4 REQUIRED)
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 include(${QT_USE_FILE})
 
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
@@ -28,6 +29,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/Regionizer.h
   src/Modules/Segmentator.cpp
   src/Modules/Segmentator.h
+  src/Platform/Memory.cpp
+  src/Platform/Memory.h
   src/Processes/BanknoteClassifier.cpp
   src/Processes/BanknoteClassifier.h
   src/Representations/Blobs.cpp
@@ -51,6 +54,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/Image.h
   src/Representations/Regions.cpp
   src/Representations/Regions.h
+  src/Tools/AlignedMemory.cpp
+  src/Tools/AlignedMemory.h
   src/Tools/ColorClasses.cpp
   src/Tools/ColorClasses.h
   src/Tools/ColorModelConversions.h
@@ -73,6 +78,9 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/File.h
   src/Tools/Global.cpp
   src/Tools/Global.h
+  src/Tools/Math/Eigen.h
+  src/Tools/Math/EigenArrayExtensions.h
+  src/Tools/Math/EigenMatrixBaseExtensions.h
   src/Tools/Math/Line.cpp
   src/Tools/Math/Line.h
   src/Tools/Math/Geometry.cpp
@@ -162,6 +170,10 @@ set( VISION_TOOL_SRC
   ${VISION_TOOL_SRC_DIR}/VisionTool.h
   ${VISION_TOOL_SRC_DIR}/VisionToolWidget.cpp
   ${VISION_TOOL_SRC_DIR}/VisionToolWidget.h
+  src/Platform/Memory.cpp
+  src/Platform/Memory.h
+  src/Tools/AlignedMemory.cpp
+  src/Tools/AlignedMemory.h
   src/Tools/Comm/BanknoteClassifierMessageHandler.cpp
   src/Tools/Comm/BanknoteClassifierMessageHandler.h
   src/Tools/Comm/SPLStandardMessage.h
@@ -229,10 +241,10 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_definitions(-DWINDOWS)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
+include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
 
 add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE})
-target_link_libraries( banknoteClassifier ${OpenCV_LIBS} )
+target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen)
 
 add_library( libqxt STATIC ${LIBQXT_SRC} ${LIBQXT_MOC_Srcs})
 target_link_libraries(libqxt ${QT_LIBRARIES})
@@ -250,7 +262,7 @@ target_link_libraries(bc banknoteClassifier)
 include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/CalibratorTool  ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(calibrationTool ${CALIBRATOR_TOOL_SRC} ${CALIBRATION_TOOL_MOCSrcs} ${CALIBRATION_TOOL_RESOURCES_RCC})
-target_link_libraries(calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries(calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES} ${OpenCV_LIBS} Eigen3::Eigen)
 target_compile_definitions(calibrationTool PRIVATE QXT_STATIC)
 
 add_executable(visionTool ${VISION_TOOL_SRC} ${VISION_TOOL_MOCSrcs} ${OpenCV_INCLUDE})
