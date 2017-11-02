@@ -48,6 +48,6 @@ public:
      * @param leftUpper the left upper corner of the rect
      * @param rightLower the right lower corner of the rect
      */
-    static void calculateRect(const std::vector<cv::Point2f>& points, Vector2i& leftUpper, Vector2i& rightLower);
+    static void calculateRect(const std::vector<Vector2f>& points, Vector2i& leftUpper, Vector2i& rightLower);
 };
 

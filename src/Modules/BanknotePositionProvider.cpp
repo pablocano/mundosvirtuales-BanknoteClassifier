@@ -7,6 +7,7 @@
 #include <iostream>
 #include "Tools/SystemCall.h"
 
+
 MAKE_MODULE(BanknotePositionProvider, BanknoteClassifier)
 
 BanknotePositionProvider* BanknotePositionProvider::theInstance = 0;
@@ -41,6 +42,7 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000)
     modelsCorners.push_back(cv::Point(420,0));
     modelsCorners.push_back(cv::Point(420,210));
     modelsCorners.push_back(cv::Point(0,210));
+
 }
 
 void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
@@ -62,7 +64,7 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
 
         if (!H.empty() && banknote != Classification::NONE){
 
-            std::vector<cv::Point2f> scene_corners;
+            std::vector<Vector2f> scene_corners;
             if(analyzeArea(H, scene_corners))
             {
                banknotePosition.banknote = (Classification::Banknote)banknote;
@@ -144,26 +146,21 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
     return Classification::NONE;
 }
 
-bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<cv::Point2f>& corners)
+bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vector2f>& corners)
 {
     if(theInstance)
     {
         std::vector<Vector3d> corners2(4);
-
         Eigen::Map<Eigen::Matrix<double,3,3,Eigen::RowMajor>> h(homography.ptr<double>());
+        corners.resize(4);
 
         for(int i = 0; i < 4; i++)
         {
             corners2[i] = h * Vector3d(theInstance->modelsCorners[i].x, theInstance->modelsCorners[i].y, 1);
             corners2[i] /= corners2[i].z();
+            corners[i] = Vector2f( corners2[i].x(), corners2[i].y());
+
         }
-
-        std::cout << homography << std::endl;
-
-        std::cout << h << std::endl;
-
-        corners.resize(4);
-        perspectiveTransform( theInstance->modelsCorners, corners, homography);
 
         // Get the size of the array
         int size = corners.size();
@@ -181,16 +178,17 @@ bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<cv::
         for(int i = 0; i < size; i++)
         {
             // Analyze the angle between two edges of the polygon
-            cv::Point2f a,b;
+            Vector2f a,b;
             a = corners[(i + 2)%size] - corners[(i + 1)%size];
             b = corners[(i + 1)%size] - corners[i%size];
 
             // Analyze if all the angles are negative or positive
-            positive &= a.cross(b) >= 0;
-            negative &= a.cross(b) < 0;
+            float angle = (a.x() * b.y() - b.x()*a.y());
+            positive &= angle >= 0;
+            negative &= angle < 0;
 
             // Calculates the area of the polygon
-            area+=(corners[j].x+corners[i].x)*(corners[j].y-corners[i].y);
+            area+=(corners[j].x()+corners[i].x())*(corners[j].y()-corners[i].y());
 
             // Access to the next vertex
             j = i;

@@ -38,7 +38,7 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
         int banknote = BanknotePositionProvider::compare(features, H, theBanknotePosition.banknote, theBanknotePosition.banknote);
 
         if (!H.empty() && banknote == theBanknotePosition.banknote){
-            std::vector<cv::Point2f> scene_corners;
+            std::vector<Vector2f> scene_corners;
             if(BanknotePositionProvider::analyzeArea(H, scene_corners))
             {
                previousBanknotePosition.banknote = (Classification::Banknote)banknote;

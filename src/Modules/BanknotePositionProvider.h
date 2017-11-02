@@ -60,7 +60,7 @@ public:
      * @param corners the corners of the area to analyse
      * @return if the area is valid
      */
-    static bool analyzeArea(cv::Mat &homography, std::vector<cv::Point2f>& corners);
+    static bool analyzeArea(cv::Mat &homography, std::vector<Vector2f>& corners);
 
     /**
      * @brief compare the current image with the acoording template using the Classification representation

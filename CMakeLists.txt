@@ -23,6 +23,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/Equalizer.h
   src/Modules/FeaturesProvider.cpp
   src/Modules/FeaturesProvider.h
+  src/Modules/EstimatePosition.cpp
+  src/Modules/EstimatePosition.h
   src/Modules/PreviousBanknoteCheck.cpp
   src/Modules/PreviousBanknoteCheck.h
   src/Modules/Regionizer.cpp
@@ -85,6 +87,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/Math/Line.h
   src/Tools/Math/Geometry.cpp
   src/Tools/Math/Geometry.h
+  src/Tools/Math/Kalman.h
+  src/Tools/Math/Kalman.cpp
   src/Tools/Math/Pose2D.h
   src/Tools/Math/Range.h
   src/Tools/Math/Transformation.cpp

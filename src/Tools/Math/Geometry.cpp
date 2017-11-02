@@ -43,15 +43,15 @@ void Geometry::calculateRect(const std::vector<Vector2i > &points, Vector2i &lef
     }
 }
 
-void Geometry::calculateRect(const std::vector<cv::Point2f> &points, Vector2i &leftUpper, Vector2i &rightLower)
+void Geometry::calculateRect(const std::vector<Vector2f> &points, Vector2i &leftUpper, Vector2i &rightLower)
 {
     leftUpper = Vector2i(10000000,10000000);
     rightLower  = Vector2i(0,0);
     for(const auto& vertex : points)
     {
-        leftUpper.x() = vertex.x < leftUpper.x() ? vertex.x : leftUpper.x();
-        leftUpper.y() = vertex.y < leftUpper.y() ? vertex.y : leftUpper.y();
-        rightLower.x() = vertex.x > rightLower.x() ? vertex.x : rightLower.x();
-        rightLower.y() = vertex.y > rightLower.y() ? vertex.y : rightLower.y();
+        leftUpper.x() = vertex.x() < leftUpper.x() ? vertex.x() : leftUpper.x();
+        leftUpper.y() = vertex.y() < leftUpper.y() ? vertex.y() : leftUpper.y();
+        rightLower.x() = vertex.x() > rightLower.x() ? vertex.x() : rightLower.x();
+        rightLower.y() = vertex.y() > rightLower.y() ? vertex.y() : rightLower.y();
     }
 }
