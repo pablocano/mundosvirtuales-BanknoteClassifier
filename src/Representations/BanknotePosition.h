@@ -20,7 +20,6 @@ public:
 
     Classification::Banknote banknote;
 
-    //std::vector<cv::Point2f> corners;
     std::vector<Vector2f> corners;
 
 

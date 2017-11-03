@@ -107,8 +107,7 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
                     good_matches.push_back(match[0]);
                 }
             }
-
-            if(good_matches.size() > 20)
+            if(good_matches.size() > 50)
             {
                 // Localize the object
                 std::vector<cv::Point2f> obj;

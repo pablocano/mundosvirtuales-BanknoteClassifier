@@ -21,7 +21,7 @@ EstimatePosition::EstimatePosition()
     C.setIdentity();
 
     Q.setIdentity();
-    Q = Q*2;
+    Q = Q*4;
 
     R.setIdentity();
     R = R*10;
@@ -31,6 +31,8 @@ EstimatePosition::EstimatePosition()
     kf.create(A,C,Q,R,P);
 
     previous = Classification::NONE;
+
+    gg = 0;
 
 }
 
@@ -43,14 +45,30 @@ void EstimatePosition::update(BanknotePositionFiltered& banknotePositionFiltered
         corners[2*i+1] = theBanknotePosition.corners[i].y();
     }
 
-
-
-    if (previous != theBanknotePosition.banknote){
-
-        kf.init(corners);
+    if (previous == Classification::NONE){
+        if (theBanknotePosition.banknote != Classification::NONE){
+            kf.init(corners);
+            kf.update(corners);
+            EstimatePosition::sendPositionFiltered(banknotePositionFiltered);
+        }
+    }
+    else{
+        if (previous != theBanknotePosition.banknote)
+            kf.init(corners);
+        else if (theBanknotePosition.banknote == Classification::NONE){
+            gg++;
+            if (gg > 5){
+                gg = 0;
+                previous = Classification::NONE;
+            }
+        }
+        kf.update(corners);
+        EstimatePosition::sendPositionFiltered(banknotePositionFiltered);
     }
 
-    kf.update(corners);
+}
+
+void EstimatePosition::sendPositionFiltered(BanknotePositionFiltered& banknotePositionFiltered){
 
     Eigen::VectorXf state;
     state.resize(8);

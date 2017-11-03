@@ -24,12 +24,16 @@ public:
      */
     void update(BanknotePositionFiltered& banknotePositionFiltered);
 
+    void sendPositionFiltered(BanknotePositionFiltered& banknotePositionFiltered);
+
     /**
      * @brief KalmanFilter
      */
     KalmanFilter kf;
 
+    //variable auxiliar
     Classification::Banknote previous;
+    int gg;
 
 
 
