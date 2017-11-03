@@ -22,7 +22,7 @@ public:
      * @brief update
      * @param BanknotePosition
      */
-    void update(BanknotePositionFiltered& BanknotePositionFiltered);
+    void update(BanknotePositionFiltered& banknotePositionFiltered);
 
     /**
      * @brief KalmanFilter

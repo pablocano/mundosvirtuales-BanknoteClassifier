@@ -21,10 +21,10 @@ EstimatePosition::EstimatePosition()
     C.setIdentity();
 
     Q.setIdentity();
-    Q = Q*0.1;
+    Q = Q*2;
 
     R.setIdentity();
-    R = R*5;
+    R = R*10;
 
     P.setIdentity();
 
@@ -34,20 +34,20 @@ EstimatePosition::EstimatePosition()
 
 }
 
-void EstimatePosition::update(BanknotePositionFiltered& BanknotePositionFiltered)
+void EstimatePosition::update(BanknotePositionFiltered& banknotePositionFiltered)
 {
     Eigen::VectorXf corners;
     corners.resize(8);
-    for (int i=0; i<8; i = i+2){
-        corners[i] = theBanknotePosition.corners[i].x();
-        corners[i+1] = theBanknotePosition.corners[i].y();
+    for (int i=0; i<4; i++){
+        corners[2*i] = theBanknotePosition.corners[i].x();
+        corners[2*i+1] = theBanknotePosition.corners[i].y();
     }
-    kf.init(corners);
+
 
 
     if (previous != theBanknotePosition.banknote){
 
-
+        kf.init(corners);
     }
 
     kf.update(corners);
@@ -56,11 +56,14 @@ void EstimatePosition::update(BanknotePositionFiltered& BanknotePositionFiltered
     state.resize(8);
     state = kf.state();
 
-    BanknotePositionFiltered.corners.resize(4);
+    banknotePositionFiltered.banknote = theBanknotePosition.banknote;
+    banknotePositionFiltered.corners.resize(4);
 
     for (int i=0; i < 4; i++) {
-        BanknotePositionFiltered.corners[i] = Eigen::Vector2f(state[i*2], state[2*i+1]);
+        banknotePositionFiltered.corners[i] = Eigen::Vector2f(state[i*2], state[2*i+1]);
     }
-    previous = theBanknotePosition.banknote;
 
+    banknotePositionFiltered.corners.push_back(banknotePositionFiltered.corners.front());
+
+    previous = theBanknotePosition.banknote;
 }

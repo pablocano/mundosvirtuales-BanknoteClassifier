@@ -31,5 +31,6 @@ class PreviousBanknotePosition : public BanknotePosition
 
 class BanknotePositionFiltered : public BanknotePosition
 {
-    void draw() const override;
+public:
+    void draw() const;
 };
