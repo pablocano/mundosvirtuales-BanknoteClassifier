@@ -21,7 +21,7 @@ EstimatePosition::EstimatePosition()
     C.setIdentity();
 
     Q.setIdentity();
-    Q = Q*4;
+    Q = Q*2;
 
     R.setIdentity();
     R = R*10;
@@ -53,15 +53,15 @@ void EstimatePosition::update(BanknotePositionFiltered& banknotePositionFiltered
         }
     }
     else{
-        if (previous != theBanknotePosition.banknote)
-            kf.init(corners);
-        else if (theBanknotePosition.banknote == Classification::NONE){
+        if (theBanknotePosition.banknote == Classification::NONE){
             gg++;
             if (gg > 5){
                 gg = 0;
                 previous = Classification::NONE;
             }
         }
+        else if (previous != theBanknotePosition.banknote)
+            kf.init(corners);
         kf.update(corners);
         EstimatePosition::sendPositionFiltered(banknotePositionFiltered);
     }

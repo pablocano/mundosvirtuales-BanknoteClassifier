@@ -48,6 +48,7 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000)
 void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
 {
     DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:ransac_result","drawingOnImage");
+    DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:inliers","drawingOnImage");
 
     if(thePreviousBanknotePosition.banknote != Classification::NONE)
     {
@@ -89,6 +90,8 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
     {
         std::vector<std::vector<cv::DMatch> > aux_matches;
         std::vector<cv::DMatch> good_matches;
+        std::vector<cv::Point2f> result_inliers;
+        cv::Mat result_mask;
 
         int max_good_matches = 0;
 
@@ -135,8 +138,20 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
                     max_good_matches = numGoodMatches;
                     result = i;
                     resultHomography = H;
+                    COMPLEX_DRAWING("module:BanknotePositionProvider:inliers",
+                    {
+                        result_mask = mask;
+                        result_inliers = scene;
+                    });
+
                 }
             }
+        }
+
+        for(int i = 0; i < result_mask.rows; i++)
+        {
+            if(result_mask.at<char>(i))
+                DOT("module:BanknotePositionProvider:inliers", result_inliers[i].x, result_inliers[i].y, ColorRGBA::red, ColorRGBA::red);
         }
 
         return result;
