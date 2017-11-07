@@ -196,6 +196,33 @@ set( LIBQXT_SRC
   ${LIBQXT_SRC_DIR}/qxtspanslider.h
 )
 
+set( LIB_ETHERNETIP_FANUC_SRC
+	src/Tools/Fanuc/EthernetIPFanuc.cpp
+	src/Tools/Fanuc/PositionRegisterCartesian.cpp
+	src/Tools/Fanuc/PositionRegisterJoint.cpp
+)
+
+set( LIB_ETHERNETIP_FANUC_INCLUDE
+	src/Tools/Fanuc/EthernetIPFanuc.h
+	src/Tools/Fanuc/PositionRegisterCartesian.h
+	src/Tools/Fanuc/PositionRegisterJoint.h
+	src/Tools/Fanuc/PacketEthernetIPFanuc.h
+)
+
+set( UTILS_SRC
+	src/Tools/ByteBuf.cpp
+	src/Tools/Logger/Logger.cpp
+	src/Tools/Comm/TcpComm.cpp
+	src/Tools/Comm/UdpComm.cpp
+)
+
+set( UTILS_INCLUDE
+	src/Tools/ByteBuf.h
+	src/Tools/Logger/Logger.h
+	src/Tools/Comm/TcpComm.h
+	src/Tools/Comm/UdpComm.h
+)
+
 source_group(src\\Processes REGULAR_EXPRESSION "src/Processes/*")
 source_group(src\\Modules REGULAR_EXPRESSION "Modules/*")
 source_group(src\\Representations REGULAR_EXPRESSION "Representations/*")
@@ -213,7 +240,7 @@ source_group(Utils\\CalibratorTool\\Views\\ColorCalibrationView REGULAR_EXPRESSI
 source_group(Utils\\libqxt REGULAR_EXPRESSION "Utils/libqxt*")
 source_group(Utils\\VisionTool REGULAR_EXPRESSION "Utils/VisionTool/*")
 
-set(CMAKE_CXX_FLAGS "-std=c++11")
+set(CMAKE_CXX_STANDARD 11)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -227,7 +254,7 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
 
-add_library( banknoteClassifier STATIC ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE})
+add_library( banknoteClassifier STATIC ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE} ${LIB_ETHERNETIP_FANUC_SRC} ${LIB_ETHERNETIP_FANUC_INCLUDE} ${UTILS_SRC} ${UTILS_INCLUDE} )
 if(WIN32)
 	target_link_libraries( banknoteClassifier ${OpenCV_LIBS} wsock32 ws2_32 winmm )
 else()
