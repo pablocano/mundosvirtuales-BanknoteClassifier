@@ -60,8 +60,6 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/Comm/SPLStandardMessage.h
   src/Tools/Comm/SPLStandardMessageWrapper.cpp
   src/Tools/Comm/SPLStandardMessageWrapper.h
-  src/Tools/Comm/UdpComm.cpp
-  src/Tools/Comm/UdpComm.h
   src/Tools/Debugging/Debugging.h
   src/Tools/Debugging/DebugRequest.cpp
   src/Tools/Debugging/DebugRequest.h
@@ -167,8 +165,6 @@ set( VISION_TOOL_SRC
   src/Tools/Comm/SPLStandardMessage.h
   src/Tools/Comm/SPLStandardMessageWrapper.cpp
   src/Tools/Comm/SPLStandardMessageWrapper.h
-  src/Tools/Comm/UdpComm.cpp
-  src/Tools/Comm/UdpComm.h
   src/Tools/Enum.cpp
   src/Tools/Enum.h
   src/Tools/File.cpp
@@ -225,14 +221,18 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_definitions(-DOSX)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 add_definitions(-DLINUX)
-ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_definitions(-DWINDOWS)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
 
-add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE})
-target_link_libraries( banknoteClassifier ${OpenCV_LIBS} )
+add_library( banknoteClassifier STATIC ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE})
+if(WIN32)
+	target_link_libraries( banknoteClassifier ${OpenCV_LIBS} wsock32 ws2_32 winmm )
+else()
+	target_link_libraries( banknoteClassifier ${OpenCV_LIBS} )
+endif()
 
 add_library( libqxt STATIC ${LIBQXT_SRC} ${LIBQXT_MOC_Srcs})
 target_link_libraries(libqxt ${QT_LIBRARIES})
@@ -254,4 +254,8 @@ target_link_libraries(calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES} 
 target_compile_definitions(calibrationTool PRIVATE QXT_STATIC)
 
 add_executable(visionTool ${VISION_TOOL_SRC} ${VISION_TOOL_MOCSrcs} ${OpenCV_INCLUDE})
-target_link_libraries(visionTool ${OpenCV_LIBS} ${QT_LIBRARIES})
+if(WIN32)
+	target_link_libraries( visionTool ${OpenCV_LIBS} ${QT_LIBRARIES} wsock32 ws2_32 winmm )
+else()
+	target_link_libraries( visionTool ${OpenCV_LIBS} ${QT_LIBRARIES} )
+endif()

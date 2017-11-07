@@ -16,7 +16,7 @@ VisionTool::VisionTool(): INIT_GROUND_TRUTH_COMM
 
 void VisionTool::init()
 {
-  std::string bcastAddr = UdpComm::getWifiBroadcastAddress();
+	std::string bcastAddr = ""; // UdpComm::getWifiBroadcastAddress();
   theBanknoteClassifierCommHandler.start(10021, bcastAddr.c_str());
 }
 

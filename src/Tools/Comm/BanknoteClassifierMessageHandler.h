@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Tools/Messages/MessageQueue.h"
-#include "Tools/Comm/UdpComm.h"
+// #include "Tools/Comm/UdpComm.h"
 #include "Tools/MessageIDs.h"
 #include <fstream>
 
@@ -52,5 +52,5 @@ private:
   MessageQueue &in,&out;
   int port;
   
-  UdpComm socket;
+  //UdpComm socket;
 };

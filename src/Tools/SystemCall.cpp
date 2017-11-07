@@ -132,12 +132,16 @@ std::string SystemCall::get_date(void)
 
    the_date[0] = '\0';
 
+#ifndef WINDOWS
+
    now = time(NULL);
 
    if (now != -1)
    {
       strftime(the_date, 12, "%d_%m_%Y", gmtime(&now));
    }
+
+#endif
 
    return std::string(the_date);
 }

@@ -81,7 +81,7 @@ const char* File::getGTDir()
         break;
       end--;
     }
-    ASSERT(false);
+    // ASSERT(false);
     strcpy(dir, ".");
   }
   return dir;
