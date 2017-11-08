@@ -26,6 +26,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/PreviousBanknoteCheck.h
   src/Modules/Regionizer.cpp
   src/Modules/Regionizer.h
+  src/Modules/RobotFanucProvider.cpp
+  src/Modules/RobotFanucProvider.h
   src/Modules/Segmentator.cpp
   src/Modules/Segmentator.h
   src/Processes/BanknoteClassifier.cpp
@@ -51,15 +53,14 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/Image.h
   src/Representations/Regions.cpp
   src/Representations/Regions.h
+  src/Representations/RobotFanuc.cpp
+  src/Representations/RobotFanuc.h
   src/Tools/ColorClasses.cpp
   src/Tools/ColorClasses.h
   src/Tools/ColorModelConversions.h
   src/Tools/Comm/Comm.h
   src/Tools/Comm/BanknoteClassifierMessageHandler.cpp
   src/Tools/Comm/BanknoteClassifierMessageHandler.h
-  src/Tools/Comm/SPLStandardMessage.h
-  src/Tools/Comm/SPLStandardMessageWrapper.cpp
-  src/Tools/Comm/SPLStandardMessageWrapper.h
   src/Tools/Debugging/Debugging.h
   src/Tools/Debugging/DebugRequest.cpp
   src/Tools/Debugging/DebugRequest.h
@@ -162,9 +163,6 @@ set( VISION_TOOL_SRC
   ${VISION_TOOL_SRC_DIR}/VisionToolWidget.h
   src/Tools/Comm/BanknoteClassifierMessageHandler.cpp
   src/Tools/Comm/BanknoteClassifierMessageHandler.h
-  src/Tools/Comm/SPLStandardMessage.h
-  src/Tools/Comm/SPLStandardMessageWrapper.cpp
-  src/Tools/Comm/SPLStandardMessageWrapper.h
   src/Tools/Enum.cpp
   src/Tools/Enum.h
   src/Tools/File.cpp
@@ -197,13 +195,11 @@ set( LIBQXT_SRC
 )
 
 set( LIB_ETHERNETIP_FANUC_SRC
-	src/Tools/Fanuc/EthernetIPFanuc.cpp
 	src/Tools/Fanuc/PositionRegisterCartesian.cpp
 	src/Tools/Fanuc/PositionRegisterJoint.cpp
 )
 
 set( LIB_ETHERNETIP_FANUC_INCLUDE
-	src/Tools/Fanuc/EthernetIPFanuc.h
 	src/Tools/Fanuc/PositionRegisterCartesian.h
 	src/Tools/Fanuc/PositionRegisterJoint.h
 	src/Tools/Fanuc/PacketEthernetIPFanuc.h
@@ -281,8 +277,4 @@ target_link_libraries(calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES} 
 target_compile_definitions(calibrationTool PRIVATE QXT_STATIC)
 
 add_executable(visionTool ${VISION_TOOL_SRC} ${VISION_TOOL_MOCSrcs} ${OpenCV_INCLUDE})
-if(WIN32)
-	target_link_libraries( visionTool ${OpenCV_LIBS} ${QT_LIBRARIES} wsock32 ws2_32 winmm )
-else()
-	target_link_libraries( visionTool ${OpenCV_LIBS} ${QT_LIBRARIES} )
-endif()
+target_link_libraries( visionTool banknoteClassifier ${OpenCV_LIBS} ${QT_LIBRARIES} )

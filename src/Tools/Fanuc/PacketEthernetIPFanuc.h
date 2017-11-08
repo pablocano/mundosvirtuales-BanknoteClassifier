@@ -94,7 +94,6 @@ STRUCT_PACKET PacketEthernetIPFanuc{
 	}
 };
 
-
 #ifdef WIN32
 	#pragma pack(pop)
 #endif

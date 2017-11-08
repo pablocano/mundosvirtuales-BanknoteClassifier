@@ -12,7 +12,9 @@
 #include "Modules/Segmentator.h"
 #include "Tools/Global.h"
 #include "Tools/SystemCall.h"
-#include "Tools/Comm/SPLStandardMessage.h"
+#include "Tools/Fanuc/PacketEthernetIPFanuc.h"
+#include "Modules/RobotFanucProvider.h"
+
 #include <istream>
 
 BanknoteClassifier::BanknoteClassifier() :
@@ -23,14 +25,14 @@ pause(false)
 {
   theDebugOut.setSize(5200000);
   theDebugIn.setSize(2800000);
-  theCommSender.setSize(sizeof(SPLStandardMessage));
-  theCommReceiver.setSize(5 * sizeof(SPLStandardMessage)); // more than 4 because of additional data
+  theCommSender.setSize(SIZE_PACKET);
+  theCommReceiver.setSize(5 * SIZE_PACKET); // more than 4 because of additional data
 }
 
 void BanknoteClassifier::init()
 {
   Global::theCommunicationOut = &theCommSender;
-  //START_BANKNOTE_CLASSIFIER_COMM;
+  START_BANKNOTE_CLASSIFIER_COMM;
   moduleManager.load();
 }
 
@@ -77,5 +79,5 @@ int BanknoteClassifier::main()
 
 bool BanknoteClassifier::handleMessage(MessageQueue &message)
 {
-  return BanknoteClassifierConfiguration::handleMessage(message) || Process::handleMessage(message);
+	return BanknoteClassifierConfiguration::handleMessage(message) || Process::handleMessage(message); //|| RobotFanucProvider::handleMessage(message);
 }

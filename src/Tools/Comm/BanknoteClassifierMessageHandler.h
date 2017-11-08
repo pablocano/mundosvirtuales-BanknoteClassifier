@@ -1,8 +1,10 @@
 #pragma once
 
 #include "Tools/Messages/MessageQueue.h"
-// #include "Tools/Comm/UdpComm.h"
+#include "Tools/Comm/UdpComm.h"
 #include "Tools/MessageIDs.h"
+#include "Tools/Comm/TcpComm.h"
+
 #include <fstream>
 
 #define BANKNOTE_CLASSIFIER_COMM \
@@ -14,8 +16,7 @@ BanknoteClassifierMessageHandler theBanknoteClassifierCommHandler
 theBanknoteClassifierCommHandler(theCommReceiver, theCommSender)
 
 #define START_BANKNOTE_CLASSIFIER_COMM \
-std::string bcastAddr = UdpComm::getWifiBroadcastAddress(); \
-theBanknoteClassifierCommHandler.start(Global::getSettings()->teamPort, bcastAddr.c_str())
+theBanknoteClassifierCommHandler.start("10.0.42.8")
 
 #define RECEIVE_BANKNOTE_CLASSIFIER_COMM \
 (void) theBanknoteClassifierCommHandler.receive()
@@ -41,16 +42,15 @@ public:
   static MessageQueue& getOutQueue();
   
   /**
-   * The method starts the actual communication on the given port.
-   * @param port The UDP port this handler is listening to.
-   * @param subnet The subnet the handler is broadcasting to.
+   * The method starts the actual communication.
+   * @param ip.
    */
-  void start(int port, const char* subnet);
+  void start(const char* ip);
   
 private:
   
   MessageQueue &in,&out;
-  int port;
   
-  //UdpComm socket;
+  SocketClientTcp* lpSocket;
+
 };

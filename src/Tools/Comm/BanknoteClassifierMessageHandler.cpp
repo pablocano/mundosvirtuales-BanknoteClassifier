@@ -1,6 +1,9 @@
 #include "BanknoteClassifierMessageHandler.h"
-#include "Tools/Comm/SPLStandardMessageWrapper.h"
+#include "Tools/Fanuc/PacketEthernetIPFanuc.h"
+#include "Tools/MessageIDs.h"
+
 #include <string.h>
+#include <iostream>
 
 BanknoteClassifierMessageHandler* BanknoteClassifierMessageHandler::theInstance = 0;
 
@@ -8,24 +11,22 @@ BanknoteClassifierMessageHandler* BanknoteClassifierMessageHandler::theInstance 
 BanknoteClassifierMessageHandler::BanknoteClassifierMessageHandler(MessageQueue& in, MessageQueue& out) :
 in(in),
 out(out),
-port(0)
+lpSocket(nullptr)
 {
   theInstance = this;
 }
 
-void BanknoteClassifierMessageHandler::start(int port, const char* subnet)
+void BanknoteClassifierMessageHandler::start(const char* ip)
 {
-  this->port = port;
-  /*socket.setBlocking(false);
-  socket.setBroadcast(true);
-  socket.bind("0.0.0.0", port);
-  socket.setTarget(subnet, port);
-  socket.setLoopback(false);*/
+	lpSocket = new SocketClientTcp(ip, PORT_SERVER);
 }
 
 BanknoteClassifierMessageHandler::~BanknoteClassifierMessageHandler()
 {
   theInstance = 0;
+  lpSocket->closeSocket();
+
+  delete lpSocket;
 }
 
 void BanknoteClassifierMessageHandler::send()
@@ -34,50 +35,55 @@ void BanknoteClassifierMessageHandler::send()
     //Nothing to send
     return;
   }
-  char buf[sizeof(SPLStandardMessage)];
-  
-  SPLStandardMessageWrapper message;
 
-  printf("Number of Messages: %i\n",out.getNumberOfMessages());
-  
-  unsigned size = message.fromMessageQueue(out);
-  memcpy(buf, (char*)&message, size);
-  out.clear();
-  
-  /*if(!socket.write(buf, size))
+  for (int i = 0; i < out.getNumberOfMessages(); ++i)
   {
-    printf("Could not send the message");
-  }*/
+	  out.setSelectedMessageForReading(i);
+	  
+	  if (out.getMessageID() == idEthernetIPFanuc)
+	  {
+		  PacketEthernetIPFanuc packet;
+
+		  out >> packet;
+
+		  if (!lpSocket->send((char *) &packet, SIZE_PACKET))
+		  {
+			  printf("Could not send the message");
+		  }
+	  }
+  }
+
+  out.clear();
 }
 
 unsigned BanknoteClassifierMessageHandler::receive()
 {
   in.clear();
-  if(!port)
+  if(!lpSocket)
     return 0; // not started yet
+
+  PacketEthernetIPFanuc packet;
   
-  char buffer[sizeof(SPLStandardMessage)];
-  int size;
-  unsigned remoteIp = 0;
-  unsigned receivedSize = 0;
-  
-  do
+  if (lpSocket->receive((char *)&packet, SIZE_PACKET))
   {
-	  size = 0; // socket.read(buffer, sizeof(buffer), remoteIp);
-    if(size >= (int)(sizeof(SPLStandardMessage) - SPL_STANDARD_MESSAGE_DATA_SIZE) && size <= (int)(sizeof(SPLStandardMessage)))
-    {
-      receivedSize = (unsigned) size;
-      
-      
-      SPLStandardMessageWrapper inMsg;
-      memcpy(&inMsg, buffer, size);
-      
-      inMsg.toMessageQueue(in, remoteIp);
-    }
+	  if (packet.isValid())
+	  {
+		  in << packet;
+		  in.finishMessage(idEthernetIPFanuc);
+
+		  return SIZE_PACKET;
+	  }
+	  else
+	  {
+		  std::cout << "Invalid packet" << std::endl;
+	  }
   }
-  while(size > 0);
+  else
+  {
+	  std::cout << "Problem Received packet" << std::endl;
+  }
   
-  return receivedSize;
+  return 0;
 }
 
 MessageQueue& BanknoteClassifierMessageHandler::getOutQueue()
