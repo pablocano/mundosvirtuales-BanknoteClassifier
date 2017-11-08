@@ -8,10 +8,8 @@
 #include <iostream>
 
 #include <opencv2/highgui.hpp>
-#include <pylon/PylonIncludes.h>
-#include <pylon/usb/BaslerUsbInstantCamera.h>
 
-MODULE(Camera,
+MODULE(OpencvCamera,
 {,
   REQUIRES(FrameInfo),
   PROVIDES(CameraInfo),
@@ -28,23 +26,21 @@ MODULE(Camera,
  *
  * Provides the images from the camera and the calibration of the camera
  */
-class Camera : public CameraBase
+class OpencvCamera : public OpencvCameraBase
 {
 public:
     /**
     * @brief Camera
     * Constructor of the class
     */
-    Camera();
+    OpencvCamera();
 
-    ~Camera();
-  
     /**
      * @brief Update function of the camera info representation
      * @param cameraInfo The camera info to be updated
      */
     void update(CameraInfo& cameraInfo);
-  
+
     /**
      * @brief Update function of the image in YCbCr
      * @param image The image to be updated
@@ -58,14 +54,54 @@ public:
      * Updates the images in grayscale using the image in BGR delivered by the camera
      */
     void update(GrayScaleImage& grayScaleImage);
-  
+
     /**
      * @brief Update function of the BGR image
      * @param image The image in to be updated
      * Updates the original image delivered by the camera, but after is been corrected
      */
     void update(ImageBGR& image);
-  
+
+    /**
+     * @brief Access to the first camera
+     */
+    cv::VideoCapture video0;
+
+    /**
+     * @brief Access to the second camera
+     */
+    cv::VideoCapture video1;
+
+    /**
+     * @brief Array of all the cameras avaliable
+     */
+    cv::VideoCapture* cameras[2];
+
+    /**
+     * @brief The number of avalaible cameras
+     */
+    int numCameras;
+
+    /**
+     * @brief Which camera is been used
+     */
+    int index;
+
+    /**
+     * @brief Camera information of the first camera
+     */
+    CameraInfo cam1;
+
+    /**
+     * @brief Camera information of the second camera
+     */
+    CameraInfo cam2;
+
+    /**
+     * @brief Array of all the camerasInfo
+     */
+    CameraInfo* camerasInfo[2];
+
     /**
     * @brief The height of the image to be delivered
     */
@@ -76,10 +112,7 @@ public:
      */
     int width;
 
-    Pylon::CBaslerUsbInstantCamera *camera;
-    Pylon::CImageFormatConverter *fc;
-
-    Pylon::CPylonImage *grabbedImage;
-
-    CameraInfo info;
+private:
+  enum ANGLES { CLOCKWISE = 90, COUNTERCLOCKWISE = -90 };
+  void rotateImage90(cv::Mat &src, cv::Mat &dst, int angle);
 };

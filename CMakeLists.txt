@@ -4,6 +4,7 @@ PROJECT (BanknoteClassifier)
 find_package(OpenCV REQUIRED)
 find_package(Qt4 REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+set(PYLON_ROOT /opt/pylon5)
 include(${QT_USE_FILE})
 
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
@@ -11,6 +12,8 @@ set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
 set( BANCKNOTECLASSIFIER_SRC
   src/Modules/Camera.cpp
   src/Modules/Camera.h
+  src/Modules/OpencvCamera.cpp
+  src/Modules/OpencvCamera.h
   src/Modules/BlobProvider.cpp
   src/Modules/BlobProvider.h
   src/Modules/BanknoteClassifierConfiguration.cpp
@@ -245,10 +248,11 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_definitions(-DWINDOWS)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
+include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
+link_directories(${PYLON_ROOT}/lib64)
 
 add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE})
-target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen)
+target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
 
 add_library( libqxt STATIC ${LIBQXT_SRC} ${LIBQXT_MOC_Srcs})
 target_link_libraries(libqxt ${QT_LIBRARIES})
