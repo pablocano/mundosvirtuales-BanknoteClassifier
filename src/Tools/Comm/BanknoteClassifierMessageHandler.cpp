@@ -58,6 +58,8 @@ void BanknoteClassifierMessageHandler::send()
 
 unsigned BanknoteClassifierMessageHandler::receive()
 {
+  return 0;
+
   in.clear();
   if(!lpSocket)
     return 0; // not started yet

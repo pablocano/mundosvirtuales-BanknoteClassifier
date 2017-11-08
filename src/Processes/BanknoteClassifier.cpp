@@ -25,8 +25,8 @@ pause(false)
 {
   theDebugOut.setSize(5200000);
   theDebugIn.setSize(2800000);
-  theCommSender.setSize(SIZE_PACKET);
-  theCommReceiver.setSize(5 * SIZE_PACKET); // more than 4 because of additional data
+  theCommSender.setSize(1000 * SIZE_PACKET);
+  theCommReceiver.setSize(5000 * SIZE_PACKET); // more than 4 because of additional data
 }
 
 void BanknoteClassifier::init()
@@ -52,7 +52,7 @@ int BanknoteClassifier::main()
   DEBUG_RESPONSE_ONCE("automated requests:DrawingManager", OUTPUT(idDrawingManager, Global::getDrawingManager()););
   
   if(Blackboard::getInstance().exists("CameraInfo") &&
-     ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).type == CameraInfo::Type::westCam)
+     ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).type == CameraInfo::Type::eastCam)
   {
     SEND_BANKNOTE_CLASSIFIER_COMM;
   }

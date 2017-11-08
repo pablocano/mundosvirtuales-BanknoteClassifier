@@ -1,6 +1,6 @@
 #include "TcpComm.h"
 
-#include "../logger/Logger.h"
+#include "Tools/Logger/Logger.h"
 
 #include <iostream>
 #ifndef WINCE
@@ -37,11 +37,13 @@ public:
 
 #else
 
+#include <netdb.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
+#include <string.h>
 
 #define ERRNO errno
 #define RESET_ERRNO errno = 0

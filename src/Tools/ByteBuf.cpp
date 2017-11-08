@@ -50,6 +50,11 @@ void ByteBuf::clear() {
 	buf.clear();
 }
 
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args) {
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
 /**
  * Clone
  * Allocate an exact copy of the ByteBuf on the heap and return a pointer
@@ -57,7 +62,7 @@ void ByteBuf::clear() {
  * @return A pointer to the newly cloned ByteBuf. NULL if no more memory available
  */
 std::unique_ptr<ByteBuf> ByteBuf::clone() {
-	std::unique_ptr<ByteBuf> ret = std::make_unique<ByteBuf>((uint32_t) buf.size());
+    std::unique_ptr<ByteBuf> ret = make_unique<ByteBuf>((uint32_t) buf.size());
 
 	// Copy data
 	for (uint32_t i = 0; i < buf.size(); i++) {
