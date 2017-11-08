@@ -3,7 +3,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <sstream>
 
-MAKE_MODULE(Camera, Common)
+MAKE_MODULE(Camera, Common2)
 
 Camera::Camera()
 {
@@ -53,9 +53,8 @@ void Camera::update(CameraInfo& cameraInfo)
   cameraInfo = info;
 }
 
-void Camera::update(ImageBGR& image)
+void Camera::update(Image& image)
 {
-    cv::Mat tmp;
     Pylon::CGrabResultPtr ptrGrabResult;
     while(!camera->IsGrabbing())
         cv::waitKey(1);
@@ -67,7 +66,7 @@ void Camera::update(ImageBGR& image)
         if (ptrGrabResult->GrabSucceeded())
         {
             fc->Convert(*grabbedImage, ptrGrabResult);
-            tmp = cv::Mat(ptrGrabResult->GetHeight(), ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)grabbedImage->GetBuffer());
+            currentImage = cv::Mat(ptrGrabResult->GetHeight(), ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)grabbedImage->GetBuffer());
         }
     }
     catch (GenICam::GenericException &e)
@@ -75,28 +74,18 @@ void Camera::update(ImageBGR& image)
         std::cerr << "An exception occurred." << std::endl << e.GetDescription() << std::endl;
     }
 
+    currentImage.timeStamp = theFrameInfo.time;
 
-  //cv::resize(tmp,tmp,cv::Size(1500,750));
+    DEBUG_RESPONSE("representation:ImageBGR",
+    {
+        OUTPUT(idImage,currentImage);
+    });
 
-  // correct and rotate images
-  //cv::undistort(tmp, undistorted, camerasInfo[index]->K, camerasInfo[index]->d);
-  //rotateImage90(undistorted, rotated, index == 0? ANGLES::COUNTERCLOCKWISE : ANGLES::CLOCKWISE);
-  image = ImageBGR(tmp);
-  image.timeStamp = theFrameInfo.time;
+    cv::cvtColor(currentImage, image, CV_BGR2YCrCb);
   
-  DEBUG_RESPONSE("representation:ImageBGR",
-  {
-    OUTPUT(idImage,image);
-  });
-  
-}
-
-void Camera::update(Image& image)
-{
-    cv::cvtColor(theImageBGR, image, CV_BGR2YCrCb);
 }
 
 void Camera::update(GrayScaleImage& image)
 {
-  cv::cvtColor(theImageBGR, image, CV_BGR2GRAY);
+    cv::extractChannel(theImage,image, 0);
 }

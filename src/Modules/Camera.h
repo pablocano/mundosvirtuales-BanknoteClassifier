@@ -15,9 +15,8 @@ MODULE(Camera,
 {,
   REQUIRES(FrameInfo),
   PROVIDES(CameraInfo),
-  PROVIDES(ImageBGR),
-  REQUIRES(ImageBGR),
   PROVIDES(Image),
+  REQUIRES(Image),
   PROVIDES(GrayScaleImage),
 });
 
@@ -60,11 +59,9 @@ public:
     void update(GrayScaleImage& grayScaleImage);
   
     /**
-     * @brief Update function of the BGR image
-     * @param image The image in to be updated
-     * Updates the original image delivered by the camera, but after is been corrected
+     * @brief currentImage
      */
-    void update(ImageBGR& image);
+    ImageBGR currentImage;
   
     /**
     * @brief The height of the image to be delivered

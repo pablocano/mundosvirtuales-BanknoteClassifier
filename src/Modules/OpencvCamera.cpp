@@ -3,7 +3,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <sstream>
 
-MAKE_MODULE(OpencvCamera, Common2)
+MAKE_MODULE(OpencvCamera, Common)
 
 OpencvCamera::OpencvCamera(): index(0)
 {
@@ -102,43 +102,35 @@ void OpencvCamera::update(CameraInfo& cameraInfo)
   cameraInfo = *camerasInfo[index];
 }
 
-void OpencvCamera::update(ImageBGR& image)
+void OpencvCamera::update(Image& image)
 {
-  cv::Mat tmp, undistorted;
   int i = 0;
   do{
-    *cameras[index] >> tmp;
+    *cameras[index] >> currentImage;
     i++;
-    if (tmp.empty()) {
+    if (currentImage.empty()) {
         cameras[index]->set(CV_CAP_PROP_POS_AVI_RATIO , 0);
-        *cameras[index] >> tmp;
+        *cameras[index] >> currentImage;
     }
   }
-  while(tmp.empty() || i < 0);
+  while(currentImage.empty() || i < 0);
 
-  cv::resize(tmp,tmp,cv::Size(1500,750));
+  cv::resize(currentImage,currentImage,cv::Size(1500,750));
 
-  // correct and rotate images
-  //cv::undistort(tmp, undistorted, camerasInfo[index]->K, camerasInfo[index]->d);
-  //rotateImage90(undistorted, rotated, index == 0? ANGLES::COUNTERCLOCKWISE : ANGLES::CLOCKWISE);
-  image = ImageBGR(tmp);
-  image.timeStamp = theFrameInfo.time;
+  currentImage.timeStamp = theFrameInfo.time;
 
   DEBUG_RESPONSE("representation:ImageBGR",
   {
-    OUTPUT(idImage,image);
+    OUTPUT(idImage,currentImage);
   });
 
-}
+  cv::cvtColor(currentImage, image, CV_BGR2YCrCb);
 
-void OpencvCamera::update(Image& image)
-{
-    cv::cvtColor(theImageBGR, image, CV_BGR2YCrCb);
 }
 
 void OpencvCamera::update(GrayScaleImage& image)
 {
-  cv::cvtColor(theImageBGR, image, CV_BGR2GRAY);
+    cv::extractChannel(theImage, image, 0);
 }
 
 

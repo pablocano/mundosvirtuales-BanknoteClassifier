@@ -1,6 +1,6 @@
 #include "Equalizer.h"
 
-MAKE_MODULE(Equalizer,BanknoteClassifier)
+MAKE_MODULE(Equalizer, BanknoteClassifier)
 
 Equalizer::Equalizer()
 {
