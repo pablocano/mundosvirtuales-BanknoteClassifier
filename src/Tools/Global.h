@@ -13,6 +13,17 @@ class MessageQueue;
 class DebugRequestTable;
 class DrawingManager;
 
+#ifdef WINDOWS
+	#if defined(banknoteClassifier_EXPORTS)
+		#define _API_ __declspec(dllexport)
+	#else
+		#define _API_ __declspec(dllimport)
+	#endif
+#else
+	#define _API_ 
+#endif
+
+
 /**
  * @class Global
  * A class that contains pointers to global data.
@@ -20,7 +31,7 @@ class DrawingManager;
 class Global
 {
 private:
-  static MessageQueue* theDebugOut;
+  _API_ static MessageQueue* theDebugOut;
   static MessageQueue* theCommunicationOut;
   static DebugRequestTable* theDebugRequestTable;
   static DrawingManager* theDrawingManager;

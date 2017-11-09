@@ -7,6 +7,12 @@ include(${QT_USE_FILE})
 
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
 
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
+if(WINDOWS)
+	set(CMAKE_SHARED_LINKER_FLAGS "/API_EXPORT")
+endif()
+
 set( BANCKNOTECLASSIFIER_SRC
   src/Modules/Camera.cpp
   src/Modules/Camera.h
@@ -250,7 +256,7 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
 
-add_library( banknoteClassifier STATIC ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE} ${LIB_ETHERNETIP_FANUC_SRC} ${LIB_ETHERNETIP_FANUC_INCLUDE} ${UTILS_SRC} ${UTILS_INCLUDE} )
+add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE} ${LIB_ETHERNETIP_FANUC_SRC} ${LIB_ETHERNETIP_FANUC_INCLUDE} ${UTILS_SRC} ${UTILS_INCLUDE} )
 if(WIN32)
 	target_link_libraries( banknoteClassifier ${OpenCV_LIBS} wsock32 ws2_32 winmm )
 else()

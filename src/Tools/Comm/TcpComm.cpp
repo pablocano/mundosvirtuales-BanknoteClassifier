@@ -8,7 +8,7 @@
 #include <fcntl.h>
 #endif
 
-#ifdef WIN32
+#ifdef WINDOWS
 
 #ifndef WINCE
 #include <sys/types.h>
@@ -76,7 +76,7 @@ SocketServerTCP::~SocketServerTCP()
 
 int SocketServerTCP::acceptClient()
 {
-#ifndef WIN32
+#ifndef WINDOWS
 	unsigned int addrlen = sizeof(sockaddr_in);
 #else
 	int addrlen = sizeof(sockaddr_in);
@@ -120,7 +120,7 @@ SocketClientTcp::SocketClientTcp(int socketClient) :
 
 	if (connected())
 	{
-#ifndef WIN32
+#ifndef WINDOWS
 		unsigned int addrlen = sizeof(sockaddr_in);
 #else
 		int addrlen = sizeof(sockaddr_in);
@@ -179,7 +179,7 @@ bool SocketClientTcp::receive(char* buffer, int size, bool wait)
 	if (!wait)
 	{
 		RESET_ERRNO;
-#ifndef WIN32
+#ifndef WINDOWS
 		int received = recv(m_socket, buffer, size, MSG_PEEK);
 		if (received < size)
 		{

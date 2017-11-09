@@ -48,7 +48,7 @@
 #define READ_CURR_JPOS_ERROR	0x82
 
 
-#ifdef WIN32
+#ifdef WINDOWS
 	#define STRUCT_PACKET struct
 	#pragma pack(push)
 	#pragma pack(1)
@@ -94,6 +94,6 @@ STRUCT_PACKET PacketEthernetIPFanuc{
 	}
 };
 
-#ifdef WIN32
+#ifdef WINDOWS
 	#pragma pack(pop)
 #endif

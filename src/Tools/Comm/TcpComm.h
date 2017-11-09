@@ -2,7 +2,7 @@
 
 #include <string>
 
-#ifdef WIN32
+#ifdef WINDOWS
 
 #ifdef NOMINMAX
 #include <winsock.h>
@@ -16,7 +16,7 @@
 #include <netinet/in.h>
 #endif
 
-#ifdef WIN32
+#ifdef WINDOWS
 #define CLOSE(socket) closesocket(socket)
 #else
 #define CLOSE(socket) close(socket)

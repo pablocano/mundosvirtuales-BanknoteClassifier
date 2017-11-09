@@ -3,7 +3,7 @@
 #include "../logger/Logger.h"
 
 #include <iostream>
-#ifdef WIN32
+#ifdef WINDOWS
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
@@ -45,7 +45,7 @@ UdpComm::UdpComm()
 
 UdpComm::~UdpComm()
 {
-#ifdef WIN32
+#ifdef WINDOWS
 	closesocket(m_sock);
 #else
 	close(m_sock);
@@ -77,7 +77,7 @@ bool UdpComm::setTarget(const char* addrStr, int port)
 
 bool UdpComm::setBlocking(bool block)
 {
-#ifdef WIN32
+#ifdef WINDOWS
 	int yes = block ? 0 : 1;
 	if (ioctlsocket(m_sock, FIONBIO, (u_long*)&yes))
 		return false;
@@ -131,7 +131,7 @@ bool UdpComm::joinMulticast(const char* addrStr)
 	//join multicast group for every interface
 	if (IN_MULTICAST(ntohl(group.sin_addr.s_addr)))
 	{
-#ifndef WIN32
+#ifndef WINDOWS
 		struct ip_mreq mreq;
 		struct ifconf ifc;
 		struct ifreq* item;
@@ -277,7 +277,7 @@ bool UdpComm::bind(const char* addr_str, int port)
 int UdpComm::read(char* data, int len, unsigned int& ip)
 {
 	sockaddr_in senderAddr;
-#ifdef WIN32
+#ifdef WINDOWS
 	int size = sizeof(senderAddr);
 #else
 	unsigned size = sizeof(senderAddr);
@@ -297,7 +297,7 @@ int UdpComm::read(char* data, int len)
 int UdpComm::readLocal(char* data, int len)
 {
 	sockaddr_in senderAddr;
-#ifdef WIN32
+#ifdef WINDOWS
 	int size = sizeof(senderAddr);
 #else
 	unsigned size = sizeof(senderAddr);
@@ -308,7 +308,7 @@ int UdpComm::readLocal(char* data, int len)
 		return result;
 	else
 	{
-#ifndef WIN32
+#ifndef WINDOWS
 		struct ifaddrs* addrs, *ifac;
 
 		if (getifaddrs(&addrs) < 0)
@@ -342,7 +342,7 @@ bool UdpComm::write(const char* data, const int len)
 }
 
 unsigned short UdpComm::getHost() {
-#ifndef WIN32
+#ifndef WINDOWS
 	struct ifaddrs* ifAddrStruct = NULL;
 	struct ifaddrs* ifa = NULL;
 
