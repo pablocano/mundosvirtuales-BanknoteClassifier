@@ -1,6 +1,6 @@
 #include "UdpComm.h"
 
-#include "../logger/Logger.h"
+#include "Tools/Logger/Logger.h"
 
 #include <iostream>
 #ifdef WINDOWS
@@ -206,7 +206,7 @@ bool UdpComm::setBroadcast(bool enable)
 	else
 	{
 		char errmsg[256];
-		strerror_s(errmsg, 255, errno);
+        //strerror_s(errmsg, 255, errno);
 		LOGGER_ERROR("Response Packet Client", std::string("UdpComm::setBroadcast() failed: ") + errmsg);
 		return false;
 	}
@@ -217,7 +217,7 @@ bool UdpComm::setRcvBufSize(unsigned int rcvbuf)
 	if (0 == setsockopt(m_sock, SOL_SOCKET, SO_RCVBUF, (char*)&rcvbuf, sizeof(rcvbuf)))
 	{
 		char errmsg[256];
-		strerror_s(errmsg, 255, errno);
+        //strerror_s(errmsg, 255, errno);
 		std::cerr << "multicast-socket: setsockopt for SO_RCVBUF failed: "
 			<< errmsg << std::endl;
 		return false;
@@ -266,7 +266,7 @@ bool UdpComm::bind(const char* addr_str, int port)
 	if (-1 == ::bind(m_sock, (struct sockaddr*)&addr, sizeof(struct sockaddr_in)))
 	{
 		char errmsg[256];
-		strerror_s(errmsg, 255, errno);
+        //strerror_s(errmsg, 255, errno);
 		LOGGER_ERROR("Response Packet Client", std::string("UdpComm::bind() failed: ") + errmsg);
 		return false;
 	}

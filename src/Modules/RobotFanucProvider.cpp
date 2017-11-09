@@ -19,7 +19,7 @@ RobotFanucProvider::RobotFanucProvider() : robotModel()
 
 void RobotFanucProvider::update(RobotFanuc& robotFanuc)
 {
-	int N = theBanknotePosition.corners.size();
+    int N = theBanknotePosition.corners.size();
 
 	if (N > 0)
 	{
@@ -49,7 +49,7 @@ void RobotFanucProvider::update(RobotFanuc& robotFanuc)
 	PacketEthernetIPFanuc packetRead(READ_CURR_POS, ++idPacket, 0);
 	SEND_MESSAGE(idEthernetIPFanuc, packetRead);
 
-	robotFanuc.setRobotModel(this->robotModel);
+    robotFanuc.setRobotModel(this->robotModel);
 }
 
 void RobotFanucProvider::processPacket(PacketEthernetIPFanuc & packet)

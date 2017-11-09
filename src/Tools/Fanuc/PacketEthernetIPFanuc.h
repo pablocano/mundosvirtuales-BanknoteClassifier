@@ -56,6 +56,8 @@
 	#define STRUCT_PACKET struct __attribute__((packed))
 #endif
 
+#include <cstdlib>
+#include <string.h>
 
 STRUCT_PACKET PacketEthernetIPFanuc{
 
@@ -85,7 +87,7 @@ STRUCT_PACKET PacketEthernetIPFanuc{
 		idPacket = _idPacket;
 		reg = _reg;
 		const char *p = _message.c_str();
-		std::memcpy(payload, p, strlen(p) + 1);
+        memcpy(payload, p, strlen(p) + 1);
 	}
 
 	bool isValid()
