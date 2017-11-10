@@ -83,6 +83,8 @@ public:
     cv::Ptr<cv::CLAHE> clahe;
     cv::Ptr<cv::xfeatures2d::SURF> surf;
 
+    std::vector<cv::Mat> cannys;
+
     // Constants
     double minAreaPolygon;
 

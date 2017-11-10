@@ -639,3 +639,12 @@ MessageQueue& operator<<(MessageQueue& stream, DrawingManager&);
             10, Drawings::ps_solid, ColorRGBA(255,100,100,100), Drawings::bs_solid, ColorRGBA(255,100,100,100)); \
   });
 
+/**
+ * A macro that sends an custom image to be shown
+ * @param name the name of the image
+ * @param image the image to send
+ * @param timestamp the current time
+ */
+#define DRAW_IMAGE(name, image, timestamp) \
+    OUTPUT(idCustomImage, name << image << timestamp);
+

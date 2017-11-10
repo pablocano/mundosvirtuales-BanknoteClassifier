@@ -31,6 +31,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/Regionizer.h
   src/Modules/Segmentator.cpp
   src/Modules/Segmentator.h
+  src/Modules/TemplateInspection.cpp
+  src/Modules/TemplateInspection.h
   src/Platform/Memory.cpp
   src/Platform/Memory.h
   src/Processes/BanknoteClassifier.cpp
@@ -51,6 +53,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/FrameInfo.h
   src/Representations/FieldDimensions.h
   src/Representations/FieldDimensions.cpp
+  src/Representations/GrabbingPosition.cpp
+  src/Representations/GrabbingPosition.h
   src/Representations/BanknoteClassifierMessages.h
   src/Representations/Image.cpp
   src/Representations/Image.h

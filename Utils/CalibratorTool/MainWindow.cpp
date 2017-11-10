@@ -92,7 +92,8 @@ void MainWindow::open()
   {
     QStringList openedObjects = openedObjectsVar.toStringList();
     foreach(QString object, openedObjects)
-      openObject(object, 0, 0);
+      if(!object.contains("CustomImages"))
+        openObject(object, 0, 0);
   }
   
   restoreGeometry(settings.value("Geometry").toByteArray());

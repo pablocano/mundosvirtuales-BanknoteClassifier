@@ -93,7 +93,7 @@ ENUM(MessageID,
   idStrikerDecision,
   idStrikerAvoidance,
   idNearBallTrajectory,
-  idLogReUseMe1, // to be removed
+  idCustomImage,
   idLogReUseMe2, // to be removed
   idLogReUseMe3, // to be removed
   idLogReUseMe4, // to be removed

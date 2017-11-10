@@ -18,6 +18,7 @@
 #include "Synchronization.h"
 #include <QMutex>
 #include <QList>
+#include <unordered_map>
 
 class MainWindow;
 
@@ -95,5 +96,7 @@ public:
   
   Drawings incompleteImageDrawings; /**< Buffers incomplete image drawings from the debug queue. */
   
+  std::unordered_map<std::string,ImageBGR> customImages;
+
   char processIdentifier;
 };

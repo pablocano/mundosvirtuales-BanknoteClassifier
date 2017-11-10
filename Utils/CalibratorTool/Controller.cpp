@@ -278,6 +278,28 @@ bool Controller::handleMessage(MessageQueue& message)
       --waitingFor[idDrawingManager];
       return true;
     }
+    case idCustomImage:
+    {
+      std::string imageName;
+      message >> imageName;
+
+      if(customImages.count(imageName) == 0){
+          std::string fullName = "GroundTruth.CustomImages." + imageName;
+          addView(new ImageView(QString(fullName.c_str()), *this, imageName, false, true, true),"GroundTruth.CustomImages");
+      }
+
+      cv::Mat image;
+      message >> image;
+
+      ImageBGR imageBGR(image);
+      unsigned timeStamp;
+      message >> timeStamp;
+
+      imageBGR.timeStamp = timeStamp;
+      customImages[imageName] = imageBGR;
+
+      return true;
+    }
     default:
       return false;
   }

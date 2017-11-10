@@ -1,6 +1,6 @@
 #include "EstimatePosition.h"
 
-MAKE_MODULE(EstimatePosition,BanknoteClassifier)
+MAKE_MODULE(EstimatePosition,BanknoteClassifier2)
 
 
 EstimatePosition::EstimatePosition()

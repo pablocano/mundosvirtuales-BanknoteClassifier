@@ -32,6 +32,12 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000)
         Features f;
         surf->detectAndCompute(image,cv::noArray(),f.keypoints,f.descriptors,false);
 
+        cv::Mat canny;
+
+        cv::Canny(image,canny,300,350,3,true);
+
+        cannys.push_back(canny);
+
         // Store the features and the image
         modelsFeatures.push_back(f);
         modelsImage.push_back(image);
@@ -50,9 +56,22 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
     DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:ransac_result","drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:inliers","drawingOnImage");
 
+    /*for(int i = 0; i < Classification::numOfBanknotes - 1; i++)
+    {
+        std::string name = "Template Canny " + std::string(Classification::getName((Classification::Banknote)i));
+        DRAW_IMAGE(name.c_str(), cannys[i], 1);
+    }
+
+    for(int i = 0; i < Classification::numOfBanknotes - 1; i++)
+    {
+        std::string name = "Templates " + std::string(Classification::getName((Classification::Banknote)i));
+        DRAW_IMAGE(name.c_str(), modelsImage[i], 1);
+    }*/
+
     if(thePreviousBanknotePosition.banknote != Classification::NONE)
     {
         banknotePosition.corners = thePreviousBanknotePosition.corners;
+        banknotePosition.homography = thePreviousBanknotePosition.homography;
         return;
     }
 
@@ -69,6 +88,7 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
             if(analyzeArea(H, scene_corners))
             {
                banknotePosition.banknote = (Classification::Banknote)banknote;
+               banknotePosition.homography = H;
 
                scene_corners.push_back(scene_corners.front());
                banknotePosition.corners = scene_corners;

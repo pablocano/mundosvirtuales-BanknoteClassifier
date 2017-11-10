@@ -20,11 +20,12 @@
 
 #include "Visualization/PaintMethods.h"
 
-ImageView::ImageView(const QString& fullName, Controller& controller, const std::string& name, bool segmented, bool eastCam) :
+ImageView::ImageView(const QString& fullName, Controller& controller, const std::string& name, bool segmented, bool eastCam, bool custom) :
 eastCam(eastCam), fullName(fullName), icon(":/Icons/tag_green.png"),
 controller(controller),
 name(name),
-segmented(segmented)
+segmented(segmented),
+custom(custom)
 {}
 
 CalibratorTool::Widget* ImageView::createWidget()
@@ -63,7 +64,12 @@ void ImageWidget::paint(QPainter& painter)
 {
   SYNC_WITH(imageView.controller);
   
-  const ImageBGR* image = imageView.eastCam ? &imageView.controller.eastImage : &imageView.controller.westmage;
+  const ImageBGR* image;
+
+  if(!imageView.custom)
+      image = imageView.eastCam ? &imageView.controller.eastImage : &imageView.controller.westmage;
+  else
+      image = &imageView.controller.customImages[imageView.name];
   
   if (!image->empty()) {
     imageHeight = image->rows;
@@ -344,13 +350,28 @@ void ImageWidget::paintImage(QPainter &painter, const ImageBGR &srcImage)
 void ImageWidget::copyImage(const ImageBGR &srcImage)
 {
   unsigned* p = (unsigned*) imageData->bits();
-  const unsigned char* rgb = srcImage.data;
-  for(int i = 0; i < srcImage.rows*srcImage.cols; i++)
+
+  if(srcImage.channels() == 1)
   {
-    int b = *rgb++;
-    int g = *rgb++;
-    int r = *rgb++;
-    *p++ = r << 16 | g << 8 | b | 0xff000000;
+      const unsigned char* pixel = srcImage.data;
+      for(int i = 0; i < srcImage.rows*srcImage.cols; i++)
+      {
+        int b = *pixel;
+        int g = *pixel;
+        int r = *pixel++;
+        *p++ = r << 16 | g << 8 | b | 0xff000000;
+      }
+  }
+  else
+  {
+      const unsigned char* rgb = srcImage.data;
+      for(int i = 0; i < srcImage.rows*srcImage.cols; i++)
+      {
+        int b = *rgb++;
+        int g = *rgb++;
+        int r = *rgb++;
+        *p++ = r << 16 | g << 8 | b | 0xff000000;
+      }
   }
   lastImageTimeStamp = srcImage.timeStamp;
 }

@@ -22,6 +22,8 @@ public:
 
     std::vector<Vector2f> corners;
 
+    cv::Mat homography;
+
 
 };
 
