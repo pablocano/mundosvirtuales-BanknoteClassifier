@@ -11,7 +11,7 @@ void RobotFanuc::draw() const
 
 void RobotFanuc::setStatus(StatusRobotFanuc status)
 {
-	robotModel.statusRobot = status;
+	this->robotModel.statusRobot = status;
 }
 
 void RobotFanuc::setRobotModel(RobotModelFanuc& _robotModel)

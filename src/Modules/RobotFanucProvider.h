@@ -1,3 +1,9 @@
+/**
+* @file RobotFanucProvider.h
+* Module provide Robot Fanuc Model. 
+* @author Pablo Saavedra Doren
+*/
+
 #pragma once
 
 #include "Tools/ModuleManager/Module.h"
@@ -5,6 +11,7 @@
 #include "Tools/Fanuc/PacketEthernetIPFanuc.h"
 #include "Representations/RobotFanuc.h"
 
+/** Definition Register Position */
 #define REG_POSITION_BANKNOTE 0x01
 #define REG_POSITION_HOME 0x02
 
@@ -16,30 +23,36 @@ REQUIRES(BanknotePosition),
 PROVIDES(RobotFanuc),
 });
 
-
+/**
+ * Module for keeping on Robot Model.  
+ */
 class RobotFanucProvider : public RobotFanucProviderBase
 {
 private:
 
-	static RobotFanucProvider* theInstance;
-	static int idPacket;
-	RobotModelFanuc robotModel;
+	static RobotFanucProvider* theInstance; /** Handler of model. */
+	static int idPacket; /** Identifier Packet. */
+	RobotModelFanuc robotModel; /** Robot model. */
 
 public:
 
 	/**
-	* @brief Default constructor
-	*/
+	 * @brief Default constructor.
+	 */
 	RobotFanucProvider();
 
 	/**
-	* @brief update
-	*/
+	 * @brief Update robot model representation.
+	 */
 	void update(RobotFanuc& robotFanuc);
 
-	
+	/**
+	 * @brief Process incoming packets, update state robot model.
+	 */
 	void processPacket(PacketEthernetIPFanuc& packet);
 
-
+	/**
+	 * @brief Handler messages.
+	 */
 	static bool handleMessage(MessageQueue& message);
 };
