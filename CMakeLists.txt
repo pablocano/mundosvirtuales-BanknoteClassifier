@@ -13,6 +13,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/Camera.h
   src/Modules/BlobProvider.cpp
   src/Modules/BlobProvider.h
+  src/Modules/BlobFilter.cpp
+  src/Modules/BlobFilter.h
   src/Modules/BanknoteClassifierConfiguration.cpp
   src/Modules/BanknoteClassifierConfiguration.h
   src/Modules/BanknotePositionProvider.cpp
@@ -45,6 +47,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/CameraInfo.h
   src/Representations/Classification.cpp
   src/Representations/Classification.h
+  src/Representations/ErrorInfo.cpp
+  src/Representations/ErrorInfo.h
   src/Representations/ColorModel/ColorCalibration.h
   src/Representations/ColorModel/ColorModel.cpp
   src/Representations/ColorModel/ColorModel.h
