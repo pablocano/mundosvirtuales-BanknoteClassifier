@@ -152,7 +152,7 @@ bool BanknotePositionProvider::analyzeArea(const cv::Mat& homography, std::vecto
         perspectiveTransform( theInstance->modelsCorners, corners, homography);
 
         // Get the size of the array
-        int size = corners.size();
+        int size = (int) corners.size();
 
         // Area acumulator
         double  area=0. ;

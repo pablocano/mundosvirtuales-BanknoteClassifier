@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Tools/Messages/MessageQueue.h"
-#include "Tools/Comm/UdpComm.h"
 #include "Tools/MessageIDs.h"
 #include "Tools/Comm/TcpComm.h"
 

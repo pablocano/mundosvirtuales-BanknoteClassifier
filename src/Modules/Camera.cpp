@@ -2,6 +2,14 @@
 #include "Tools/Debugging/Debugging.h"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <sstream>
+#include <string>
+#include <regex>
+
+#ifdef WINDOWS
+	#define VALID_PATH(s) std::regex_replace(s, std::regex("\/"), "\\\\")
+#else
+	#define VALID_PATH(s) s
+#endif 
 
 MAKE_MODULE(Camera, Common)
 
@@ -10,7 +18,7 @@ Camera::Camera(): index(0)
     /**
      * Read image configuration
      * */
-    cv::FileStorage file( std::string(File::getGTDir())+"/Config/cameraConfig.xml", cv::FileStorage::READ);
+    cv::FileStorage file( VALID_PATH(std::string(File::getGTDir()) + "/Config/cameraConfig.xml"), cv::FileStorage::READ);
     if(!file.isOpened())
     {
       std::cout << "Could not open the camera configuration file"<< std::endl;
@@ -24,7 +32,7 @@ Camera::Camera(): index(0)
      * Prepare cameras
     */
     //video0 = cv::VideoCapture(0);
-    video0 = cv::VideoCapture(std::string(File::getGTDir()) + "/Data/vid/caja_muchos.mp4");
+    video0 = cv::VideoCapture(VALID_PATH(std::string(File::getGTDir()) + "/Data/vid/caja_muchos.mp4"));
     if(!video0.isOpened())  // check if we succeeded
     {
         cam1.available = false;
@@ -63,7 +71,7 @@ Camera::Camera(): index(0)
     cv::Point fieldCenter;
     float pix2World;
     // Load Camera 1 config
-    cv::FileStorage file1( std::string(File::getGTDir()) + "/Config/cameraCalibration1.yml", cv::FileStorage::READ);
+    cv::FileStorage file1( VALID_PATH(std::string(File::getGTDir()) + "/Config/cameraCalibration1.yml"), cv::FileStorage::READ);
     if(!file1.isOpened())
     {
       std::cout << "Could not open the camera 1 calibration file"<< std::endl;
@@ -77,7 +85,7 @@ Camera::Camera(): index(0)
 
 
     // Load Camera 2 config
-    cv::FileStorage file2( std::string(File::getGTDir()) + "/Config/cameraCalibration2.yml", cv::FileStorage::READ);
+    cv::FileStorage file2( VALID_PATH(std::string(File::getGTDir()) + "/Config/cameraCalibration2.yml"), cv::FileStorage::READ);
     if(!file2.isOpened())
     {
       std::cout << "Could not open the camera 2 calibration file"<< std::endl;

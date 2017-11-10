@@ -1,7 +1,5 @@
 #include "PositionRegisterJoint.h"
 
-#include "../ByteBuf.h"
-
 #include <string>
 #include <limits>
 
@@ -25,33 +23,20 @@ PositionRegisterJoint::PositionRegisterJoint(float j1, float j2, float j3, float
 
 void PositionRegisterJoint::copyFromBuffer(uint8_t *data)
 {
-	ByteBuf buffer(data, SIZE_JPOSITION_REGISTER);
-
-	UT = buffer.getShort(0);
-	UF = buffer.getShort(2);
+	UT = *((int16_t *)&data[0]);
+	UF = *((int16_t *)&data[2]);
 
 	for (int i = 0; i < 9; ++i)
-		joints[i] = buffer.getFloat(4 * (i + 1));
+		joints[i] = *((float *)&data[4 * (i + 1)]);
 }
 
-void PositionRegisterJoint::copyToBuffer(uint8_t *data) {
-
-	ByteBuf buffer(SIZE_JPOSITION_REGISTER);
-
-	buffer.clear();
-
-	buffer.putShort(UT);
-	buffer.putShort(UF);
-	
-	for (int i = 0; i < 9; ++i) {
-		buffer.putFloat(joints[i]);
-	}
-
-	buffer.getBytes(data, SIZE_JPOSITION_REGISTER);
+void PositionRegisterJoint::copyToBuffer(uint8_t *data)
+{
+	memcpy((void *)data, (void *) this, 40);
 }
 
-std::string PositionRegisterJoint::toString() {
-
+std::string PositionRegisterJoint::toString()
+{
 	std::string ret = "JOINTS (";
 
 	for (int i = 0; i < 9; ++i) {

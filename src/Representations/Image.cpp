@@ -22,7 +22,7 @@ MessageQueue& operator>>(MessageQueue& stream, ImageBGR& image)
 
 MessageQueue& operator<<(MessageQueue& stream, ImageBGR& image)
 {
-  int size = image.total() * image.elemSize();
+  int size = (int) image.total() * (int) image.elemSize();
   int type = image.type();
   stream << size << image.cols << image.rows << image.timeStamp << type;
   stream.write(image.data, size);
@@ -43,7 +43,7 @@ MessageQueue& operator>>(MessageQueue& stream, SegmentedImage& image)
 
 MessageQueue& operator<<(MessageQueue& stream, const SegmentedImage& image)
 {
-  int size = image.total() * image.elemSize();
+  int size = (int) image.total() * (int) image.elemSize();
   int type = image.type();
   stream << size << image.cols << image.rows << image.timeStamp << type;
   stream.write(image.data, size);
@@ -52,7 +52,7 @@ MessageQueue& operator<<(MessageQueue& stream, const SegmentedImage& image)
 
 MessageQueue& operator<<(MessageQueue& stream, SegmentedImage& image)
 {
-  int size = image.total() * image.elemSize();
+  int size = (int) image.total() * (int) image.elemSize();
   int type = image.type();
   stream << size << image.cols << image.rows << image.timeStamp << type;
   stream.write(image.data, size);

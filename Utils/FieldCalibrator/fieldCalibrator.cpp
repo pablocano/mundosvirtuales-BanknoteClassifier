@@ -233,10 +233,10 @@ void computeImageFieldRatiosAndSave()
     Point fieldCenter1 = (img1_P1+img1_P2) * 0.5f;
     Point fieldCenter2 = (img2_P1+img2_P2) * 0.5f;
 
-    float distImg1 = sqrt(dist1.dot(dist1));
-    float distImg2 = sqrt(dist2.dot(dist2));
+    float distImg1 = (float) sqrt(dist1.dot(dist1));
+    float distImg2 = (float) sqrt(dist2.dot(dist2));
 
-    float fieldDist = 2*fieldDimensions.yLimit;
+    float fieldDist = 2.f * (float) fieldDimensions.yLimit;
 
     float pix2World1 = fieldDist/distImg1;
     float pix2World2 = fieldDist/distImg2;

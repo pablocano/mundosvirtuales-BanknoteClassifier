@@ -19,7 +19,7 @@ RobotFanucProvider::RobotFanucProvider() : robotModel()
 
 void RobotFanucProvider::update(RobotFanuc& robotFanuc)
 {
-    int N = theBanknotePosition.corners.size();
+    int N = (int) theBanknotePosition.corners.size();
 
 	if (N > 0)
 	{
