@@ -25,9 +25,9 @@ void FeaturesProvider::update(Features &features)
     if(!theBlobs.blobs.empty())
     {
         const Blobs::Blob& biggestBlob = theBlobs.blobs[0];
-        Vector2<int> leftUpper, rightLower;
+        Vector2i leftUpper, rightLower;
         Geometry::calculateRect(biggestBlob.borders, leftUpper, rightLower);
-        mask(cv::Rect(leftUpper.x,leftUpper.y,rightLower.x - leftUpper.x,rightLower.y - leftUpper.y)) = 1;
+        mask(cv::Rect(leftUpper.x(),leftUpper.y(),rightLower.x() - leftUpper.x(),rightLower.y() - leftUpper.y())) = 1;
     }
 
     surf_->detectAndCompute(theGrayScaleImageEq,mask,features.keypoints,features.descriptors);

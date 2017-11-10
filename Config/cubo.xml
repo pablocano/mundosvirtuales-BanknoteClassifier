@@ -58,14 +58,14 @@
         <max>255</max></intensity></_>
     <_>
       <hue>
-        <min>15</min>
-        <max>43</max></hue>
+        <min>0</min>
+        <max>19</max></hue>
       <saturation>
-        <min>42</min>
-        <max>243</max></saturation>
+        <min>0</min>
+        <max>137</max></saturation>
       <intensity>
-        <min>62</min>
-        <max>233</max></intensity></_>
+        <min>0</min>
+        <max>255</max></intensity></_>
     <_>
       <hue>
         <min>162</min>

@@ -6,6 +6,7 @@
 #include "Tools/Debugging/DebugDrawings.h"
 #include <opencv2/core.hpp>
 #include <vector>
+#include "Tools/Math/Eigen.h"
 
 class BanknotePosition : public Streamable
 {
@@ -15,12 +16,20 @@ public:
 
     void getColorAndStyle(ColorRGBA& color, Drawings::PenStyle &style) const;
 
-    void draw() const;
+    virtual void draw() const;
 
     Classification::Banknote banknote;
 
-    std::vector<cv::Point2f> corners;
+    std::vector<Vector2f> corners;
+
+
 };
 
 class PreviousBanknotePosition : public BanknotePosition
 {};
+
+class BanknotePositionFiltered : public BanknotePosition
+{
+public:
+    void draw() const;
+};
