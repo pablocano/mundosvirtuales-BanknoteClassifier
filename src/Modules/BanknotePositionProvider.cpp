@@ -12,14 +12,15 @@ MAKE_MODULE(BanknotePositionProvider, BanknoteClassifier)
 
 BanknotePositionProvider* BanknotePositionProvider::theInstance = 0;
 
-BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000)
+BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),maxAreaPolygon(50000)
 {
     theInstance = this;
+    error = 0;
 
     // Initialize the used tools
-    clahe = cv::createCLAHE(2.0, cv::Size(5,5));
+    clahe = cv::createCLAHE(2.0, cv::Size(8,8));
     matcher.create(cv::NORM_L2, false);
-    surf = cv::xfeatures2d::SURF::create(500,4,3,true,false);
+    surf = cv::xfeatures2d::SURF::create(500,3,3,true,false);
 
     // Import and analize each template image
     for(unsigned i = 0; i < Classification::numOfBanknotes - 1; i++)
@@ -39,9 +40,9 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000)
 
     // Create the corners of the model
     modelsCorners.push_back(cv::Point(0,0));
-    modelsCorners.push_back(cv::Point(420,0));
-    modelsCorners.push_back(cv::Point(420,210));
-    modelsCorners.push_back(cv::Point(0,210));
+    modelsCorners.push_back(cv::Point(350,0));
+    modelsCorners.push_back(cv::Point(350,175));
+    modelsCorners.push_back(cv::Point(0,175));
 
 }
 
@@ -65,23 +66,36 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
 
         if (!H.empty() && banknote != Classification::NONE){
 
+
             std::vector<Vector2f> scene_corners;
             if(analyzeArea(H, scene_corners))
             {
-               banknotePosition.banknote = (Classification::Banknote)banknote;
-
-               scene_corners.push_back(scene_corners.front());
-               banknotePosition.corners = scene_corners;
+                std::cout<<"ransac"<<std::endl;
+                error = 0;
+                banknotePosition.banknote = (Classification::Banknote)banknote;
+                scene_corners.push_back(scene_corners.front());
+                banknotePosition.corners = scene_corners;
+            }
+            else{
+                std::cout<<"No ransac"<<std::endl;
+                error = 1;
+                lastbanknote = theClassification.result;
+                std::cout<<lastbanknote<<std::endl;
             }
 
-            /*const Blobs::Blob& biggestBlob = theBlobs.blobs[0];
-            Vector2<int> leftUpper, rightLower;
-            biggestBlob.calculateRec(leftUpper, rightLower);
 
-            cv::imwrite(std::string(File::getGTDir()) + "/Data/training_imgs/" + std::string(Classification::getName((Classification::Banknote)banknote))  + "/" + SystemCall::get_date() + std::to_string(SystemCall::getCurrentSystemTime()) + ".jpg", theImageBGR(cv::Rect(leftUpper.x,leftUpper.y,rightLower.x - leftUpper.x, rightLower.y - leftUpper.y)));*/
+            }
         }
+        
 
-    }
+}
+
+void BanknotePositionProvider::update(ErrorInfo& errorinfo){
+    errorinfo.error = error;
+    errorinfo.lastbanknote = lastbanknote;
+
+
+
 }
 
 int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultHomography, int first, int last){
@@ -110,7 +124,8 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
                     good_matches.push_back(match[0]);
                 }
             }
-            if(good_matches.size() > 50)
+
+            if(good_matches.size() > 30)
             {
                 // Localize the object
                 std::vector<cv::Point2f> obj;
@@ -210,7 +225,7 @@ bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vect
 
         // Final calculation of the area
         area *= 0.5;
-        return std::abs(area) > theInstance->minAreaPolygon && (positive || negative);
+        return std::abs(area) > theInstance->minAreaPolygon && std::abs(area) < theInstance->maxAreaPolygon  &&(positive || negative);
     }
 
     return false;
@@ -219,7 +234,7 @@ bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vect
 void BanknotePositionProvider::resizeImage(cv::Mat& image)
 {
     //resize
-    cv::resize(image,image,cv::Size(420,210), 0, 0, CV_INTER_AREA);
+    cv::resize(image,image,cv::Size(350,175), 0, 0, CV_INTER_AREA);
 
     //Equalize histogram
     clahe->apply(image,image);

@@ -1,12 +1,15 @@
 #include "PreviousBanknoteCheck.h"
 #include "Modules/BanknotePositionProvider.h"
 #include "Tools/Math/Geometry.h"
+#include <iostream>
 
 MAKE_MODULE(PreviousBanknoteCheck, BanknoteClassifier)
 
 PreviousBanknoteCheck::PreviousBanknoteCheck()
 {
     surf_ = cv::xfeatures2d::SURF::create(500,4,3,true,false);
+    error = 0;
+    lastbanknote = 0;
 }
 
 
@@ -39,14 +42,26 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
 
         if (!H.empty() && banknote == theBanknotePosition.banknote){
             std::vector<Vector2f> scene_corners;
+            std::cout<<"previous banknote test"<<std::endl;
+            std::cout<<(Classification::Banknote)banknote<<std::endl;
             if(BanknotePositionProvider::analyzeArea(H, scene_corners))
-            {
-               previousBanknotePosition.banknote = (Classification::Banknote)banknote;
+            { 
+                error = 0;
+                previousBanknotePosition.banknote = (Classification::Banknote)banknote;
+                scene_corners.push_back(scene_corners.front());
+                previousBanknotePosition.corners = scene_corners;
+            }
+            else{
+                error = 1;
+                lastbanknote = theBanknotePosition.banknote;
 
-               scene_corners.push_back(scene_corners.front());
-               previousBanknotePosition.corners = scene_corners;
             }
         }
     }
+}
+
+void PreviousBanknoteCheck::update(ErrorInfo &errorinfo){
+    errorinfo.error = error;
+    errorinfo.lastbanknote = lastbanknote;
 }
 

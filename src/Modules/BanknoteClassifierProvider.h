@@ -8,7 +8,7 @@
 
 MODULE(BanknoteClassifierProvider,
 {,
-  REQUIRES(Blobs),
+  REQUIRES(BestBlob),
   REQUIRES(PreviousBanknotePosition),
   PROVIDES(Classification),
 });
