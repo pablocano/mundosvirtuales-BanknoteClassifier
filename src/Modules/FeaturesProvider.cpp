@@ -7,13 +7,14 @@ MAKE_MODULE(FeaturesProvider, BanknoteClassifier)
 
 FeaturesProvider::FeaturesProvider()
 {
-    surf_ = cv::xfeatures2d::SURF::create(500,4,3,true,false);
+    surf_ = cv::xfeatures2d::SURF::create(500,3,3,true,false);
 }
 
 void FeaturesProvider::update(Features &features)
 {
     if(thePreviousBanknotePosition.banknote != Classification::NONE)
         return;
+    std::cout<<"sacando features"<<std::endl;
 
     features.keypoints.clear();
 
@@ -22,11 +23,10 @@ void FeaturesProvider::update(Features &features)
     else
         mask.setTo(cv::Scalar(0));
 
-    if(!theBlobs.blobs.empty())
+    if(theBestBlob.exists)
     {
-        const Blobs::Blob& biggestBlob = theBlobs.blobs[0];
         Vector2i leftUpper, rightLower;
-        Geometry::calculateRect(biggestBlob.borders, leftUpper, rightLower);
+        Geometry::calculateRect((theBestBlob.bestblob).borders, leftUpper, rightLower);
         mask(cv::Rect(leftUpper.x(),leftUpper.y(),rightLower.x() - leftUpper.x(),rightLower.y() - leftUpper.y())) = 1;
     }
 

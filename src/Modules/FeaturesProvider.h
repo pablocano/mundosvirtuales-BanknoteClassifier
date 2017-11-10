@@ -9,7 +9,7 @@
 
 MODULE(FeaturesProvider,
 {,
-    REQUIRES(Blobs),
+    REQUIRES(BestBlob),
     REQUIRES(GrayScaleImageEq),
     REQUIRES(PreviousBanknotePosition),
     PROVIDES(Features),
