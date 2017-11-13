@@ -1,6 +1,6 @@
 #pragma once
 #include "Representations/Image.h"
-#include "Tools/Math/Vector2.h"
+#include "Tools/Math/Eigen.h"
 #include "Tools/Streamable.h"
 #include "Representations/ColorModel/ColorModel.h"
 
@@ -10,9 +10,10 @@ public:
   
   struct Blob
   {
-    Blob(const Vector2<int>& center, const std::vector<Vector2<int>> &borders,const float& area, const ColorModel::Colors& color) : center(center), borders(borders), area(area), color(color) {}
-    Vector2<int> center;
-    std::vector<Vector2<int> > borders;
+    Blob() = default;
+    Blob(const Vector2i& center, const std::vector<Vector2i> &borders,const float& area, const ColorModel::Colors& color) : center(center), borders(borders), area(area), color(color) {}
+    Vector2i center;
+    std::vector<Vector2i > borders;
     float area;
     ColorModel::Colors color;
 
@@ -26,4 +27,13 @@ public:
   void draw() const;
   
   std::vector<Blob> blobs;
+
+};
+
+class BestBlob : public Streamable
+{
+public:
+    Blobs::Blob bestblob;
+
+    bool exists;
 };

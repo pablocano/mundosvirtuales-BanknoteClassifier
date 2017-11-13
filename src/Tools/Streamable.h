@@ -1,6 +1,7 @@
 #pragma once
+#include "Tools/AlignedMemory.h"
 
-class Streamable
+class Streamable : public AlignedMemory
 {
 private:
   virtual void dummy(){}

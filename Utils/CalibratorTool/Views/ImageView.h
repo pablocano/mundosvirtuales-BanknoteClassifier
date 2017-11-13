@@ -30,7 +30,7 @@ public:
    * @param segmented The image will be segmented.
    * @param gain The intensity is multiplied with this factor.
    */
-  ImageView(const QString& fullName, Controller& controller, const std::string& name, bool segmented, bool eastCam);
+  ImageView(const QString& fullName, Controller& controller, const std::string& name, bool segmented, bool eastCam, bool custom = false);
   
   bool eastCam; /**< Show east cam image in this view. */
   
@@ -40,6 +40,7 @@ private:
   Controller& controller; /**< A reference to the console object. */
   const std::string name; /**< The name of the view. */
   bool segmented;  /**< The image will be segmented. */
+  bool custom; /**< The image will be a custom image */
   
   /**
    * The method returns a new instance of a widget for this direct view.

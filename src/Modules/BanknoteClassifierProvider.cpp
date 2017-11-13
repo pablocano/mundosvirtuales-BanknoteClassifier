@@ -16,10 +16,10 @@ void BanknoteClassifierProvider::update(Classification &classification)
 
     classification.result = Classification::NONE;
 
-    if(theBlobs.blobs.empty())
+    if(!theBestBlob.exists)
         return;
 
-    ColorModel::Colors blobColor = theBlobs.blobs[0].color;
+    ColorModel::Colors blobColor = theBestBlob.bestblob.color;
 
     if(blobColor.is(green))
         classification.result = Classification::UNO_C;

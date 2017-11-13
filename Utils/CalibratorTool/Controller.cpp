@@ -116,6 +116,15 @@ CalibratorTool::Object* Controller::addCategory(const QString& name, const QStri
 
 void Controller::update()
 {
+  for(auto& view : customImagesViews)
+  {
+      if(!view.second)
+      {
+          view.second = true;
+          std::string fullName = "GroundTruth.CustomImages." + view.first;
+          addView(new ImageView(QString(fullName.c_str()), *this, view.first, false, true, true),"GroundTruth.CustomImages");
+      }
+  }
   receive();
   if(colorCalibrationChanged && SystemCall::getTimeSince(colorTableTimeStamp) > 200)
   {
@@ -276,6 +285,27 @@ bool Controller::handleMessage(MessageQueue& message)
     {
       message >> drawingManager;
       --waitingFor[idDrawingManager];
+      return true;
+    }
+    case idCustomImage:
+    {
+      std::string imageName;
+      message >> imageName;
+
+      if(customImagesViews.count(imageName) == 0){
+          customImagesViews[imageName] = false;
+      }
+
+      cv::Mat image;
+      message >> image;
+
+      ImageBGR imageBGR(image);
+      unsigned timeStamp;
+      message >> timeStamp;
+
+      imageBGR.timeStamp = timeStamp;
+      customImages[imageName] = imageBGR;
+
       return true;
     }
     default:

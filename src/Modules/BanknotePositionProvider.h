@@ -4,6 +4,7 @@
 #include "Representations/BanknotePosition.h"
 #include "Representations/Blobs.h"
 #include "Representations/Classification.h"
+#include "Representations/ErrorInfo.h"
 #include "Representations/Features.h"
 #include "Representations/FrameInfo.h"
 #include "Representations/Image.h"
@@ -21,6 +22,7 @@ MODULE(BanknotePositionProvider,
  REQUIRES(ImageBGR),
  REQUIRES(PreviousBanknotePosition),
  PROVIDES(BanknotePosition),
+ PROVIDES(ErrorInfo),
 });
 
 
@@ -42,6 +44,8 @@ public:
      */
     void update(BanknotePosition& banknotePosition);
 
+    void update(ErrorInfo& errorinfo);
+
     /**
      * @brief Resize the image and aplicates and clane equalization
      * @param image the image to resize
@@ -60,7 +64,7 @@ public:
      * @param corners the corners of the area to analyse
      * @return if the area is valid
      */
-    static bool analyzeArea(const cv::Mat &homography, std::vector<cv::Point2f>& corners);
+    static bool analyzeArea(cv::Mat &homography, std::vector<Vector2f>& corners);
 
     /**
      * @brief compare the current image with the acoording template using the Classification representation
@@ -83,8 +87,16 @@ public:
     cv::Ptr<cv::CLAHE> clahe;
     cv::Ptr<cv::xfeatures2d::SURF> surf;
 
+    std::vector<cv::Mat> cannys;
+
     // Constants
     double minAreaPolygon;
+    double maxAreaPolygon;
+
+    //Aux
+    int error;
+    int lastbanknote;
+
 
 };
 
