@@ -13,7 +13,7 @@
 MAKE_MODULE(BlobProvider, BanknoteClassifier)
 
 
-BlobProvider::BlobProvider() : minNumOfSegments(30), minSegmentSize(5), maxDistanceInSameDepth(20), maxDepthDistance(10) {}
+BlobProvider::BlobProvider() : minNumOfSegments(30), minSegmentSize(10), maxDistanceInSameDepth(30), maxDepthDistance(30) {}
 
 void BlobProvider::update(Blobs &blobs)
 {
@@ -48,7 +48,7 @@ void BlobProvider::createBlobs()
 
   // Iterate over all the segments found in the regionizer module, and leave only the color ones and the big ones
   for(auto const& segment: theRegions.regions)
-    if(segment.right.x - segment.left.x > minSegmentSize && !segment.color.is(none))
+    if(segment.right.x() - segment.left.x() > minSegmentSize && !segment.color.is(none))
       segments.push_back(Segment(segment));
   
   // Remove old groups
@@ -110,7 +110,7 @@ bool BlobProvider::Group::itBelongs(const Segment &line, int segment, int maxDis
   // If this two segments are in the same depth, analize its borders
   if(segments[segment].depth == line.depth)
   {
-    if(std::abs(line.left.x - segments[segment].right.x) < maxDistanceInSameDepth || std::abs(segments[segment].left.x - line.right.x) < maxDistanceInSameDepth)
+    if(std::abs(line.left.x() - segments[segment].right.x()) < maxDistanceInSameDepth || std::abs(segments[segment].left.x() - line.right.x()) < maxDistanceInSameDepth)
       return true;
     else
       return false;
@@ -118,16 +118,16 @@ bool BlobProvider::Group::itBelongs(const Segment &line, int segment, int maxDis
   
   // If this two segments are in a different depth, but close enought, analize if there are overlap
   if(std::abs(line.depth - segments[segment].depth) < maxDepthDistance)
-    if(segments[segment].left.x < line.right.x && segments[segment].right.x > line.left.x)
+    if(segments[segment].left.x() < line.right.x() && segments[segment].right.x() > line.left.x())
       return true;
   
   return false;
 }
 
-Vector2<int> BlobProvider::Group::getCenter()
+Vector2i BlobProvider::Group::getCenter()
 {
   int count = 0;
-  Vector2<int> center;
+  Vector2i center;
   for(auto& segment : segments)
   {
     center += segment.getCenter();
@@ -136,10 +136,10 @@ Vector2<int> BlobProvider::Group::getCenter()
   return center/count;
 }
 
-std::vector<Vector2<int> > BlobProvider::Group::getConvexHull()
+std::vector<Vector2i > BlobProvider::Group::getConvexHull()
 {
-  std::vector<Vector2<int> > leftPoints;
-  std::vector<Vector2<int> > rightPoints;
+  std::vector<Vector2i > leftPoints;
+  std::vector<Vector2i > rightPoints;
 
   // Order the segments using its depth (height) in the image
   std::sort(segments.begin(), segments.end());
@@ -148,25 +148,25 @@ std::vector<Vector2<int> > BlobProvider::Group::getConvexHull()
   for(int i = 0; i < segments.size(); i++)
   {
       // Store the current Y coordinate and the lefmost point
-      int left = segments[i].left.x;
-      int currentY = segments[i].left.y;
-      leftPoints.push_back(Vector2<int>(left,currentY));
+      int left = segments[i].left.x();
+      int currentY = segments[i].left.y();
+      leftPoints.push_back(Vector2i(left,currentY));
 
       // Itare until the segments change of depth
       do
       {
           i++;
       }
-      while(segments[i].left.y == currentY);
+      while(segments[i].left.y() == currentY);
 
       // Store the rightmost point
       i--;
-      int right = segments[i].right.x;
-      rightPoints.push_back(Vector2<int>(right,currentY));
+      int right = segments[i].right.x();
+      rightPoints.push_back(Vector2i(right,currentY));
   }
 
   // Start the convex hull
-  std::vector<Vector2<int> > polygon;
+  std::vector<Vector2i > polygon;
 
   // Start with the left side of the polygon
   int j = 0;

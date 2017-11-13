@@ -1,4 +1,6 @@
 #pragma once
+
+#include "Tools/AlignedMemory.h"
 #include "Tools/Debugging/DebugRequest.h"
 #include "Tools/Debugging/DebugDrawings.h"
 #include "Tools/Messages/MessageQueue.h"
@@ -12,7 +14,7 @@ MessageQueue theDebugOut;
 #define INIT_DEBUGGING \
 Process(theDebugIn,theDebugOut)
 
-class Process : public MessageHandler{
+class Process : public MessageHandler, public AlignedMemory{
   
 public:
   

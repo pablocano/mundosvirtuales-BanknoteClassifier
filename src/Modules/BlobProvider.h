@@ -11,6 +11,7 @@ MODULE(BlobProvider,
   REQUIRES(CameraInfo),
   REQUIRES(PreviousBanknotePosition),
   REQUIRES(Regions),
+
   PROVIDES(Blobs),
 });
 
@@ -30,7 +31,7 @@ private:
 
     bool operator<(const Segment& other) const
     {
-        return depth < other.depth || (depth == other.depth && right.x < other.left.x);
+        return depth < other.depth || (depth == other.depth && right.x() < other.left.x());
     }
   };
   
@@ -39,8 +40,8 @@ private:
     Group() = default;
     std::vector<Segment> segments;
     bool itBelongs(const Segment& line, int segment, int maxDistanceInSameDepth, int maxDepthDistance);
-    Vector2<int> getCenter();
-    std::vector<Vector2<int> > getConvexHull();
+    Vector2i getCenter();
+    std::vector<Vector2i > getConvexHull();
     ColorModel::Colors color;
   };
   

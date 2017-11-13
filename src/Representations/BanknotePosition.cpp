@@ -13,7 +13,7 @@ void BanknotePosition::draw() const
 
         for(int i = 0; i < corners.size() - 1; i++)
         {
-            LINE("representation:BanknotePosition", corners[i].x, corners[i].y , corners[i + 1].x, corners[i + 1].y, 3, style, color );
+            LINE("representation:BanknotePosition", corners[i].x(), corners[i].y() , corners[i + 1].x(), corners[i + 1].y(), 3, style, color );
         }
     }
 }
@@ -61,5 +61,25 @@ void BanknotePosition::getColorAndStyle(ColorRGBA &color, Drawings::PenStyle &st
         color = ColorRGBA::orange;
         style = Drawings::ps_dash;
         break;
+    }
+}
+
+
+void BanknotePositionFiltered::draw() const
+{
+    DECLARE_DEBUG_DRAWING("representation:BanknotePositionFiltered","drawingOnImage");
+
+    if(banknote != Classification::NONE)
+    {
+        ColorRGBA color;
+        Drawings::PenStyle style;
+        getColorAndStyle(color, style);
+
+        for(int i = 0; i < corners.size() - 1; i++)
+        {
+            LINE("representation:BanknotePositionFiltered", corners[i].x(), corners[i].y() , corners[i + 1].x(), corners[i + 1].y(), 3, style, color);
+            
+        }  
+        
     }
 }

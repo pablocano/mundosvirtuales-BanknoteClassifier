@@ -71,3 +71,7 @@ MessageQueue& operator>>(MessageQueue& stream, SegmentedImage& segmentedImage);
 MessageQueue& operator<<(MessageQueue& stream, const SegmentedImage& segmentedImage);
 
 MessageQueue& operator<<(MessageQueue& stream, SegmentedImage& segmentedImage);
+
+MessageQueue& operator>>(MessageQueue& stream, cv::Mat& image);
+
+MessageQueue& operator<<(MessageQueue& stream, cv::Mat& image);

@@ -2,6 +2,7 @@
 
 #include "Tools/ModuleManager/Module.h"
 #include "Representations/BanknotePosition.h"
+#include "Representations/ErrorInfo.h"
 #include "Representations/Features.h"
 #include "Representations/Image.h"
 #include <opencv2/xfeatures2d.hpp>
@@ -11,6 +12,7 @@ MODULE(PreviousBanknoteCheck,
     REQUIRES(GrayScaleImageEq),
     USES(BanknotePosition),
     PROVIDES(PreviousBanknotePosition),
+    PROVIDES(ErrorInfo),
 });
 
 class PreviousBanknoteCheck : public PreviousBanknoteCheckBase
@@ -21,9 +23,15 @@ public:
 
     void update(PreviousBanknotePosition& previousBanknotePosition);
 
+    void update(ErrorInfo& errorinfo);
+
     cv::Ptr<cv::xfeatures2d::SURF> surf_;
 
     cv::Mat mask;
 
     Features features;
+
+    //Aux
+    int error;
+    int lastbanknote;
 };
