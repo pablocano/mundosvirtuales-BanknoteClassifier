@@ -23,9 +23,9 @@ void RobotFanucProvider::update(RobotFanuc& robotFanuc)
 
 	if (N > 0)
 	{
-		cv::Point2f center(0.f, 0.f);
+        Vector2f center(0.f, 0.f);
 
-		for (cv::Point2f point : theBanknotePosition.corners)
+        for (const Vector2f& point : theBanknotePosition.corners)
 		{
 			center += point;
 		}
@@ -36,8 +36,8 @@ void RobotFanucProvider::update(RobotFanuc& robotFanuc)
 		PositionRegisterCartesian pos;
 
 		// TODO: 
-		pos.x = center.x;
-		pos.y = center.y;
+        pos.x = center.x();
+        pos.y = center.y();
 
 		pos.copyToBuffer(packetWrite.payload);
 		SEND_MESSAGE(idEthernetIPFanuc, packetWrite);

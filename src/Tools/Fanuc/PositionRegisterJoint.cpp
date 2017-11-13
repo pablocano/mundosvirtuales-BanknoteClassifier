@@ -1,6 +1,6 @@
 #include "PositionRegisterJoint.h"
 
-#include <string>
+#include <string.h>
 #include <limits>
 
 PositionRegisterJoint::PositionRegisterJoint() : UT(0), UF(0)

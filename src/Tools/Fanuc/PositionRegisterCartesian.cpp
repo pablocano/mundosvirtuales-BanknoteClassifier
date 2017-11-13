@@ -1,6 +1,6 @@
 #include "PositionRegisterCartesian.h"
 
-#include <string>
+#include <string.h>
 
 PositionRegisterCartesian::PositionRegisterCartesian() :
 	UT(0), UF(0), x(0), y(0), z(0), w(0), p(0), r(0), Turn1(0), Turn2(0), Turn3(0),

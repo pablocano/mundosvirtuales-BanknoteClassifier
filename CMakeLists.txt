@@ -72,13 +72,10 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/Image.h
   src/Representations/Regions.cpp
   src/Representations/Regions.h
-<<<<<<< HEAD
   src/Representations/RobotFanuc.cpp
   src/Representations/RobotFanuc.h
-=======
   src/Tools/AlignedMemory.cpp
   src/Tools/AlignedMemory.h
->>>>>>> e03fb2fe2b38d806cffc2f2469f80ec4c4efcccc
   src/Tools/ColorClasses.cpp
   src/Tools/ColorClasses.h
   src/Tools/ColorModelConversions.h
