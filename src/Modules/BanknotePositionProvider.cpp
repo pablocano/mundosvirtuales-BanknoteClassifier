@@ -35,9 +35,7 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),max
 
         cv::Mat canny;
 
-        cv::blur(image,image,cv::Size(2,2));
-
-        cv::Canny(image,canny,200,300,3,true);
+        cv::Canny(image,canny,100,200,3,true);
 
         cannys.push_back(canny);
 

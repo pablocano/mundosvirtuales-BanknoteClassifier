@@ -38,12 +38,13 @@ void TemplateInspection::update(GrabbingPosition &grabbingPosition)
     DRAW_IMAGE("module:TemplateInspection:CannyCurrentBanknote", cannyOutput, theFrameInfo.time);
 
 
-    cv::Mat cannyTemplateProjectedRoi =  output(cv::Rect(leftUpper.x(),leftUpper.y(),rightLower.x() - leftUpper.x(),rightLower.y() - leftUpper.y())).clone() > 0;
-    DRAW_IMAGE("module:TemplateInspection:CannyTemplate", cannyTemplateProjectedRoi, theFrameInfo.time);
+    cv::Mat cannyTemplateProjectedRoi =  output(cv::Rect(leftUpper.x(),leftUpper.y(),rightLower.x() - leftUpper.x(),rightLower.y() - leftUpper.y()));
 
-    cv::Mat comparision;
+    cv::blur(cannyTemplateProjectedRoi,cannyTemplateProjectedRoi,cv::Size(5,5));
 
-    cv::bitwise_xor(cannyTemplateProjectedRoi,cannyOutput,comparision);
+    cannyTemplateProjectedRoi  = cannyTemplateProjectedRoi > 0;
+
+    cv::Mat comparision = cannyOutput - cannyTemplateProjectedRoi;
 
     DRAW_IMAGE("module:TemplateInspection:Comparision", comparision, theFrameInfo.time);
 
