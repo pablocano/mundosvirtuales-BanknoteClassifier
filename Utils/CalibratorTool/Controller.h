@@ -98,5 +98,7 @@ public:
   
   std::unordered_map<std::string,ImageBGR> customImages;
 
+  std::unordered_map<std::string,bool> customImagesViews;
+
   char processIdentifier;
 };

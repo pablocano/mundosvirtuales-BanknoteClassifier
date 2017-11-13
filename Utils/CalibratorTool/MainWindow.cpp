@@ -92,7 +92,7 @@ void MainWindow::open()
   {
     QStringList openedObjects = openedObjectsVar.toStringList();
     foreach(QString object, openedObjects)
-      if(!object.contains("CustomImages"))
+      //if(!object.contains("CustomImages"))
         openObject(object, 0, 0);
   }
   

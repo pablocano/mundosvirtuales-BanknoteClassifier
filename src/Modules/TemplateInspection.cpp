@@ -29,15 +29,23 @@ void TemplateInspection::update(GrabbingPosition &grabbingPosition)
     cv::Mat cannyOutput;
     cv::Canny(banknoteDetection, cannyOutput, 100, 300, 3, true);
 
+    cannyOutput = cannyOutput > 0;
+
     cv::Mat output;
 
     cv::warpPerspective(BanknotePositionProvider::theInstance->cannys[theBanknotePosition.banknote], output, theBanknotePosition.homography, cv::Size(theGrayScaleImageEq.cols, theGrayScaleImageEq.rows));
 
-    DRAW_IMAGE("module:TemplateInspection:CannyCurrentBanknote", (cv::Mat)theGrayScaleImageEq, theFrameInfo.time);
+    DRAW_IMAGE("module:TemplateInspection:CannyCurrentBanknote", cannyOutput, theFrameInfo.time);
 
 
-    cv::Mat cannyTemplateProjectedRoi =  output(cv::Rect(leftUpper.x(),leftUpper.y(),rightLower.x() - leftUpper.x(),rightLower.y() - leftUpper.y())).clone();
-    //DRAW_IMAGE("module:TemplateInspection:CannyTemplate", cannyTemplateProjectedRoi, theFrameInfo.time);
+    cv::Mat cannyTemplateProjectedRoi =  output(cv::Rect(leftUpper.x(),leftUpper.y(),rightLower.x() - leftUpper.x(),rightLower.y() - leftUpper.y())).clone() > 0;
+    DRAW_IMAGE("module:TemplateInspection:CannyTemplate", cannyTemplateProjectedRoi, theFrameInfo.time);
+
+    cv::Mat comparision;
+
+    cv::bitwise_xor(cannyTemplateProjectedRoi,cannyOutput,comparision);
+
+    DRAW_IMAGE("module:TemplateInspection:Comparision", comparision, theFrameInfo.time);
 
 }
 

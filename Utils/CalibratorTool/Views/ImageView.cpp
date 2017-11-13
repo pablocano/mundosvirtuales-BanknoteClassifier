@@ -68,8 +68,10 @@ void ImageWidget::paint(QPainter& painter)
 
   if(!imageView.custom)
       image = imageView.eastCam ? &imageView.controller.eastImage : &imageView.controller.westmage;
-  else
+  else if(imageView.controller.customImages.count(imageView.name) > 0)
       image = &imageView.controller.customImages[imageView.name];
+  else
+      return;
   
   if (!image->empty()) {
     imageHeight = image->rows;
