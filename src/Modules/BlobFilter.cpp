@@ -6,9 +6,8 @@ MAKE_MODULE(BlobFilter, BanknoteClassifier)
 
 BlobFilter::BlobFilter()
 {
-    i = 1;
+    i = 0;
     existsBlob = false;
-    newblob = false;
 }
 
 void BlobFilter::update(BestBlob &bestblob){
@@ -17,20 +16,22 @@ void BlobFilter::update(BestBlob &bestblob){
             for (int j=i; j< theBlobs.blobs.size(); j++){
                 if (!theBlobs.blobs[j].color.is(BlobFilter::getColor(theErrorInfo.lastbanknote))){
                     bestblob.bestblob = theBlobs.blobs[j];
-                    std::cout<<"numero de blob"<<std::endl;
+                    std::cout<<"numero de blob  ";
                     std::cout<<j<<std::endl;
                     i = j;
                     bestblob.exists = true;
-                    newblob = true;
+                    bestblob.newblob = true;
                     break;
                 }
             }
+            if (i == theBlobs.blobs.size())
+                i = 0;
+
         }
         else{
-            i = 0;
-            bestblob.bestblob = theBlobs.blobs[0];
+            bestblob.bestblob = theBlobs.blobs[i];
             bestblob.exists = true;
-            newblob = false;
+            bestblob.newblob = false;
         }
 
     }
@@ -40,10 +41,6 @@ void BlobFilter::update(BestBlob &bestblob){
 
 }
 
-void BlobFilter::update(PreviousBanknotePosition &previousbanknote){
-    if (newblob)
-            previousbanknote.banknote = Classification::NONE;
-}
 
 Color BlobFilter::getColor(int banknote){
     Color color;

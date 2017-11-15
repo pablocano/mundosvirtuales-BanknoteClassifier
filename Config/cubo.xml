@@ -29,12 +29,12 @@
     <_>
       <hue>
         <min>52</min>
-        <max>96</max></hue>
+        <max>93</max></hue>
       <saturation>
-        <min>64</min>
-        <max>194</max></saturation>
+        <min>50</min>
+        <max>247</max></saturation>
       <intensity>
-        <min>34</min>
+        <min>30</min>
         <max>255</max></intensity></_>
     <_>
       <hue>
@@ -59,10 +59,10 @@
     <_>
       <hue>
         <min>0</min>
-        <max>16</max></hue>
+        <max>17</max></hue>
       <saturation>
         <min>0</min>
-        <max>180</max></saturation>
+        <max>166</max></saturation>
       <intensity>
         <min>0</min>
         <max>255</max></intensity></_>

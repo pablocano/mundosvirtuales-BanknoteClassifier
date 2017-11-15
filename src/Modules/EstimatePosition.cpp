@@ -21,10 +21,10 @@ EstimatePosition::EstimatePosition()
     C.setIdentity();
 
     Q.setIdentity();
-    Q = Q*10;
+    Q = Q*5;
 
     R.setIdentity();
-    R = R*10;
+    R = R*7;
 
     P.setIdentity();
 
@@ -56,7 +56,7 @@ void EstimatePosition::update(BanknotePositionFiltered& banknotePositionFiltered
         else{
             if (theBanknotePosition.banknote == Classification::NONE){
                 gg++;
-                if (gg > 50){
+                if (gg > 20){
                     gg = 0;
                     previous = Classification::NONE;
                 }

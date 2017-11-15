@@ -18,9 +18,9 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),max
     error = 0;
 
     // Initialize the used tools
-    clahe = cv::createCLAHE(2.0, cv::Size(8,8));
+    clahe = cv::createCLAHE(2.0, cv::Size(7,7));
     matcher.create(cv::NORM_L2, false);
-    surf = cv::xfeatures2d::SURF::create(500,3,3,true,false);
+    surf = cv::xfeatures2d::SURF::create(400,3,3,true,false);
 
     // Import and analize each template image
     for(unsigned i = 0; i < Classification::numOfBanknotes - 1; i++)
@@ -46,9 +46,9 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),max
 
     // Create the corners of the model
     modelsCorners.push_back(cv::Point(0,0));
-    modelsCorners.push_back(cv::Point(350,0));
-    modelsCorners.push_back(cv::Point(350,175));
-    modelsCorners.push_back(cv::Point(0,175));
+    modelsCorners.push_back(cv::Point(300,0));
+    modelsCorners.push_back(cv::Point(300,150));
+    modelsCorners.push_back(cv::Point(0,150));
 
 }
 
@@ -94,26 +94,34 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
                 error = 0;
                 banknotePosition.banknote = (Classification::Banknote)banknote;
                 scene_corners.push_back(scene_corners.front());
-		banknotePosition.homography = H;
+                banknotePosition.homography = H;
                 banknotePosition.corners = scene_corners;
             }
             else{
-                std::cout<<"No ransac"<<std::endl;
-                error = 1;
+                std::cout<<"No ransac and error ";
+                error++;
+                std::cout<<error<<std::endl;
                 lastbanknote = theClassification.result;
                 std::cout<<lastbanknote<<std::endl;
             }
 
 
             }
+        else{
+            error++;
+            lastbanknote = theClassification.result;
+        }
         }
         
 
 }
 
 void BanknotePositionProvider::update(ErrorInfo& errorinfo){
-    errorinfo.error = error;
-    errorinfo.lastbanknote = lastbanknote;
+    if (error > 3){
+        errorinfo.error = 1;
+        errorinfo.lastbanknote = lastbanknote;
+    }
+
 
 
 
@@ -148,6 +156,7 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
 
             if(good_matches.size() > 30)
             {
+
                 // Localize the object
                 std::vector<cv::Point2f> obj;
                 std::vector<cv::Point2f> scene;
@@ -255,7 +264,7 @@ bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vect
 void BanknotePositionProvider::resizeImage(cv::Mat& image)
 {
     //resize
-    cv::resize(image,image,cv::Size(350,175), 0, 0, CV_INTER_AREA);
+    cv::resize(image,image,cv::Size(300,150), 0, 0, CV_INTER_AREA);
 
     //Equalize histogram
     clahe->apply(image,image);
