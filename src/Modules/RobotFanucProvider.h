@@ -7,9 +7,10 @@
 #pragma once
 
 #include "Tools/ModuleManager/Module.h"
-#include "Representations/BanknotePosition.h"
+#include "Representations/Modeling/WorldCoordinatesPose.h"
 #include "Tools/Fanuc/PacketEthernetIPFanuc.h"
 #include "Representations/RobotFanuc.h"
+#include "Tools/Messages/MessageQueue.h"
 
 /** Definition Register Position */
 #define REG_POSITION_BANKNOTE 0x01
@@ -18,8 +19,7 @@
 
 MODULE(RobotFanucProvider,
 {,
-REQUIRES(BanknotePosition),
-
+REQUIRES(WorldCoordinatesPose),
 PROVIDES(RobotFanuc),
 });
 

@@ -31,8 +31,8 @@ Camera::Camera(): index(0)
     /**
      * Prepare cameras
     */
-    //video0 = cv::VideoCapture(1);
-    video0 = cv::VideoCapture(VALID_PATH(std::string(File::getGTDir()) + "/Data/vid/caja_muchos.mp4"));
+    video0 = cv::VideoCapture(0);
+    //video0 = cv::VideoCapture(VALID_PATH(std::string(File::getGTDir()) + "/Data/vid/caja_muchos.mp4"));
     if(!video0.isOpened())  // check if we succeeded
     {
         cam1.available = false;
@@ -71,7 +71,7 @@ Camera::Camera(): index(0)
     cv::Point fieldCenter;
     float pix2World;
     // Load Camera 1 config
-    cv::FileStorage file1( VALID_PATH(std::string(File::getGTDir()) + "/Config/cameraCalibration1.yml"), cv::FileStorage::READ);
+    cv::FileStorage file1( VALID_PATH(std::string(File::getGTDir()) + "/Config/cameraCalibration2.yml"), cv::FileStorage::READ);
     if(!file1.isOpened())
     {
       std::cout << "Could not open the camera 1 calibration file"<< std::endl;
@@ -124,7 +124,7 @@ void Camera::update(ImageBGR& image)
   }
   while(tmp.empty() || i < 0);
 
-  cv::resize(tmp,tmp,cv::Size(1500,750));
+  //cv::resize(tmp,tmp,cv::Size(1500,750));
 
   // correct and rotate images
   //cv::undistort(tmp, undistorted, camerasInfo[index]->K, camerasInfo[index]->d);

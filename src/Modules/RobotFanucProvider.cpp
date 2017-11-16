@@ -19,25 +19,21 @@ RobotFanucProvider::RobotFanucProvider() : robotModel()
 
 void RobotFanucProvider::update(RobotFanuc& robotFanuc)
 {
-    int N = (int) theBanknotePosition.corners.size();
 
-	if (N > 0)
+    if (theWorldCoordinatesPose.valid)
 	{
-        Vector2f center(0.f, 0.f);
-
-        for (const Vector2f& point : theBanknotePosition.corners)
-		{
-			center += point;
-		}
-
-		center /= N;
-
 		PacketEthernetIPFanuc packetWrite(WRITE_POS, ++idPacket, REG_POSITION_BANKNOTE);
 		PositionRegisterCartesian pos;
 
 		// TODO: 
-        pos.x = center.x();
-        pos.y = center.y();
+        pos.x = theWorldCoordinatesPose.point.x();
+        pos.y = theWorldCoordinatesPose.point.y();
+
+        //pos.UT = 2;
+        //pos.UF = 1;
+
+        pos.Up = true;
+        pos.Front = true;
 
 		pos.copyToBuffer(packetWrite.payload);
 		SEND_MESSAGE(idEthernetIPFanuc, packetWrite);

@@ -12,7 +12,7 @@ MAKE_MODULE(BanknotePositionProvider, BanknoteClassifier)
 
 BanknotePositionProvider* BanknotePositionProvider::theInstance = 0;
 
-BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),maxAreaPolygon(50000)
+BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),maxAreaPolygon(80000)
 {
     theInstance = this;
     error = 0;
@@ -57,13 +57,13 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
     DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:ransac_result","drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:inliers","drawingOnImage");
 
-    for(int i = 0; i < Classification::numOfBanknotes - 1; i++)
+    /*for(int i = 0; i < Classification::numOfBanknotes - 1; i++)
     {
         std::string name = "Template Canny " + std::string(Classification::getName((Classification::Banknote)i));
         DRAW_IMAGE(name.c_str(), cannys[i], 1);
     }
 
-    /*
+
     for(int i = 0; i < Classification::numOfBanknotes - 1; i++)
     {
         std::string name = "Templates " + std::string(Classification::getName((Classification::Banknote)i));
@@ -146,7 +146,7 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
                 }
             }
 
-            if(good_matches.size() > 30)
+            if(good_matches.size() > 10)
             {
                 // Localize the object
                 std::vector<cv::Point2f> obj;

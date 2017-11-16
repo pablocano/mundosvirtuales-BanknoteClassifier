@@ -4,6 +4,7 @@ PROJECT (BanknoteClassifier)
 find_package(OpenCV REQUIRED)
 find_package(Qt4 REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(aruco REQUIRED)
 include(${QT_USE_FILE})
 
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
@@ -15,6 +16,8 @@ if(WINDOWS)
 endif()
 
 set( BANCKNOTECLASSIFIER_SRC
+  src/Modules/ArucoPoseEstimator.cpp
+  src/Modules/ArucoPoseEstimator.h
   src/Modules/Camera.cpp
   src/Modules/Camera.h
   src/Modules/BlobProvider.cpp
@@ -43,6 +46,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/Segmentator.h
   src/Modules/TemplateInspection.cpp
   src/Modules/TemplateInspection.h
+  src/Modules/WorldCoordinatesPoseProvider.cpp
+  src/Modules/WorldCoordinatesPoseProvider.h
   src/Platform/Memory.cpp
   src/Platform/Memory.h
   src/Processes/BanknoteClassifier.cpp
@@ -70,6 +75,10 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/BanknoteClassifierMessages.h
   src/Representations/Image.cpp
   src/Representations/Image.h
+  src/Representations/Modeling/WorldCoordinatesPose.cpp
+  src/Representations/Modeling/WorldCoordinatesPose.h
+  src/Representations/Modeling/CameraPose.cpp
+  src/Representations/Modeling/CameraPose.h
   src/Representations/Regions.cpp
   src/Representations/Regions.h
   src/Representations/RobotFanuc.cpp
@@ -274,9 +283,9 @@ include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${CMAKE_CURRENT_SOUR
 
 add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE} ${LIB_ETHERNETIP_FANUC_SRC} ${LIB_ETHERNETIP_FANUC_INCLUDE} )
 if(WIN32)
-	target_link_libraries( banknoteClassifier ${OpenCV_LIBS} wsock32 ws2_32 winmm Eigen3::Eigen)
+  target_link_libraries( banknoteClassifier ${OpenCV_LIBS} wsock32 ws2_32 winmm Eigen3::Eigen ${aruco_LIBS})
 else()
-	target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen)
+  target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen ${aruco_LIBS})
 endif()
 
 add_library( libqxt STATIC ${LIBQXT_SRC} ${LIBQXT_MOC_Srcs})
