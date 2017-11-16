@@ -21,10 +21,10 @@ EstimatePosition::EstimatePosition()
     C.setIdentity();
 
     Q.setIdentity();
-    Q = Q*5;
+    Q = Q*2;
 
     R.setIdentity();
-    R = R*7;
+    R = R*10;
 
     P.setIdentity();
 

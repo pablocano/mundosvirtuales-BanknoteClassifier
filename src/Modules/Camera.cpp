@@ -24,7 +24,7 @@ Camera::Camera(): index(0)
      * Prepare cameras
     */
     //video0 = cv::VideoCapture(0);
-    video0 = cv::VideoCapture(std::string(File::getGTDir()) + "/Data/vid/basler_2.avi");
+    video0 = cv::VideoCapture(std::string(File::getGTDir()) + "/Data/vid/basler_tunned.avi");
     if(!video0.isOpened())  // check if we succeeded
     {
         cam1.available = false;
