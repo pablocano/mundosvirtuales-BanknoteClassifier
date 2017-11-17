@@ -17,12 +17,15 @@ MODULE(ArucoPoseEstimator,
 
 class ArucoPoseEstimator : public ArucoPoseEstimatorBase
 {
-public:
-    ArucoPoseEstimator();
+private:
+
+    static ArucoPoseEstimator *theInstance;
 
     void update(CameraPose& cameraPose);
 
     void draw(CameraPose& cameraPose);
+
+    void saveCameraPose();
 
     aruco::MarkerDetector mDetector;
 
@@ -33,4 +36,12 @@ public:
     aruco::CameraParameters parameters;
 
     float mMarkerSize;
+
+    cv::Mat rvec,tvec;
+
+public:
+
+    ArucoPoseEstimator();
+
+    static bool handleMessage(MessageQueue& message);
 };

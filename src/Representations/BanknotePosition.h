@@ -7,6 +7,7 @@
 #include <opencv2/core.hpp>
 #include <vector>
 #include "Tools/Math/Eigen.h"
+#include "Tools/Math/Pose2D.h"
 
 class BanknotePosition : public Streamable
 {
@@ -21,6 +22,8 @@ public:
     Classification::Banknote banknote;
 
     std::vector<Vector2f> corners;
+
+    Pose2D position;
 
     cv::Mat homography;
 

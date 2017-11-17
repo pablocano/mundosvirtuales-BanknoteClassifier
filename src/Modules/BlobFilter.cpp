@@ -1,6 +1,5 @@
 #include "BlobFilter.h"
 #include "Representations/Classification.h"
-#include <iostream>
 
 MAKE_MODULE(BlobFilter, BanknoteClassifier)
 
@@ -12,6 +11,8 @@ BlobFilter::BlobFilter()
 }
 
 void BlobFilter::update(BestBlob &bestblob){
+
+    bestblob.exists = false;
 
     if(!theBlobs.blobs.empty()){
         bestblob.bestblob = theBlobs.blobs[0];
@@ -25,8 +26,8 @@ void BlobFilter::update(BestBlob &bestblob){
             for (int j=i; j< theBlobs.blobs.size(); j++){
                 if (!theBlobs.blobs[j].color.is(BlobFilter::getColor(theErrorInfo.lastbanknote))){
                     bestblob.bestblob = theBlobs.blobs[j];
-                    std::cout<<"numero de blob"<<std::endl;
-                    std::cout<<j<<std::endl;
+                    OUTPUT_TEXT("numero de blob");
+                    OUTPUT_TEXT(j);
                     i = j;
                     bestblob.exists = true;
                     newblob = true;

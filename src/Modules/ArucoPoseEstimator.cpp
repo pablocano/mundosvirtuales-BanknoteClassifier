@@ -2,10 +2,14 @@
 #include "Tools/Debugging/DebugDrawings.h"
 #include "Tools/File.h"
 
-MAKE_MODULE(ArucoPoseEstimator, BanknoteClassifier)
+MAKE_MODULE(ArucoPoseEstimator, BanknoteClassifier2)
+
+ArucoPoseEstimator* ArucoPoseEstimator::theInstance = 0;
 
 ArucoPoseEstimator::ArucoPoseEstimator() : mMarkerSize(0.06f)
 {
+    theInstance = this;
+
     mMapConfig.readFromFile(std::string(File::getGTDir()) + "/Config/markerMapConfig.yml");
     parameters.readFromXMLFile(std::string(File::getGTDir())+"/Config/cameraCalibration1.yml");
 
@@ -29,12 +33,25 @@ void ArucoPoseEstimator::update(CameraPose &cameraPose)
     if (mPoseTracker.isValid()){
 
         if ( mPoseTracker.estimatePose(markers)){
-            cameraPose.rvec = mPoseTracker.getRvec();
-            cameraPose.tvec = mPoseTracker.getTvec();
+            rvec = mPoseTracker.getRvec();
+            tvec = mPoseTracker.getTvec();
 
             COMPLEX_DRAWING("module:ArucoPoseEstimator:pose",{draw(cameraPose);});
         }
     }
+
+    cameraPose.rvec = rvec;
+    cameraPose.tvec = tvec;
+
+    DEBUG_RESPONSE_ONCE("module:ArucoPoseEstimator:saveCameraPose", saveCameraPose(););
+}
+
+void ArucoPoseEstimator::saveCameraPose()
+{
+    cv::FileStorage file(std::string(File::getGTDir()) + "/Config/cameraPose.yml", cv::FileStorage::WRITE);
+
+    file << "rvec" << rvec;
+    file << "tvec" << tvec;
 }
 
 void ArucoPoseEstimator::draw(CameraPose &cameraPose)
@@ -60,4 +77,9 @@ void ArucoPoseEstimator::draw(CameraPose &cameraPose)
     LINE("module:ArucoPoseEstimator:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[1].x, imagePoints[1].y, 3, Drawings::ps_solid,ColorRGBA::blue);
     LINE("module:ArucoPoseEstimator:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[2].x, imagePoints[2].y, 3, Drawings::ps_solid,ColorRGBA::red);
     LINE("module:ArucoPoseEstimator:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[3].x, imagePoints[3].y, 3, Drawings::ps_solid,ColorRGBA::green);
+}
+
+bool ArucoPoseEstimator::handleMessage(MessageQueue &message)
+{
+    return false;
 }

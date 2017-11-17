@@ -150,7 +150,9 @@ void Controller::saveColorCalibration()
   SYNC_WITH(*banknoteClassifierWrapper);
   debugOut << DebugRequest("module:GroundTruthConfiguration:saveColorCalibration");
   debugOut.finishMessage(idDebugRequest);
-  
+
+  debugOut << DebugRequest("module:ArucoPoseEstimator:saveCameraPose");
+  debugOut.finishMessage(idDebugRequest);
 }
 
 bool Controller::poll(MessageID id)

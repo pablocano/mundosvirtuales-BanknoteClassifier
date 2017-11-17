@@ -4,7 +4,6 @@
 #include <opencv2/highgui.hpp>
 #include "Tools/Debugging/DebugDrawings.h"
 #include <algorithm>
-#include <iostream>
 #include "Tools/SystemCall.h"
 
 
@@ -45,10 +44,12 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),max
     }
 
     // Create the corners of the model
-    modelsCorners.push_back(cv::Point(0,0));
-    modelsCorners.push_back(cv::Point(350,0));
-    modelsCorners.push_back(cv::Point(350,175));
-    modelsCorners.push_back(cv::Point(0,175));
+    modelsCorners.push_back(Vector3d(0,0,1));
+    modelsCorners.push_back(Vector3d(350,0,1));
+    modelsCorners.push_back(Vector3d(350,175,1));
+    modelsCorners.push_back(Vector3d(0,175,1));
+    modelsCorners.push_back(Vector3d(175,87.5,1));
+    modelsCorners.push_back(Vector3d(350,87.5,1));
 
 }
 
@@ -74,6 +75,7 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
     {
         banknotePosition.corners = thePreviousBanknotePosition.corners;
         banknotePosition.homography = thePreviousBanknotePosition.homography;
+        banknotePosition.position = thePreviousBanknotePosition.position;
         return;
     }
 
@@ -86,22 +88,23 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
 
         if (!H.empty() && banknote != Classification::NONE){
 
-
+            Pose2D pose;
             std::vector<Vector2f> scene_corners;
-            if(analyzeArea(H, scene_corners))
+            if(analyzeArea(H, scene_corners, pose))
             {
-                std::cout<<"ransac"<<std::endl;
+                OUTPUT_TEXT("ransac");
                 error = 0;
                 banknotePosition.banknote = (Classification::Banknote)banknote;
                 scene_corners.push_back(scene_corners.front());
-		banknotePosition.homography = H;
+                banknotePosition.homography = H;
                 banknotePosition.corners = scene_corners;
+                banknotePosition.position = pose;
             }
             else{
-                std::cout<<"No ransac"<<std::endl;
+                OUTPUT_TEXT("No ransac");
                 error = 1;
                 lastbanknote = theClassification.result;
-                std::cout<<lastbanknote<<std::endl;
+                OUTPUT_TEXT(lastbanknote);
             }
 
 
@@ -196,21 +199,27 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
     return Classification::NONE;
 }
 
-bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vector2f>& corners)
+bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vector2f>& corners, Pose2D& pose)
 {
     if(theInstance)
     {
-        std::vector<Vector3d> corners2(4);
         Eigen::Map<Eigen::Matrix<double,3,3,Eigen::RowMajor>> h(homography.ptr<double>());
-        corners.resize(4);
+        corners.clear();
 
-        for(int i = 0; i < 4; i++)
+        for(const auto& corner : theInstance->modelsCorners)
         {
-            corners2[i] = h * Vector3d(theInstance->modelsCorners[i].x, theInstance->modelsCorners[i].y, 1);
-            corners2[i] /= corners2[i].z();
-            corners[i] = Vector2f( corners2[i].x(), corners2[i].y());
-
+            Vector3d projectedCorner = h * corner;
+            projectedCorner /= projectedCorner.z();
+            corners.push_back(Vector2f( projectedCorner.x(), projectedCorner.y()));
         }
+
+        Vector2f direction = corners.back();
+        corners.pop_back();
+
+        Vector2f center = corners.back();
+        corners.pop_back();
+
+        pose = Pose2D((direction - center).angle(),center);
 
         // Get the size of the array
         int size = (int) corners.size();

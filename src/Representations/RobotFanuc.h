@@ -76,3 +76,6 @@ public:
 	*/
 	void setRobotModel(RobotModelFanuc& _robotModel);
 };
+
+
+class DummyComm : public Streamable {};

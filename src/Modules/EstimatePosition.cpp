@@ -7,8 +7,8 @@ EstimatePosition::EstimatePosition()
 {
 
     //Create Kalman Filter
-    int n = 8; //Number of states
-    int m = 8; //Number of measurements
+    int n = 11; //Number of states
+    int m = 11; //Number of measurements
 
     Eigen::MatrixXf A(n, n); // System dynamics matrix
     Eigen::MatrixXf C(m, n); // Output matrix
@@ -40,11 +40,15 @@ void EstimatePosition::update(BanknotePositionFiltered& banknotePositionFiltered
 {
     if (!theBanknotePosition.corners.empty()){
         Eigen::VectorXf corners;
-        corners.resize(8);
+        corners.resize(11);
         for (int i=0; i<4; i++){
             corners[2*i] = theBanknotePosition.corners[i].x();
             corners[2*i+1] = theBanknotePosition.corners[i].y();
         }
+
+        corners[8] = theBanknotePosition.position.translation.x();
+        corners[9] = theBanknotePosition.position.translation.y();
+        corners[10] = theBanknotePosition.position.rotation;
 
         if (previous == Classification::NONE){
             if (theBanknotePosition.banknote != Classification::NONE){
@@ -73,9 +77,7 @@ void EstimatePosition::update(BanknotePositionFiltered& banknotePositionFiltered
 
 void EstimatePosition::sendPositionFiltered(BanknotePositionFiltered& banknotePositionFiltered){
 
-    Eigen::VectorXf state;
-    state.resize(8);
-    state = kf.state();
+    Eigen::VectorXf state = kf.state();
 
     banknotePositionFiltered.banknote = theBanknotePosition.banknote;
     banknotePositionFiltered.corners.resize(4);
@@ -85,6 +87,8 @@ void EstimatePosition::sendPositionFiltered(BanknotePositionFiltered& banknotePo
     }
 
     banknotePositionFiltered.corners.push_back(banknotePositionFiltered.corners.front());
+
+    banknotePositionFiltered.position = Pose2D(state[10],Vector2f(state[8], state[9]));
 
     previous = theBanknotePosition.banknote;
 }

@@ -1,7 +1,6 @@
 #include "PreviousBanknoteCheck.h"
 #include "Modules/BanknotePositionProvider.h"
 #include "Tools/Math/Geometry.h"
-#include <iostream>
 
 MAKE_MODULE(PreviousBanknoteCheck, BanknoteClassifier)
 
@@ -41,16 +40,18 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
         int banknote = BanknotePositionProvider::compare(features, H, theBanknotePosition.banknote, theBanknotePosition.banknote);
 
         if (!H.empty() && banknote == theBanknotePosition.banknote){
+            Pose2D pose;
             std::vector<Vector2f> scene_corners;
-            std::cout<<"previous banknote test"<<std::endl;
-            std::cout<<(Classification::Banknote)banknote<<std::endl;
-            if(BanknotePositionProvider::analyzeArea(H, scene_corners))
-	    {
+            OUTPUT_TEXT("previous banknote test");
+            OUTPUT_TEXT((Classification::Banknote)banknote);
+            if(BanknotePositionProvider::analyzeArea(H, scene_corners, pose))
+            {
                 error = 0;
                 previousBanknotePosition.banknote = (Classification::Banknote)banknote;
-		previousBanknotePosition.homography = H;
+                previousBanknotePosition.homography = H;
                 scene_corners.push_back(scene_corners.front());
                 previousBanknotePosition.corners = scene_corners;
+                previousBanknotePosition.position = pose;
             }
             else{
                 error = 1;

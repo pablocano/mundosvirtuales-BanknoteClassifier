@@ -30,6 +30,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/BanknotePositionProvider.h
   src/Modules/BanknoteClassifierProvider.cpp
   src/Modules/BanknoteClassifierProvider.h
+  src/Modules/CameraPoseProvider.cpp
+  src/Modules/CameraPoseProvider.h
   src/Modules/Equalizer.cpp
   src/Modules/Equalizer.h
   src/Modules/FeaturesProvider.cpp
@@ -40,8 +42,10 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/PreviousBanknoteCheck.h
   src/Modules/Regionizer.cpp
   src/Modules/Regionizer.h
-  src/Modules/RobotFanucProvider.cpp
-  src/Modules/RobotFanucProvider.h
+  src/Modules/RobotFanucDataProvider.cpp
+  src/Modules/RobotFanucDataProvider.h
+  src/Modules/RobotFanucComm.cpp
+  src/Modules/RobotFanucComm.h
   src/Modules/Segmentator.cpp
   src/Modules/Segmentator.h
   src/Modules/TemplateInspection.cpp
@@ -102,6 +106,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/File.h
   src/Tools/Global.cpp
   src/Tools/Global.h
+  src/Tools/Math/Angle.h
+  src/Tools/Math/Constants.h
   src/Tools/Math/Eigen.h
   src/Tools/Math/EigenArrayExtensions.h
   src/Tools/Math/EigenMatrixBaseExtensions.h

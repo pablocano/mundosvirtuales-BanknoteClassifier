@@ -7,4 +7,6 @@ class CameraPose : public Streamable
 public:
 
     cv::Mat rvec,tvec;
+
+    cv::Mat rotationMatrix, rotationMatrixInv;
 };

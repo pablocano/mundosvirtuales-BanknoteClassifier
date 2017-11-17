@@ -1,7 +1,6 @@
 #include "FeaturesProvider.h"
 #include "Tools/Math/Geometry.h"
 #include <opencv2/highgui.hpp>
-#include <iostream>
 
 MAKE_MODULE(FeaturesProvider, BanknoteClassifier)
 
@@ -14,7 +13,7 @@ void FeaturesProvider::update(Features &features)
 {
     if(thePreviousBanknotePosition.banknote != Classification::NONE)
         return;
-    std::cout<<"sacando features"<<std::endl;
+    OUTPUT_TEXT("sacando features");
 
     features.keypoints.clear();
 

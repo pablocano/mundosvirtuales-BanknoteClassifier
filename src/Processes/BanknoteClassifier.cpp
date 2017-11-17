@@ -13,7 +13,8 @@
 #include "Tools/Global.h"
 #include "Tools/SystemCall.h"
 #include "Tools/Fanuc/PacketEthernetIPFanuc.h"
-#include "Modules/RobotFanucProvider.h"
+#include "Modules/ArucoPoseEstimator.h"
+#include "Modules/RobotFanucDataProvider.h"
 
 #include <istream>
 
@@ -41,6 +42,8 @@ void BanknoteClassifier::init()
 int BanknoteClassifier::main()
 {
   RECEIVE_BANKNOTE_CLASSIFIER_COMM;
+
+  RobotFanucDataProvider::handleMessages(theCommReceiver);
   
   int numberOfMessages = theDebugOut.getNumberOfMessages();
   
@@ -79,5 +82,5 @@ int BanknoteClassifier::main()
 
 bool BanknoteClassifier::handleMessage(MessageQueue &message)
 {
-	return BanknoteClassifierConfiguration::handleMessage(message) || Process::handleMessage(message); //|| RobotFanucProvider::handleMessage(message);
+    return BanknoteClassifierConfiguration::handleMessage(message) || Process::handleMessage(message) || ArucoPoseEstimator::handleMessage(message);
 }

@@ -1,14 +1,12 @@
 #pragma once
 
 #include "Tools/Streamable.h"
-#include "Tools/Math/Eigen.h"
+#include "Tools/Math/Pose2D.h"
 
 
-class WorldCoordinatesPose : public Streamable
+class WorldCoordinatesPose : public Streamable, public Pose2D
 {
 public:
-
-    Vector2f point;
 
     bool valid;
 };
