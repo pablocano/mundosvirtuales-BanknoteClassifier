@@ -146,7 +146,6 @@ set( BANCKNOTECLASSIFIER_SRC
 
 set( CAMERA_CALIBRATION
    Utils/CameraCalibration/calibration.cpp
-   Utils/CameraCalibration/settings.h
    src/Tools/File.cpp
    src/Tools/File.h
 )
@@ -295,15 +294,15 @@ add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLU
 if(WIN32)
   target_link_libraries( banknoteClassifier ${OpenCV_LIBS} wsock32 ws2_32 winmm Eigen3::Eigen ${aruco_LIBS} pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
 else()
-  target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen ${aruco_LIBS})
+  target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen ${aruco_LIBS} pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
 endif()
 
 add_library( libqxt STATIC ${LIBQXT_SRC} ${LIBQXT_MOC_Srcs})
 target_link_libraries(libqxt ${QT_LIBRARIES})
 target_compile_definitions(libqxt PRIVATE QXT_STATIC )
 
-add_executable( calibration ${CAMERA_CALIBRATION} ${OpenCV_INCLUDE})
-target_link_libraries( calibration ${OpenCV_LIBS} )
+add_executable( cameraCalibration ${CAMERA_CALIBRATION} ${OpenCV_INCLUDE})
+target_link_libraries( cameraCalibration ${OpenCV_LIBS} ${aruco_LIBS} pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
 
 add_executable( fieldCalibrator ${FIELD_CALIBRATOR} ${OpenCV_INCLUDE})
 target_link_libraries( fieldCalibrator ${OpenCV_LIBS} )

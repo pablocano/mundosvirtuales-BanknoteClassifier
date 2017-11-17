@@ -272,7 +272,7 @@ bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vect
 void BanknotePositionProvider::resizeImage(cv::Mat& image)
 {
     //resize
-    cv::resize(image,image,cv::Size(300,150), 0, 0, CV_INTER_AREA);
+    cv::resize(image,image,cv::Size(350,175), 0, 0, CV_INTER_AREA);
 
     //Equalize histogram
     clahe->apply(image,image);

@@ -38,13 +38,13 @@
         <max>238</max></intensity></_>
     <_>
       <hue>
-        <min>139</min>
-        <max>153</max></hue>
+        <min>37</min>
+        <max>128</max></hue>
       <saturation>
-        <min>188</min>
+        <min>0</min>
         <max>255</max></saturation>
       <intensity>
-        <min>121</min>
+        <min>0</min>
         <max>255</max></intensity></_>
     <_>
       <hue>

@@ -6,7 +6,7 @@ MAKE_MODULE(ArucoPoseEstimator, BanknoteClassifier2)
 
 ArucoPoseEstimator* ArucoPoseEstimator::theInstance = 0;
 
-ArucoPoseEstimator::ArucoPoseEstimator() : mMarkerSize(0.06f)
+ArucoPoseEstimator::ArucoPoseEstimator() : mMarkerSize(0.059f)
 {
     theInstance = this;
 

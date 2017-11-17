@@ -44,7 +44,6 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
             OUTPUT_TEXT((Classification::Banknote)banknote);
             if(BanknotePositionProvider::analyzeArea(H, scene_corners, pose))
             {
-                error = 0;
                 previousBanknotePosition.banknote = (Classification::Banknote)banknote;
                 previousBanknotePosition.homography = H;
                 scene_corners.push_back(scene_corners.front());
