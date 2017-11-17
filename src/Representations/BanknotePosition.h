@@ -37,4 +37,9 @@ class BanknotePositionFiltered : public BanknotePosition
 {
 public:
     void draw() const;
+
+    BanknotePositionFiltered():BanknotePosition(),valid(0){}
+
+    //To check if is valid to send to the robot
+    int valid;
 };

@@ -13,12 +13,22 @@
 #include <map>
 
 
+
 ENUM(StatusRobotFanuc,
 	nonDefined,
 	inMoving,
 	pointReachable,
 	ErrorMoving
 );
+
+/** Definition Register Position */
+#define REG_POSITION_BANKNOTE 0x01
+#define REG_POSITION_HOME 0x02
+
+/** Definition Register Status */
+#define REG_STATUS_AREA 0x01
+#define REG_STATUS_POSE 0x02
+#define REG_STATUS_SIDE 0x03
 
 
 /**
@@ -30,7 +40,9 @@ struct RobotModelFanuc
 	std::map<int, int> reg; /** Registers of robot. */
 	std::map<int, PositionRegisterCartesian> regPos;  /** Position Register (Cartesian format) of robot. */
 	PositionRegisterCartesian currentPosition;  /** Current position (Cartesian format). */
-	
+
+    RobotModelFanuc() : statusRobot(), reg(), regPos(), currentPosition() {}
+
 	/**
 	 * @brief Operator equals.
 	 */
@@ -50,9 +62,6 @@ struct RobotModelFanuc
  */
 class RobotFanuc : public Streamable
 {
-private:
-
-	RobotModelFanuc robotModel; /** Robot Model is a copy of the real robot */
 
 public:
 
@@ -60,6 +69,8 @@ public:
 	 * @brief Default constructor
 	 */
 	RobotFanuc();
+
+    RobotModelFanuc robotModel; /** Robot Model is a copy of the real robot */
 
 	/**
 	 * @brief Draw Robot fanuc state
@@ -75,6 +86,8 @@ public:
 	* @brief Setting Robot model
 	*/
 	void setRobotModel(RobotModelFanuc& _robotModel);
+
+
 };
 
 

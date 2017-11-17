@@ -9,5 +9,6 @@ class WorldCoordinatesPose : public Streamable, public Pose2D
 public:
 
     bool valid;
+
 };
 

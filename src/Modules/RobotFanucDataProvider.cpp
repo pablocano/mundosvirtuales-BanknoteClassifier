@@ -10,6 +10,7 @@ RobotFanucDataProvider* RobotFanucDataProvider::theInstance = 0;
 RobotFanucDataProvider::RobotFanucDataProvider() : robotModel()
 {
 	theInstance = this;
+
 }
 
 void RobotFanucDataProvider::update(RobotFanuc& robotFanuc)

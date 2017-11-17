@@ -21,7 +21,7 @@ EstimatePosition::EstimatePosition()
     C.setIdentity();
 
     Q.setIdentity();
-    Q = Q*10;
+    Q = Q*5;
 
     R.setIdentity();
     R = R*10;
@@ -33,6 +33,7 @@ EstimatePosition::EstimatePosition()
     previous = Classification::NONE;
 
     gg = 0;
+    valid = 0;
 
 }
 
@@ -50,6 +51,8 @@ void EstimatePosition::update(BanknotePositionFiltered& banknotePositionFiltered
         corners[9] = theBanknotePosition.position.translation.y();
         corners[10] = theBanknotePosition.position.rotation;
 
+        banknotePositionFiltered.valid = 0;
+
         if (previous == Classification::NONE){
             if (theBanknotePosition.banknote != Classification::NONE){
                 kf.init(corners);
@@ -60,14 +63,24 @@ void EstimatePosition::update(BanknotePositionFiltered& banknotePositionFiltered
         else{
             if (theBanknotePosition.banknote == Classification::NONE){
                 gg++;
-                if (gg > 50){
+                valid--;
+                if (gg > 10){
                     gg = 0;
                     previous = Classification::NONE;
                 }
             }
             else if (previous != theBanknotePosition.banknote)
+            {
                 kf.init(corners);
+                valid = 0;
+            }
+            valid++;
             kf.update(corners);
+            if (valid > 10)
+            {
+                banknotePositionFiltered.valid = 1;
+            }
+
             EstimatePosition::sendPositionFiltered(banknotePositionFiltered);
         }
 
@@ -90,5 +103,11 @@ void EstimatePosition::sendPositionFiltered(BanknotePositionFiltered& banknotePo
 
     banknotePositionFiltered.position = Pose2D(state[10],Vector2f(state[8], state[9]));
 
-    previous = theBanknotePosition.banknote;
+    if (valid)
+    {
+        valid = 0;
+        previous = Classification::NONE;
+    }
+    else
+        previous = theBanknotePosition.banknote;
 }
