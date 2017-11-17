@@ -7,8 +7,7 @@ MAKE_MODULE(PreviousBanknoteCheck, BanknoteClassifier)
 PreviousBanknoteCheck::PreviousBanknoteCheck()
 {
     surf_ = cv::xfeatures2d::SURF::create(500,4,3,true,false);
-    error = 0;
-    lastbanknote = 0;
+    noMatch = 0;
 }
 
 
@@ -16,8 +15,7 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
 {
     previousBanknotePosition.banknote = Classification::NONE;
 
-    if(theBanknotePosition.banknote != Classification::NONE)
-    {
+    if(theBanknotePosition.banknote != Classification::NONE && theErrorInfo.error == 0){
         if(mask.empty())
             mask = cv::Mat::zeros(theGrayScaleImageEq.rows, theGrayScaleImageEq.cols, CV_8U);
         else
@@ -53,16 +51,9 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
                 previousBanknotePosition.corners = scene_corners;
                 previousBanknotePosition.position = pose;
             }
-            else{
-                error = 1;
-                lastbanknote = theBanknotePosition.banknote;
-            }
         }
+
     }
 }
 
-void PreviousBanknoteCheck::update(ErrorInfo &errorinfo){
-    errorinfo.error = error;
-    errorinfo.lastbanknote = lastbanknote;
-}
 

@@ -5,6 +5,7 @@ find_package(OpenCV REQUIRED)
 find_package(Qt4 REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(aruco REQUIRED)
+set(PYLON_ROOT /opt/pylon5)
 include(${QT_USE_FILE})
 
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
@@ -20,6 +21,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/ArucoPoseEstimator.h
   src/Modules/Camera.cpp
   src/Modules/Camera.h
+  src/Modules/OpencvCamera.cpp
+  src/Modules/OpencvCamera.h
   src/Modules/BlobProvider.cpp
   src/Modules/BlobProvider.h
   src/Modules/BlobFilter.cpp
@@ -285,11 +288,12 @@ ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_definitions(-DWINDOWS)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
+include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
+link_directories(${PYLON_ROOT}/lib64)
 
 add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE} ${LIB_ETHERNETIP_FANUC_SRC} ${LIB_ETHERNETIP_FANUC_INCLUDE} )
 if(WIN32)
-  target_link_libraries( banknoteClassifier ${OpenCV_LIBS} wsock32 ws2_32 winmm Eigen3::Eigen ${aruco_LIBS})
+  target_link_libraries( banknoteClassifier ${OpenCV_LIBS} wsock32 ws2_32 winmm Eigen3::Eigen ${aruco_LIBS} pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
 else()
   target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen ${aruco_LIBS})
 endif()
@@ -310,7 +314,7 @@ target_link_libraries(bc banknoteClassifier)
 include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/CalibratorTool  ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(calibrationTool ${CALIBRATOR_TOOL_SRC} ${CALIBRATION_TOOL_MOCSrcs} ${CALIBRATION_TOOL_RESOURCES_RCC})
-target_link_libraries(calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES} ${OpenCV_LIBS} Eigen3::Eigen)
+target_link_libraries(calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES})
 target_compile_definitions(calibrationTool PRIVATE QXT_STATIC)
 
 add_executable(visionTool ${VISION_TOOL_SRC} ${VISION_TOOL_MOCSrcs} ${OpenCV_INCLUDE})

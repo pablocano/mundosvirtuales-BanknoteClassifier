@@ -91,7 +91,7 @@ void ColorModel::setCube(const ColorCalibration::WhiteThresholds& thresholds, Co
   }
 }
 
-ColorModel::Colors ColorModel::getColor(cv::Vec3b point) const
+ColorModel::Colors ColorModel::getColor(const cv::Vec3b& point) const
 {
   return cubo[point[0] >> 3][point[2]][point[1]];
 }

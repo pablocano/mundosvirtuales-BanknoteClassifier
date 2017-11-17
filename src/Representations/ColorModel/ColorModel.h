@@ -35,5 +35,5 @@ public:
   
   void fromColorCalibration(const ColorCalibration& colorCalibration, ColorCalibration& prevCalibration);
 
-	Colors getColor(const cv::Vec3b point) const;
+  Colors getColor(const cv::Vec3b &point) const;
 };

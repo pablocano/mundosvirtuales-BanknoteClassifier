@@ -36,4 +36,5 @@ public:
     Blobs::Blob bestblob;
 
     bool exists;
+    bool newblob;
 };
