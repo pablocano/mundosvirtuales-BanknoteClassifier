@@ -3,7 +3,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <sstream>
 
-MAKE_MODULE(OpencvCamera, Common)
+MAKE_MODULE(OpencvCamera, Common2)
 
 OpencvCamera::OpencvCamera(): index(0)
 {

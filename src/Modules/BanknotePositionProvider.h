@@ -18,7 +18,7 @@ MODULE(BanknotePositionProvider,
  REQUIRES(Classification),
  REQUIRES(Features),
  REQUIRES(FrameInfo),
- REQUIRES(ImageBGR),
+ //REQUIRES(ImageBGR),
  REQUIRES(PreviousBanknotePosition),
  PROVIDES(BanknotePosition),
 });

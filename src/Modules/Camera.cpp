@@ -3,7 +3,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <sstream>
 
-MAKE_MODULE(Camera, Common2)
+MAKE_MODULE(Camera, Common)
 
 Camera::Camera()
 {
@@ -31,6 +31,8 @@ Camera::Camera()
 
         // Start the adquisition of images
         camera->StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
+
+        std::cout << "Camera OK" << std::endl;
     }
     catch (GenICam::GenericException &e)
     {
@@ -65,6 +67,7 @@ void Camera::update(Image& image)
         // Image grabbed successfully?
         if (ptrGrabResult->GrabSucceeded())
         {
+            std::cout << "new image" << std::endl;
             fc->Convert(*grabbedImage, ptrGrabResult);
             currentImage = cv::Mat(ptrGrabResult->GetHeight(), ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)grabbedImage->GetBuffer());
         }
