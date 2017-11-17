@@ -30,6 +30,10 @@ Camera::Camera()
         // Open the camera
         camera->Open();
 
+        // Load the persistent configuration
+        std::string nodeFile = std::string(File::getGTDir()) + "/Config/NodeMap.pfs";
+        Pylon::CFeaturePersistence::Load(nodeFile.c_str(), &camera->GetNodeMap(), true );
+
         // Initialice the pixel converter
         fc = new Pylon::CImageFormatConverter();
         fc->OutputPixelFormat = Pylon::PixelType_BGR8packed;
