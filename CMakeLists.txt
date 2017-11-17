@@ -16,6 +16,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/OpencvCamera.h
   src/Modules/BlobProvider.cpp
   src/Modules/BlobProvider.h
+  src/Modules/BlobFilter.cpp
+  src/Modules/BlobFilter.h
   src/Modules/BanknoteClassifierConfiguration.cpp
   src/Modules/BanknoteClassifierConfiguration.h
   src/Modules/BanknotePositionProvider.cpp
@@ -34,6 +36,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/Regionizer.h
   src/Modules/Segmentator.cpp
   src/Modules/Segmentator.h
+  src/Modules/TemplateInspection.cpp
+  src/Modules/TemplateInspection.h
   src/Platform/Memory.cpp
   src/Platform/Memory.h
   src/Processes/BanknoteClassifier.cpp
@@ -46,6 +50,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/CameraInfo.h
   src/Representations/Classification.cpp
   src/Representations/Classification.h
+  src/Representations/ErrorInfo.cpp
+  src/Representations/ErrorInfo.h
   src/Representations/ColorModel/ColorCalibration.h
   src/Representations/ColorModel/ColorModel.cpp
   src/Representations/ColorModel/ColorModel.h
@@ -54,6 +60,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/FrameInfo.h
   src/Representations/FieldDimensions.h
   src/Representations/FieldDimensions.cpp
+  src/Representations/GrabbingPosition.cpp
+  src/Representations/GrabbingPosition.h
   src/Representations/BanknoteClassifierMessages.h
   src/Representations/Image.cpp
   src/Representations/Image.h

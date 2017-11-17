@@ -19,6 +19,7 @@ Camera::Camera()
         // Find the first camera of the previous type
         camera = new Pylon::CBaslerUsbInstantCamera(Pylon::CTlFactory::GetInstance().CreateFirstDevice(info));
 
+
         // Open the camera
         camera->Open();
 

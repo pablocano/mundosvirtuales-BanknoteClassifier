@@ -38,7 +38,6 @@ EstimatePosition::EstimatePosition()
 
 void EstimatePosition::update(BanknotePositionFiltered& banknotePositionFiltered)
 {
-
     if (theBanknotePosition.banknote == Classification::NONE){
         gg++;
         if (gg > 5){

@@ -4,6 +4,7 @@
 #include "Representations/BanknotePosition.h"
 #include "Representations/Blobs.h"
 #include "Representations/Classification.h"
+#include "Representations/ErrorInfo.h"
 #include "Representations/Features.h"
 #include "Representations/FrameInfo.h"
 #include "Representations/Image.h"
@@ -21,6 +22,7 @@ MODULE(BanknotePositionProvider,
  REQUIRES(ImageBGR),
  REQUIRES(PreviousBanknotePosition),
  PROVIDES(BanknotePosition),
+ PROVIDES(ErrorInfo),
 });
 
 
@@ -41,6 +43,8 @@ public:
      * @param banknotePosition
      */
     void update(BanknotePosition& banknotePosition);
+
+    void update(ErrorInfo& errorinfo);
 
     /**
      * @brief Resize the image and aplicates and clane equalization
@@ -83,8 +87,16 @@ public:
     cv::Ptr<cv::CLAHE> clahe;
     cv::Ptr<cv::xfeatures2d::SURF> surf;
 
+    std::vector<cv::Mat> cannys;
+
     // Constants
     double minAreaPolygon;
+    double maxAreaPolygon;
+
+    //Aux
+    int error;
+    int lastbanknote;
+
 
 };
 

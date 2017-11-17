@@ -1,12 +1,14 @@
 #include "PreviousBanknoteCheck.h"
 #include "Modules/BanknotePositionProvider.h"
 #include "Tools/Math/Geometry.h"
+#include <iostream>
 
 MAKE_MODULE(PreviousBanknoteCheck, BanknoteClassifier)
 
 PreviousBanknoteCheck::PreviousBanknoteCheck()
 {
     surf_ = cv::xfeatures2d::SURF::create(500,4,3,true,false);
+    noMatch = 0;
 }
 
 
@@ -14,8 +16,7 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
 {
     previousBanknotePosition.banknote = Classification::NONE;
 
-    if(theBanknotePosition.banknote != Classification::NONE)
-    {
+    if(theBanknotePosition.banknote != Classification::NONE && theErrorInfo.error == 0){
         if(mask.empty())
             mask = cv::Mat::zeros(theGrayScaleImageEq.rows, theGrayScaleImageEq.cols, CV_8U);
         else
@@ -39,14 +40,15 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
 
         if (!H.empty() && banknote == theBanknotePosition.banknote){
             std::vector<Vector2f> scene_corners;
-            if(BanknotePositionProvider::analyzeArea(H, scene_corners))
-            {
-               previousBanknotePosition.banknote = (Classification::Banknote)banknote;
-
-               scene_corners.push_back(scene_corners.front());
-               previousBanknotePosition.corners = scene_corners;
+            if(BanknotePositionProvider::analyzeArea(H, scene_corners)){
+                previousBanknotePosition.banknote = (Classification::Banknote)banknote;
+                previousBanknotePosition.homography = H;
+                scene_corners.push_back(scene_corners.front());
+                previousBanknotePosition.corners = scene_corners;
             }
         }
+
     }
 }
+
 

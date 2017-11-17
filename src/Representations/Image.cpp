@@ -59,6 +59,24 @@ MessageQueue& operator<<(MessageQueue& stream, SegmentedImage& image)
   return stream;
 }
 
+MessageQueue& operator>>(MessageQueue& stream, cv::Mat& image)
+{
+  int size, width, height, type;
+  stream >> size >> width >> height >> type;
+  image.create(height, width, type);
+  stream.read(image.data, size);
+  return stream;
+}
+
+MessageQueue& operator<<(MessageQueue& stream, cv::Mat& image)
+{
+  int size = image.total() * image.elemSize();
+  int type = image.type();
+  stream << size << image.cols << image.rows << type;
+  stream.write(image.data, size);
+  return stream;
+}
+
 void MovementImage::draw() const
 {
   DECLARE_DEBUG_DRAWING("representation:MovementImage", "drawingOnImage");

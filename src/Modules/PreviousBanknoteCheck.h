@@ -2,6 +2,7 @@
 
 #include "Tools/ModuleManager/Module.h"
 #include "Representations/BanknotePosition.h"
+#include "Representations/ErrorInfo.h"
 #include "Representations/Features.h"
 #include "Representations/Image.h"
 #include <opencv2/xfeatures2d.hpp>
@@ -9,6 +10,7 @@
 MODULE(PreviousBanknoteCheck,
 {,
     REQUIRES(GrayScaleImageEq),
+    USES(ErrorInfo),
     USES(BanknotePosition),
     PROVIDES(PreviousBanknotePosition),
 });
@@ -26,4 +28,7 @@ public:
     cv::Mat mask;
 
     Features features;
+
+    int noMatch;
+
 };
