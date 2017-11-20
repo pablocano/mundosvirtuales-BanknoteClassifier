@@ -26,7 +26,7 @@ pause(false)
 {
   theDebugOut.setSize(5200000);
   theDebugIn.setSize(2800000);
-  theCommSender.setSize(1000 * SIZE_PACKET);
+  theCommSender.setSize(5000 * SIZE_PACKET);
   theCommReceiver.setSize(5000 * SIZE_PACKET); // more than 4 because of additional data
 }
 

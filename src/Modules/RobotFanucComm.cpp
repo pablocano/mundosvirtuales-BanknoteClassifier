@@ -12,7 +12,7 @@ MAKE_MODULE(RobotFanucComm, BanknoteClassifier)
 
 int RobotFanucComm::idPacket = 0;
 
-RobotFanucComm::RobotFanucComm()
+RobotFanucComm::RobotFanucComm() : lastTimeSent(0)
 {
 
 }
@@ -53,6 +53,11 @@ void RobotFanucComm::update(DummyComm &dummyComm)
         PacketEthernetIPFanuc packetRead(READ_POS, idPacket, REG_POSITION_BANKNOTE);
         SEND_MESSAGE(idEthernetIPFanuc, packetRead);
     }
+
+    if(theFrameInfo.time - lastTimeSent < 33)
+        return;
+
+    lastTimeSent = theFrameInfo.time;
 
     PacketEthernetIPFanuc packetRead(READ_CURR_POS, idPacket, 0);
     SEND_MESSAGE(idEthernetIPFanuc, packetRead);

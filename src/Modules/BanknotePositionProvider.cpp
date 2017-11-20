@@ -19,7 +19,7 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),max
     // Initialize the used tools
     clahe = cv::createCLAHE(2.0, cv::Size(7,7));
     matcher.create(cv::NORM_L2, false);
-    surf = cv::xfeatures2d::SURF::create(500,4,3,true,false);
+    surf = cv::xfeatures2d::SURF::create(400,4,3,true,false);
 
     // Import and analize each template image
     for(unsigned i = 0; i < Classification::numOfBanknotes - 2; i++)

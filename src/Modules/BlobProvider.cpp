@@ -13,15 +13,15 @@
 MAKE_MODULE(BlobProvider, BanknoteClassifier)
 
 
-BlobProvider::BlobProvider() : minNumOfSegments(20), minSegmentSize(5), maxDistanceInSameDepth(5), maxDepthDistance(10) {}
+BlobProvider::BlobProvider() : minNumOfSegments(20), minSegmentSize(5), maxDistanceInSameDepth(10), maxDepthDistance(20) {}
 
 void BlobProvider::update(Blobs &blobs)
 {
-  if(thePreviousBanknotePosition.banknote != Classification::NONE)
-      return;
+    // Remove old blobs
+    blobs.blobs.clear();
 
-  // Remove old blobs
-  blobs.blobs.clear();
+    if(thePreviousBanknotePosition.banknote != Classification::NONE)
+      return;
 
   // Create blobs
   createBlobs();

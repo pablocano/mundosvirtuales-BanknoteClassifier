@@ -3,10 +3,11 @@
 #include "Tools/ModuleManager/Module.h"
 #include "Tools/Math/Kalman.h"
 #include "Representations/BanknotePosition.h"
-
+#include "Representations/RegState.h"
 MODULE(EstimatePosition,
 {,
  REQUIRES(BanknotePosition),
+ REQUIRES(RegState),
  PROVIDES(BanknotePositionFiltered),
 });
 

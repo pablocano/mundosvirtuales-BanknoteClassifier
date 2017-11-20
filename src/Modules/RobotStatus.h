@@ -17,14 +17,13 @@ public:
 
     RobotStatus();
 
+    static RobotStatus* theInstance;
+
     void update(RegState& regstate);
 
-    static int messageDeliver;
+    int messageDeliver;
     int aux;
     int previousPoseState;
 
     static void messageDelivered();
-
-
-
 };

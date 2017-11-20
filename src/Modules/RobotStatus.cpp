@@ -2,20 +2,20 @@
 
 MAKE_MODULE(RobotStatus, BanknoteClassifier)
 
-
-int RobotStatus::messageDeliver = 0;
+RobotStatus* RobotStatus::theInstance = 0;
 
 RobotStatus::RobotStatus()
 {
+    theInstance = this;
+
+    messageDeliver = 0;
     previousPoseState = 0;
-
-
 }
 
 
 void RobotStatus::update(RegState& regstate)
 {
-    if (previousPoseState == 1 && theRobotFanuc.robotModel.reg.at(REG_STATUS_POSE) == 0)
+    if (messageDeliver == 1 && !theRobotFanuc.robotModel.reg.at(REG_STATUS_AREA))
         messageDeliver = 0;
     aux = !(messageDeliver || theRobotFanuc.robotModel.reg.at(REG_STATUS_POSE));
     if (theRobotFanuc.robotModel.reg.at(REG_STATUS_AREA) && aux)
@@ -32,5 +32,6 @@ void RobotStatus::update(RegState& regstate)
 
 void RobotStatus::messageDelivered()
 {
-    messageDeliver = 1;
+    if(theInstance)
+        theInstance->messageDeliver = 1;
 }

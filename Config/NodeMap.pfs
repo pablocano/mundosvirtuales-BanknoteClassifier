@@ -18,7 +18,7 @@ GainSelector	All
 BlackLevelSelector	All
 BlackLevel	0.00000
 BlackLevelSelector	All
-Gamma	1.68843
+Gamma	3.99998
 RemoveParameterLimitSelector	Gain
 RemoveParameterLimit	0
 RemoveParameterLimitSelector	ExposureTime
@@ -29,9 +29,9 @@ BalanceWhiteAuto	Off
 BalanceRatioSelector	Red
 BalanceRatio	1.00000
 BalanceRatioSelector	Green
-BalanceRatio	1.31372
+BalanceRatio	1.29224
 BalanceRatioSelector	Blue
-BalanceRatio	3.77271
+BalanceRatio	3.43726
 BalanceRatioSelector	Red
 ColorTransformationSelector	RGBtoRGB
 ColorTransformationValueSelector	Gain00
@@ -56,7 +56,7 @@ ColorTransformationSelector	RGBtoRGB
 ColorTransformationValueSelector	Gain00
 ExposureAuto	Off
 ExposureMode	Timed
-ExposureTime	4197.0
+ExposureTime	7000.0
 AcquisitionBurstFrameCount	1
 TriggerSelector	FrameBurstStart
 TriggerMode	Off
@@ -96,7 +96,7 @@ ChunkSelector	PayloadCRC16
 ChunkEnable	0
 ChunkSelector	Timestamp
 ChunkModeActive	0
-AutoTargetBrightness	0.29412
+AutoTargetBrightness	0.19608
 AutoFunctionProfile	MinimizeGain
 AutoGainLowerLimit	0.00000
 AutoGainUpperLimit	12.01313
