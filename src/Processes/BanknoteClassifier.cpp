@@ -54,8 +54,7 @@ int BanknoteClassifier::main()
   
   DEBUG_RESPONSE_ONCE("automated requests:DrawingManager", OUTPUT(idDrawingManager, Global::getDrawingManager()););
   
-  if(Blackboard::getInstance().exists("CameraInfo") &&
-     ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).type == CameraInfo::Type::eastCam)
+  if(Blackboard::getInstance().exists("CameraInfo"))
   {
     SEND_BANKNOTE_CLASSIFIER_COMM;
   }

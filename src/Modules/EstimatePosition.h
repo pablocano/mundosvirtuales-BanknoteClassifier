@@ -34,6 +34,7 @@ public:
     //variable auxiliar
     Classification::Banknote previous;
     int gg;
+    int valid;
 
 
 

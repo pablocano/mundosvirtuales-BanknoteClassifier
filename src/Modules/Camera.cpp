@@ -21,11 +21,12 @@ Camera::Camera()
     try
     {
         // Find the type of camera of the current camera
-        Pylon::CDeviceInfo info;
-        info.SetDeviceClass( Pylon::CBaslerUsbInstantCamera::DeviceClass());
+        //Pylon::CDeviceInfo info;
+        //info.SetDeviceClass( Pylon::CBaslerUsbInstantCamera::DeviceClass());
 
         // Find the first camera of the previous type
-        camera = new Pylon::CBaslerUsbInstantCamera(Pylon::CTlFactory::GetInstance().CreateFirstDevice(info));
+        //camera = new Pylon::CBaslerUsbInstantCamera(Pylon::CTlFactory::GetInstance().CreateFirstDevice(info));
+        camera = new Pylon::CInstantCamera(Pylon::CTlFactory::GetInstance().CreateFirstDevice());
 
         // Open the camera
         camera->Open();
@@ -43,8 +44,6 @@ Camera::Camera()
 
         // Start the adquisition of images
         camera->StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
-
-        std::cout << "Camera OK" << std::endl;
     }
     catch (GenICam::GenericException &e)
     {
@@ -78,7 +77,6 @@ void Camera::update(Image& image)
         // Image grabbed successfully?
         if (ptrGrabResult->GrabSucceeded())
         {
-            std::cout << "new image" << std::endl;
             fc->Convert(*grabbedImage, ptrGrabResult);
             currentImage = cv::Mat(ptrGrabResult->GetHeight(), ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)grabbedImage->GetBuffer());
         }

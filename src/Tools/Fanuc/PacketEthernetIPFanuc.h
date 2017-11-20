@@ -80,6 +80,15 @@ STRUCT_PACKET PacketEthernetIPFanuc{
 		reg = _reg;
 	}
 
+    PacketEthernetIPFanuc(int16_t _command, int _idPacket, int _reg, int value)
+    {
+        magicNum = VALID_MAGIC_NUMBER;
+        command = _command;
+        idPacket = _idPacket;
+        reg = _reg;
+        *((int *) payload) = value;
+    }
+
 	PacketEthernetIPFanuc(int16_t _command, int _idPacket, int _reg, std::string _message)
 	{
 		magicNum = VALID_MAGIC_NUMBER;

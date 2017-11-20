@@ -19,10 +19,10 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),max
     // Initialize the used tools
     clahe = cv::createCLAHE(2.0, cv::Size(7,7));
     matcher.create(cv::NORM_L2, false);
-    surf = cv::xfeatures2d::SURF::create(600,3,3,true,false);
+    surf = cv::xfeatures2d::SURF::create(500,4,3,true,false);
 
     // Import and analize each template image
-    for(unsigned i = 0; i < Classification::numOfBanknotes - 1; i++)
+    for(unsigned i = 0; i < Classification::numOfBanknotes - 2; i++)
     {
         // Read the image and resize it
         cv::Mat image = cv::imread(std::string(File::getGTDir()) + "/Data/img_scan/" + Classification::getName((Classification::Banknote)i) + ".jpg", CV_LOAD_IMAGE_GRAYSCALE);
@@ -150,7 +150,7 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
             good_matches.clear();
             for(auto& match : aux_matches)
             {
-                if(match[0].distance < 0.85f * match[1].distance)
+                if(match[0].distance < 0.9f * match[1].distance)
                 {
                     good_matches.push_back(match[0]);
                 }
