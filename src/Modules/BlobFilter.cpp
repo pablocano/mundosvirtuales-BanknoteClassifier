@@ -13,12 +13,12 @@ void BlobFilter::update(BestBlob &bestblob){
 
     bestblob.exists = false;
 
-    if(!theBlobs.blobs.empty()){
+    /*if(!theBlobs.blobs.empty()){
         bestblob.bestblob = theBlobs.blobs[0];
         bestblob.exists = true;
     }
 
-    return;
+    return;*/
 
     if (!theBlobs.blobs.empty()){
         if (theErrorInfo.error == 1){

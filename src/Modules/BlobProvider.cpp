@@ -13,7 +13,7 @@
 MAKE_MODULE(BlobProvider, BanknoteClassifier)
 
 
-BlobProvider::BlobProvider() : minNumOfSegments(20), minSegmentSize(5), maxDistanceInSameDepth(20), maxDepthDistance(20) {}
+BlobProvider::BlobProvider() : minNumOfSegments(20), minSegmentSize(5), maxDistanceInSameDepth(5), maxDepthDistance(10) {}
 
 void BlobProvider::update(Blobs &blobs)
 {
