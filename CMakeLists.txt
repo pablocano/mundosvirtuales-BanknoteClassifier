@@ -49,6 +49,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/RobotFanucDataProvider.h
   src/Modules/RobotFanucComm.cpp
   src/Modules/RobotFanucComm.h
+  src/Modules/RobotStatus.cpp
+  src/Modules/RobotStatus.h
   src/Modules/Segmentator.cpp
   src/Modules/Segmentator.h
   src/Modules/TemplateInspection.cpp
@@ -88,6 +90,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/Modeling/CameraPose.h
   src/Representations/Regions.cpp
   src/Representations/Regions.h
+  src/Representations/RegState.cpp
+  src/Representations/RegState.h
   src/Representations/RobotFanuc.cpp
   src/Representations/RobotFanuc.h
   src/Tools/AlignedMemory.cpp
