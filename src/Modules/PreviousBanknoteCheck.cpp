@@ -11,12 +11,13 @@ PreviousBanknoteCheck::PreviousBanknoteCheck()
     error = 0;
     lastbanknote = 0;
     newSearch = 1;
+
 }
 
 
 void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePosition)
 {
-    if (theRobotFanuc.robotModel.reg.at(REG_STATUS_AREA) == 1)
+    if (theRegState.getbanknote)
     {
         previousBanknotePosition.banknote = Classification::NONE;
 
@@ -73,5 +74,6 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
     }
 
 }
+
 
 

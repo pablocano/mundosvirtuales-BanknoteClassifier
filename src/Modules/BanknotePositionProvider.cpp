@@ -32,11 +32,11 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),max
         Features f;
         surf->detectAndCompute(image,cv::noArray(),f.keypoints,f.descriptors,false);
 
-        cv::Mat canny;
+        //cv::Mat canny;
 
-        cv::Canny(image,canny,100,200,3,true);
+        //cv::Canny(image,canny,100,200,3,true);
 
-        cannys.push_back(canny);
+        //cannys.push_back(canny);
 
         // Store the features and the image
         modelsFeatures.push_back(f);

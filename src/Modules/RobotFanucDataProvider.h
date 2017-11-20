@@ -55,4 +55,5 @@ public:
 	 * @brief Handler messages.
 	 */
     static void handleMessages(MessageQueue& messages);
+
 };
