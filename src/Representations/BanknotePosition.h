@@ -7,6 +7,7 @@
 #include <opencv2/core.hpp>
 #include <vector>
 #include "Tools/Math/Eigen.h"
+#include "Tools/Math/Pose2D.h"
 
 class BanknotePosition : public Streamable
 {
@@ -22,6 +23,8 @@ public:
 
     std::vector<Vector2f> corners;
 
+    Pose2D position;
+
     cv::Mat homography;
 
 
@@ -34,4 +37,9 @@ class BanknotePositionFiltered : public BanknotePosition
 {
 public:
     void draw() const;
+
+    BanknotePositionFiltered():BanknotePosition(),valid(0){}
+
+    //To check if is valid to send to the robot
+    int valid;
 };

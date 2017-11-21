@@ -148,8 +148,8 @@ bool SocketClientTcp::checkConnection()
 		{
 			m_socket = (int)socket(AF_INET, SOCK_STREAM, 0);
             //TODO: fix the non connection case
-            //if (connect(m_socket, (sockaddr*)&m_address, sizeof(sockaddr_in)) != 0)
-                //closeSocket();
+            if (connect(m_socket, (sockaddr*)&m_address, sizeof(sockaddr_in)) != 0)
+                closeSocket();
 		}
 
 		if (connected())

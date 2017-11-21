@@ -1,10 +1,5 @@
 #pragma once
 
-#include "Tools/Messages/MessageQueue.h"
-#include "Tools/Debugging/DebugRequest.h"
-
-#include "Tools/Global.h"
-
 #ifdef RELEASE
 
 #define EXECUTE_ONLY_IN_DEBUG(...) ((void) 0)
@@ -13,8 +8,14 @@
 #define DEBUG_RESPONSE_ONCE(id, ...) ((void) 0)
 #define DEBUG_RESPONSE_NOT(id, ...) { __VA_ARGS__ }
 #define NOT_POLLABLE_DEBUG_RESPONSE(id, ...) ((void) 0)
+#define OUTPUT_TEXT(...) ((void) 0)
 
 #else // RELEASE
+
+#include "Tools/Messages/MessageQueue.h"
+#include "Tools/Debugging/DebugRequest.h"
+#include "Tools/Global.h"
+#include <iostream>
 
 /**
  * A macro for sending debug messages.
@@ -95,6 +96,12 @@
     } \
   } \
   while(false)
+
+#define OUTPUT_TEXT(text) \
+    do{ \
+        std::cout << text << std::endl; \
+    } \
+    while(false)
 
 #endif //RELEASE
 

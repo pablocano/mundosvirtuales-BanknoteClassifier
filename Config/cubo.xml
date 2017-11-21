@@ -28,50 +28,50 @@
         <max>0</max></intensity></_>
     <_>
       <hue>
-        <min>56</min>
-        <max>133</max></hue>
+        <min>84</min>
+        <max>123</max></hue>
       <saturation>
-        <min>35</min>
-        <max>169</max></saturation>
-      <intensity>
-        <min>66</min>
-        <max>238</max></intensity></_>
-    <_>
-      <hue>
-        <min>139</min>
-        <max>153</max></hue>
-      <saturation>
-        <min>66</min>
+        <min>27</min>
         <max>255</max></saturation>
       <intensity>
-        <min>121</min>
+        <min>72</min>
         <max>255</max></intensity></_>
     <_>
       <hue>
-        <min>198</min>
-        <max>13</max></hue>
+        <min>95</min>
+        <max>204</max></hue>
       <saturation>
-        <min>0</min>
-        <max>201</max></saturation>
+        <min>55</min>
+        <max>255</max></saturation>
       <intensity>
-        <min>69</min>
-        <max>219</max></intensity></_>
+        <min>126</min>
+        <max>255</max></intensity></_>
+    <_>
+      <hue>
+        <min>216</min>
+        <max>255</max></hue>
+      <saturation>
+        <min>41</min>
+        <max>255</max></saturation>
+      <intensity>
+        <min>0</min>
+        <max>255</max></intensity></_>
     <_>
       <hue>
         <min>0</min>
-        <max>32</max></hue>
+        <max>62</max></hue>
       <saturation>
-        <min>8</min>
-        <max>249</max></saturation>
+        <min>40</min>
+        <max>255</max></saturation>
       <intensity>
-        <min>51</min>
+        <min>164</min>
         <max>255</max></intensity></_>
     <_>
       <hue>
         <min>162</min>
         <max>231</max></hue>
       <saturation>
-        <min>26</min>
+        <min>211</min>
         <max>255</max></saturation>
       <intensity>
         <min>255</min>

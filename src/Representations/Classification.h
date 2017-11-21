@@ -18,7 +18,8 @@ public:
          DIEZ_S,
          VEINTE_C,
          VEINTE_S,
-         NONE
+         NONE,
+         STOP
     );
 
 

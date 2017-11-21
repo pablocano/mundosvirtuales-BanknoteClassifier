@@ -1,9 +1,9 @@
 #include "BanknoteClassifierMessageHandler.h"
 #include "Tools/Fanuc/PacketEthernetIPFanuc.h"
+#include "Tools/Debugging/Debugging.h"
 #include "Tools/MessageIDs.h"
 
 #include <string.h>
-#include <iostream>
 
 BanknoteClassifierMessageHandler* BanknoteClassifierMessageHandler::theInstance = 0;
 
@@ -48,7 +48,7 @@ void BanknoteClassifierMessageHandler::send()
 
 		  if (!lpSocket->send((char *) &packet, SIZE_PACKET))
 		  {
-			  printf("Could not send the message");
+              printf("Could not send the message\n");
 		  }
 	  }
   }
@@ -58,7 +58,6 @@ void BanknoteClassifierMessageHandler::send()
 
 unsigned BanknoteClassifierMessageHandler::receive()
 {
-  return 0;
 
   in.clear();
   if(!lpSocket)
@@ -66,26 +65,25 @@ unsigned BanknoteClassifierMessageHandler::receive()
 
   PacketEthernetIPFanuc packet;
   
-  if (lpSocket->receive((char *)&packet, SIZE_PACKET))
+  unsigned numOfMessages = 0;
+  while(lpSocket->receive((char *)&packet, SIZE_PACKET, false))
   {
 	  if (packet.isValid())
 	  {
 		  in << packet;
 		  in.finishMessage(idEthernetIPFanuc);
 
-		  return SIZE_PACKET;
+          numOfMessages++;
+
+          //return SIZE_PACKET;
 	  }
 	  else
 	  {
-		  std::cout << "Invalid packet" << std::endl;
+          OUTPUT_TEXT("Invalid packet");
 	  }
   }
-  else
-  {
-	  std::cout << "Problem Received packet" << std::endl;
-  }
-  
-  return 0;
+
+  return numOfMessages * SIZE_PACKET;
 }
 
 MessageQueue& BanknoteClassifierMessageHandler::getOutQueue()

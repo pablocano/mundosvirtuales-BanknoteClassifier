@@ -1,15 +1,17 @@
 %YAML:1.0
-Camera_Matrix: !!opencv-matrix
+---
+image_width: 800
+image_height: 600
+camera_matrix: !!opencv-matrix
    rows: 3
    cols: 3
    dt: d
-   data: [ 3.0007268231231404e+02, 0., 3.1950000000000000e+02, 0.,
-       3.0007268231231404e+02, 2.3950000000000000e+02, 0., 0., 1. ]
-Distortion_Coefficients: !!opencv-matrix
-   rows: 5
-   cols: 1
+   data: [ 8.5687910854388247e+03, 0., 5.8473580014190691e+02, 0.,
+       8.5503252956290999e+03, 7.2611706230208006e+02, 0., 0., 1. ]
+distortion_coefficients: !!opencv-matrix
+   rows: 1
+   cols: 5
    dt: d
-   data: [ 3.0035461773772199e-02, -4.1868216536221817e-02, 0., 0.,
-       4.7996748723464367e-03 ]
-Pixel_to_World: 8.7715921401977539e+00
-Field_Center: [ 390, 301 ]
+   data: [ 1.3940698899738451e+00, -9.9367626296062923e+01,
+       -2.9029563227400561e-02, -1.0546244121100869e-01,
+       -1.6520619233908154e+00 ]

@@ -13,7 +13,8 @@
 #include "Tools/Global.h"
 #include "Tools/SystemCall.h"
 #include "Tools/Fanuc/PacketEthernetIPFanuc.h"
-#include "Modules/RobotFanucProvider.h"
+#include "Modules/ArucoPoseEstimator.h"
+#include "Modules/RobotFanucDataProvider.h"
 
 #include <istream>
 
@@ -25,7 +26,7 @@ pause(false)
 {
   theDebugOut.setSize(5200000);
   theDebugIn.setSize(2800000);
-  theCommSender.setSize(1000 * SIZE_PACKET);
+  theCommSender.setSize(5000 * SIZE_PACKET);
   theCommReceiver.setSize(5000 * SIZE_PACKET); // more than 4 because of additional data
 }
 
@@ -41,6 +42,8 @@ void BanknoteClassifier::init()
 int BanknoteClassifier::main()
 {
   RECEIVE_BANKNOTE_CLASSIFIER_COMM;
+
+  RobotFanucDataProvider::handleMessages(theCommReceiver);
   
   int numberOfMessages = theDebugOut.getNumberOfMessages();
   
@@ -51,8 +54,7 @@ int BanknoteClassifier::main()
   
   DEBUG_RESPONSE_ONCE("automated requests:DrawingManager", OUTPUT(idDrawingManager, Global::getDrawingManager()););
   
-  if(Blackboard::getInstance().exists("CameraInfo") &&
-     ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).type == CameraInfo::Type::eastCam)
+  if(Blackboard::getInstance().exists("CameraInfo"))
   {
     SEND_BANKNOTE_CLASSIFIER_COMM;
   }
@@ -79,5 +81,5 @@ int BanknoteClassifier::main()
 
 bool BanknoteClassifier::handleMessage(MessageQueue &message)
 {
-	return BanknoteClassifierConfiguration::handleMessage(message) || Process::handleMessage(message); //|| RobotFanucProvider::handleMessage(message);
+    return BanknoteClassifierConfiguration::handleMessage(message) || Process::handleMessage(message) || ArucoPoseEstimator::handleMessage(message);
 }
