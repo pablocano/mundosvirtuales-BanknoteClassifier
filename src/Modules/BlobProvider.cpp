@@ -157,7 +157,7 @@ std::vector<Vector2i > BlobProvider::Group::getConvexHull()
       {
           i++;
       }
-      while(segments[i].left.y() == currentY);
+      while(i < segments.size() && segments[i].left.y() == currentY);
 
       // Store the rightmost point
       i--;

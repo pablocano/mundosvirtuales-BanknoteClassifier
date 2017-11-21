@@ -3,8 +3,20 @@ cmake_minimum_required(VERSION 3.1.0)
 PROJECT (BanknoteClassifier)
 find_package(OpenCV REQUIRED)
 find_package(Qt4 REQUIRED)
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 include(${QT_USE_FILE})
+
+OPTION(USE_OWN_EIGEN3	"Set to OFF to use a standard eigen3 version" ON)
+
+IF(NOT USE_OWN_EIGEN3)
+	find_package( Eigen3 3.3 REQUIRED NO_MODULE )
+ELSE()
+	set(EIGEN3_INCLUDE_DIR "Utils/eigen3")
+ENDIF()
+include_directories( ${EIGEN3_INCLUDE_DIR} )
+
+IF(USE_DOUBLE_PRECISION_PNP)
+	ADD_DEFINITIONS(-DDOUBLE_PRECISION_PNP)
+ENDIF()
 
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
 
@@ -274,9 +286,9 @@ include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${CMAKE_CURRENT_SOUR
 
 add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE} ${LIB_ETHERNETIP_FANUC_SRC} ${LIB_ETHERNETIP_FANUC_INCLUDE} )
 if(WIN32)
-	target_link_libraries( banknoteClassifier ${OpenCV_LIBS} wsock32 ws2_32 winmm Eigen3::Eigen)
+	target_link_libraries( banknoteClassifier ${OpenCV_LIBS} wsock32 ws2_32 winmm)
 else()
-	target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen)
+	target_link_libraries( banknoteClassifier ${OpenCV_LIBS})
 endif()
 
 add_library( libqxt STATIC ${LIBQXT_SRC} ${LIBQXT_MOC_Srcs})
@@ -295,7 +307,7 @@ target_link_libraries(bc banknoteClassifier)
 include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/CalibratorTool  ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(calibrationTool ${CALIBRATOR_TOOL_SRC} ${CALIBRATION_TOOL_MOCSrcs} ${CALIBRATION_TOOL_RESOURCES_RCC})
-target_link_libraries(calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES} ${OpenCV_LIBS} Eigen3::Eigen)
+target_link_libraries(calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES} ${OpenCV_LIBS})
 target_compile_definitions(calibrationTool PRIVATE QXT_STATIC)
 
 add_executable(visionTool ${VISION_TOOL_SRC} ${VISION_TOOL_MOCSrcs} ${OpenCV_INCLUDE})
