@@ -73,8 +73,10 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/Regions.cpp
   src/Representations/Regions.h
   src/Representations/RobotFanuc.cpp
-  src/Representations/RobotFanuc.h  src/Tools/AlignedMemory.cpp
-  src/Tools/AlignedMemory.h  src/Tools/ColorClasses.cpp
+  src/Representations/RobotFanuc.h
+  src/Tools/AlignedMemory.cpp
+  src/Tools/AlignedMemory.h
+  src/Tools/ColorClasses.cpp
   src/Tools/ColorClasses.h
   src/Tools/ColorModelConversions.h
   src/Tools/Comm/Comm.h
@@ -272,9 +274,9 @@ include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${CMAKE_CURRENT_SOUR
 
 add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE} ${LIB_ETHERNETIP_FANUC_SRC} ${LIB_ETHERNETIP_FANUC_INCLUDE} )
 if(WIN32)
-	target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen wsock32 ws2_32 winmm )
+	target_link_libraries( banknoteClassifier ${OpenCV_LIBS} wsock32 ws2_32 winmm Eigen3::Eigen)
 else()
-	target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen )
+	target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen)
 endif()
 
 add_library( libqxt STATIC ${LIBQXT_SRC} ${LIBQXT_MOC_Srcs})
