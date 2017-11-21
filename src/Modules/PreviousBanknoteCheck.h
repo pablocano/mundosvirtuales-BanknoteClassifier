@@ -10,9 +10,9 @@
 MODULE(PreviousBanknoteCheck,
 {,
     REQUIRES(GrayScaleImageEq),
+    USES(ErrorInfo),
     USES(BanknotePosition),
     PROVIDES(PreviousBanknotePosition),
-    PROVIDES(ErrorInfo),
 });
 
 class PreviousBanknoteCheck : public PreviousBanknoteCheckBase
@@ -23,15 +23,12 @@ public:
 
     void update(PreviousBanknotePosition& previousBanknotePosition);
 
-    void update(ErrorInfo& errorinfo);
-
     cv::Ptr<cv::xfeatures2d::SURF> surf_;
 
     cv::Mat mask;
 
     Features features;
 
-    //Aux
-    int error;
-    int lastbanknote;
+    int noMatch;
+
 };

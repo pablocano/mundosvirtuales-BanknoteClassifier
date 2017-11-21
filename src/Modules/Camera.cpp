@@ -124,7 +124,7 @@ void Camera::update(ImageBGR& image)
   }
   while(tmp.empty() || i < 0);
 
-  cv::resize(tmp,tmp,cv::Size(1500,750));
+  //cv::resize(tmp,tmp,cv::Size(800,600));
 
   // correct and rotate images
   //cv::undistort(tmp, undistorted, camerasInfo[index]->K, camerasInfo[index]->d);

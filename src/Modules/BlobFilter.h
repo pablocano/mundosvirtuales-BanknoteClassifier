@@ -10,7 +10,6 @@ MODULE(BlobFilter,
  REQUIRES(Blobs),
  USES(ErrorInfo),
  PROVIDES(BestBlob),
- PROVIDES(PreviousBanknotePosition)
 });
 
 class BlobFilter : public BlobFilterBase
@@ -21,7 +20,6 @@ public:
 
     void update(BestBlob& bestblob);
 
-    void update(PreviousBanknotePosition& previousbanknote);
 
     Color getColor(int banknote);
 
@@ -30,5 +28,4 @@ public:
 
     //Aux
     bool existsBlob;
-    bool newblob;
 };
