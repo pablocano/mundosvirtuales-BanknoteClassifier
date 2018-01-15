@@ -4,7 +4,15 @@ PROJECT (BanknoteClassifier)
 find_package(OpenCV REQUIRED)
 find_package(Qt4 REQUIRED)
 find_package(aruco REQUIRED)
-set(PYLON_ROOT /opt/pylon5)
+
+IF(WIN32)
+	set(PYLON_ROOT "C:\\Program Files\\Basler\\pylon 5\\Development\\")
+ELSE()	
+	set(PYLON_ROOT /opt/pylon5)
+ENDIF()
+
+MESSAGE("${PYLON_ROOT}/include")
+
 include(${QT_USE_FILE})
 
 OPTION(USE_OWN_EIGEN3	"Set to OFF to use a standard eigen3 version" ON)
@@ -24,7 +32,7 @@ set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-if(WINDOWS)
+if(WIN32)
 	set(CMAKE_SHARED_LINKER_FLAGS "/API_EXPORT")
 endif()
 
@@ -303,12 +311,17 @@ ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_definitions(-DWINDOWS)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
-link_directories(${PYLON_ROOT}/lib64)
+IF(WIN32)
+	include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
+	link_directories(${PYLON_ROOT}/lib/x64)
+ELSE()
+	include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
+	link_directories(${PYLON_ROOT}/lib64)
+ENDIF()
 
 add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE} ${LIB_ETHERNETIP_FANUC_SRC} ${LIB_ETHERNETIP_FANUC_INCLUDE} )
 if(WIN32)
-  target_link_libraries( banknoteClassifier ${OpenCV_LIBS} wsock32 ws2_32 winmm ${aruco_LIBS} pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
+  target_link_libraries( banknoteClassifier ${OpenCV_LIBS} wsock32 ws2_32 winmm ${aruco_LIBS} PylonBase_MD_VC120_v5_0 PylonUtility_MD_VC120_v5_0 GenApi_MD_VC120_v3_0_Basler_pylon_v5_0 GCBase_MD_VC120_v3_0_Basler_pylon_v5_0)
 else()
   target_link_libraries( banknoteClassifier ${OpenCV_LIBS} ${aruco_LIBS} pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
 endif()
@@ -318,7 +331,11 @@ target_link_libraries(libqxt ${QT_LIBRARIES})
 target_compile_definitions(libqxt PRIVATE QXT_STATIC )
 
 add_executable( cameraCalibration ${CAMERA_CALIBRATION} ${OpenCV_INCLUDE})
-target_link_libraries( cameraCalibration ${OpenCV_LIBS} ${aruco_LIBS} pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
+if(WIN32)
+  target_link_libraries( cameraCalibration ${OpenCV_LIBS} ${aruco_LIBS} PylonBase_MD_VC120_v5_0 PylonUtility_MD_VC120_v5_0 GenApi_MD_VC120_v3_0_Basler_pylon_v5_0 GCBase_MD_VC120_v3_0_Basler_pylon_v5_0)
+else()
+  target_link_libraries( cameraCalibration ${OpenCV_LIBS} ${aruco_LIBS} pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
+endif()
 
 add_executable( fieldCalibrator ${FIELD_CALIBRATOR} ${OpenCV_INCLUDE})
 target_link_libraries( fieldCalibrator ${OpenCV_LIBS} )
@@ -329,7 +346,6 @@ target_link_libraries(bc banknoteClassifier)
 include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/CalibratorTool  ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(calibrationTool ${CALIBRATOR_TOOL_SRC} ${CALIBRATION_TOOL_MOCSrcs} ${CALIBRATION_TOOL_RESOURCES_RCC})
-target_link_libraries(calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES} ${OpenCV_LIBS})
 target_link_libraries(calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES})
 target_compile_definitions(calibrationTool PRIVATE QXT_STATIC)
 
