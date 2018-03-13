@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Feb 08 11:40:00 2018
+Created on Fri Feb 23 11:06:51 2018
 
 @author: David
 """
@@ -76,22 +76,22 @@ def send_data(tree, sock):
 def main(IP, PORT):
     
     #Create xml message"
-    command = """<CsmRequest><Command>stackers</Command></CsmRequest>"""
+    command = """<CsmRequest><Command>get_count_result</Command></CsmRequest>"""
     
     # Creating a socket TCP/IP
     sock_grg = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #sock_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     
     # Connecting socket
-    grg_address = ('10.0.42.77', 5000)
-    server_adress = ('127.0.0.1',3333)
+    grg_address = ('10.0.42.88', 5000)
+    #server_adress = ('127.0.0.1',3333)
     
     print('Connecting to CM400 (ip: %s, port: %s)' % grg_address)
-    print('Connecting to Server (ip: %s, port: %s)' % server_adress)
+    #print('Connecting to Server (ip: %s, port: %s)' % server_adress)
     
     sock_grg.connect(grg_address)
-    sock_server.connect(server_adress)
+    #sock_server.connect(server_adress)
     
     
     while True:
@@ -107,15 +107,16 @@ def main(IP, PORT):
             #Create xml tree    
             resp_tree = ET.fromstring(resp)
             
-            print('Response CM400 "%s"' % resp_tree.tag)
+            print('Response CM400 "%s"' % resp)
             
             #Send data to server
-            send_data(resp_tree, sock_server)
+            #send_data(resp_tree, sock_server)
             
             #Sleep
             time.sleep(0.2)
+            break
             
-        
+         
         # catch socket errors     
         except socket.error:
             print('Couldnt connect with the socket-server, terminating test')
@@ -129,10 +130,10 @@ def main(IP, PORT):
     print('Close Socket')
         
     sock_grg.close()
-    sock_server.close()
+    #sock_server.close()
     print("Bye")
         
 
     
 if __name__ == "__main__":
-    main('10.0.42.77',5000)   
+    main('10.0.42.88',5000)   
