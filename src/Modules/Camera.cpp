@@ -85,7 +85,7 @@ void Camera::update(Image& image)
         OUTPUT(idImage,currentImage);
     });
 
-    cv::cvtColor(currentImage, image, CV_BGR2YCrCb);
+    cv::cvtColor(currentImage, image, cv::COLOR_BGR2YCrCb);
   
 }
 

@@ -35,8 +35,8 @@ OpencvCamera::OpencvCamera(): index(0)
         std::cout << "Camera 1 was successfully opened"<< std::endl;
         cam1.available = true;
 
-        video0.set(CV_CAP_PROP_FRAME_HEIGHT, height);
-        video0.set(CV_CAP_PROP_FRAME_WIDTH, width);
+        video0.set(cv::CAP_PROP_FRAME_HEIGHT, height);
+        video0.set(cv::CAP_PROP_FRAME_WIDTH, width);
     }
     // open second camera
     //video1 = cv::VideoCapture(1);
@@ -49,8 +49,8 @@ OpencvCamera::OpencvCamera(): index(0)
     {
         std::cout << "Camera 2 was successfully opened"<< std::endl;
         cam2.available = true;
-        video1.set(CV_CAP_PROP_FRAME_HEIGHT, height);
-        video1.set(CV_CAP_PROP_FRAME_WIDTH, width);
+        video1.set(cv::CAP_PROP_FRAME_HEIGHT, height);
+        video1.set(cv::CAP_PROP_FRAME_WIDTH, width);
     }
 
     numCameras = (cam1.available? 1 : 0) + (cam2.available? 1 : 0);
@@ -109,7 +109,7 @@ void OpencvCamera::update(Image& image)
     *cameras[index] >> currentImage;
     i++;
     if (currentImage.empty()) {
-        cameras[index]->set(CV_CAP_PROP_POS_AVI_RATIO , 0);
+        cameras[index]->set(cv::CAP_PROP_POS_AVI_RATIO , 0);
         *cameras[index] >> currentImage;
     }
   }
@@ -124,7 +124,7 @@ void OpencvCamera::update(Image& image)
     OUTPUT(idImage,currentImage);
   });
 
-  cv::cvtColor(currentImage, image, CV_BGR2YCrCb);
+  cv::cvtColor(currentImage, image, cv::COLOR_BGR2YCrCb);
 
 }
 
