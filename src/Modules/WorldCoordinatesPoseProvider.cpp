@@ -1,14 +1,16 @@
 #include "WorldCoordinatesPoseProvider.h"
-#include <aruco/aruco.h>
+#include <opencv2/aruco.hpp>
 
 MAKE_MODULE(WorldCoordinatesPoseProvider, BanknoteClassifier)
 
 WorldCoordinatesPoseProvider::WorldCoordinatesPoseProvider()
 {
-    aruco::CameraParameters p;
-    p.readFromXMLFile(std::string(File::getGTDir())+"/Config/cameraCalibration1.yml");
+    //aruco::CameraParameters p;
+    //p.readFromXMLFile(std::string(File::getGTDir())+"/Config/cameraCalibration1.yml");
 
-    kInv = p.CameraMatrix.inv();
+    //kInv = p.CameraMatrix.inv();
+
+	kInv = theCameraInfo.K.inv();
 }
 
 void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinatesPose)

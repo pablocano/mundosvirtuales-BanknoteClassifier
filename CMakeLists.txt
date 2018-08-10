@@ -5,7 +5,6 @@ find_package(OpenCV REQUIRED)
 find_package(Qt4 REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
-find_package(aruco REQUIRED)
 set(PYLON_ROOT /opt/pylon5)
 include(${QT_USE_FILE})
 
@@ -288,7 +287,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_definitions(-DOSX)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 add_definitions(-DLINUX)
-ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 set(PYLON_ROOT /opt/pylon5)
 link_directories(${PYLON_ROOT}/lib64)
 ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -298,11 +296,13 @@ link_directories(${PYLON_ROOT}/lib/x64)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 message(STATUS ${EIGEN3_INCLUDE_DIR})
+message(STATUS ${OpenCV_LIBS})
+
 include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
 
 message(STATUS "Pylon dir find in " ${PYLON_ROOT})
 
-add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE})
+add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE} ${LIB_ETHERNETIP_FANUC_SRC} ${LIB_ETHERNETIP_FANUC_INCLUDE})
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -317,23 +317,21 @@ target_link_libraries(libqxt ${QT_LIBRARIES})
 target_compile_definitions(libqxt PRIVATE QXT_STATIC )
 
 add_executable( cameraCalibration ${CAMERA_CALIBRATION} ${OpenCV_INCLUDE})
-target_link_libraries( cameraCalibration ${OpenCV_LIBS} ${aruco_LIBS} pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+target_link_libraries( cameraCalibration ${OpenCV_LIBS} pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+target_link_libraries( cameraCalibration ${OpenCV_LIBS} pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
+ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+target_link_libraries( cameraCalibration ${OpenCV_LIBS} pylonBase_MD_VC120_v5_0 PylonUtility_MD_VC120_v5_0 GenApi_MD_VC120_v3_0_Basler_pylon_v5_0 GCBase_MD_VC120_v3_0_Basler_pylon_v5_0)
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 add_executable( fieldCalibrator ${FIELD_CALIBRATOR} ${OpenCV_INCLUDE})
 target_link_libraries( fieldCalibrator ${OpenCV_LIBS} )
 
 add_executable(bc src/Processes/main.cpp)
 include (GenerateExportHeader)          
-generate_export_header(banknoteClassifier           
-    BASE_NAME banknoteClassifier
-    EXPORT_MACRO_NAME BANCKNOTECLASSIFIER_EXPORT
-    EXPORT_FILE_NAME BanknoteClassifier_EXPORTS.h
-    STATIC_DEFINE BANCKNOTECLASSIFIER_EXPORTS_BUILT_AS_STATIC)
-generate_export_header(banknoteClassifier           
-    BASE_NAME Process
-    EXPORT_MACRO_NAME PROCESS_EXPORT
-    EXPORT_FILE_NAME Process_EXPORTS.h
-    STATIC_DEFINE PROCESS_EXPORTS_BUILT_AS_STATIC)
+generate_export_header(banknoteClassifier BASE_NAME banknoteClassifier EXPORT_MACRO_NAME BANCKNOTECLASSIFIER_EXPORT EXPORT_FILE_NAME BanknoteClassifier_EXPORTS.h STATIC_DEFINE BANCKNOTECLASSIFIER_EXPORTS_BUILT_AS_STATIC)
+generate_export_header(banknoteClassifier BASE_NAME Process EXPORT_MACRO_NAME PROCESS_EXPORT EXPORT_FILE_NAME Process_EXPORTS.h STATIC_DEFINE PROCESS_EXPORTS_BUILT_AS_STATIC)
 target_link_libraries(bc banknoteClassifier)
 
 include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/CalibratorTool  ${CMAKE_CURRENT_BINARY_DIR})

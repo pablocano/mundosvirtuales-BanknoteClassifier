@@ -5,13 +5,14 @@
 #include "Representations/FrameInfo.h"
 #include "Representations/Image.h"
 #include "Representations/Modeling/CameraPose.h"
-#include <aruco/aruco.h>
+#include <opencv2/aruco/charuco.hpp>
 
 MODULE(ArucoPoseEstimator,
 {,
  REQUIRES(CameraInfo),
  REQUIRES(FrameInfo),
  REQUIRES(GrayScaleImageEq),
+ REQUIRES(ImageBGR),
  PROVIDES(CameraPose),
 });
 
@@ -27,13 +28,18 @@ private:
 
     void saveCameraPose();
 
-    aruco::MarkerDetector mDetector;
+    //cv::aruco::MarkerDetector mDetector;
 
-    aruco::MarkerMapPoseTracker mPoseTracker;
+    //aruco::MarkerMapPoseTracker mPoseTracker;
 
-    aruco::MarkerMap mMapConfig;
+    //aruco::MarkerMap mMapConfig;
+	// create charuco board object
+	cv::Ptr<cv::aruco::CharucoBoard> charucoBoard;
 
-    aruco::CameraParameters parameters;
+	cv::Ptr<cv::aruco::DetectorParameters> detectorParams;
+
+    //aruco::CameraParameters parameters;
+	cv::Ptr<cv::aruco::Dictionary> arucoDictionary;
 
     float mMarkerSize;
 
@@ -44,4 +50,6 @@ public:
     ArucoPoseEstimator();
 
     static bool handleMessage(MessageQueue& message);
+
+	bool readDetectorParameters(std::string filename, cv::Ptr<cv::aruco::DetectorParameters> &params);
 };

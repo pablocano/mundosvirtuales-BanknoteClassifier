@@ -25,7 +25,7 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),max
     for(unsigned i = 0; i < Classification::numOfBanknotes - 2; i++)
     {
         // Read the image and resize it
-        cv::Mat image = cv::imread(std::string(File::getGTDir()) + "/Data/img_scan/" + Classification::getName((Classification::Banknote)i) + ".jpg", CV_LOAD_IMAGE_GRAYSCALE);
+        cv::Mat image = cv::imread(std::string(File::getGTDir()) + "/Data/img_scan/" + Classification::getName((Classification::Banknote)i) + ".jpg", cv::IMREAD_GRAYSCALE);
         resizeImage(image);
 
         // Calculate the features of the image
@@ -175,7 +175,7 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
 
                 // Get the homography
                 cv::Mat mask;
-                cv::Mat H = cv::findHomography( obj, scene, CV_RANSAC, 3, mask );
+                cv::Mat H = cv::findHomography( obj, scene, cv::RANSAC, 3, mask );
 
                 // Obtain the num of inliers
                 int numGoodMatches = cv::countNonZero(mask);
@@ -272,7 +272,7 @@ bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vect
 void BanknotePositionProvider::resizeImage(cv::Mat& image)
 {
     //resize
-    cv::resize(image,image,cv::Size(350,175), 0, 0, CV_INTER_AREA);
+	cv::resize(image, image, cv::Size(350, 175), 0, 0, cv::INTER_AREA);
 
     //Equalize histogram
     clahe->apply(image,image);

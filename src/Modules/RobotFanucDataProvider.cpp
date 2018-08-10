@@ -2,7 +2,7 @@
 #include "Tools/Debugging/Debugging.h"
 #include <vector>
 
-MAKE_MODULE(RobotFanucDataProvider, BanknoteClassifier)
+MAKE_MODULE(RobotFanucDataProvider, Communication)
 
 
 RobotFanucDataProvider* RobotFanucDataProvider::theInstance = 0;

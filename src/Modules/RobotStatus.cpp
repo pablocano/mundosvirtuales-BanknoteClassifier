@@ -1,6 +1,6 @@
 #include "RobotStatus.h"
 
-MAKE_MODULE(RobotStatus, BanknoteClassifier)
+MAKE_MODULE(RobotStatus, Communication)
 
 RobotStatus* RobotStatus::theInstance = 0;
 

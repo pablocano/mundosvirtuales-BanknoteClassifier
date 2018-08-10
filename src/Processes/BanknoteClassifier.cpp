@@ -21,7 +21,8 @@
 BanknoteClassifier::BanknoteClassifier() :
 INIT_DEBUGGING,
 INIT_GROUND_TRUTH_COMM,
-moduleManager({"BanknoteClassifier","Segmentation","Common"}),
+//moduleManager({"BanknoteClassifier","Segmentation","Common"}),
+moduleManager({ "CameraPose","Communication","Common" }),
 pause(false)
 {
   theDebugOut.setSize(5200000);
@@ -33,7 +34,7 @@ pause(false)
 void BanknoteClassifier::init()
 {
   Global::theCommunicationOut = &theCommSender;
-  START_BANKNOTE_CLASSIFIER_COMM;
+  //START_BANKNOTE_CLASSIFIER_COMM;
   moduleManager.load();
 }
 

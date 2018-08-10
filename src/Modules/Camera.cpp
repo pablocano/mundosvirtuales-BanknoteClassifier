@@ -32,7 +32,7 @@ Camera::Camera()
         camera->Open();
 
         // Load the persistent configuration
-        std::string nodeFile = std::string(File::getGTDir()) + "/Config/NodeMap.pfs";
+        std::string nodeFile = std::string(File::getGTDir()) + "/Config/acA2040-90uc_22313646.pfs";
         Pylon::CFeaturePersistence::Load(nodeFile.c_str(), &camera->GetNodeMap(), true );
 
         // Initialice the pixel converter
@@ -49,6 +49,11 @@ Camera::Camera()
     {
         std::cerr << "An exception occurred." << std::endl << e.GetDescription() << std::endl;
     }
+
+	cv::FileStorage cameraCalibrationFile(std::string(File::getGTDir()) + "/Config/cameracalibration.xml", cv::FileStorage::READ);
+
+	cameraCalibrationFile["camera_matrix"] >> info.K;
+	cameraCalibrationFile["distortion_coefficients"] >> info.d;
 }
 Camera::~Camera()
 {
@@ -93,11 +98,16 @@ void Camera::update(Image& image)
         OUTPUT(idImage,currentImage);
     });
 
-    cv::cvtColor(currentImage, image, CV_BGR2YCrCb);
+    cv::cvtColor(currentImage, image, cv::COLOR_BGR2YCrCb);
   
 }
 
 void Camera::update(GrayScaleImage& image)
 {
     cv::extractChannel(theImage,image, 0);
+}
+
+void Camera::update(ImageBGR& imageBGR)
+{
+	imageBGR = currentImage.clone();
 }

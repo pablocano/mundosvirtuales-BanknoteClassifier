@@ -2,7 +2,7 @@
 #include "Tools/Debugging/DebugDrawings.h"
 #include "Tools/File.h"
 
-MAKE_MODULE(ArucoPoseEstimator, BanknoteClassifier2)
+MAKE_MODULE(ArucoPoseEstimator, CameraPose)
 
 ArucoPoseEstimator* ArucoPoseEstimator::theInstance = 0;
 
@@ -10,7 +10,15 @@ ArucoPoseEstimator::ArucoPoseEstimator() : mMarkerSize(0.059f)
 {
     theInstance = this;
 
-    mMapConfig.readFromFile(std::string(File::getGTDir()) + "/Config/markerMapConfig.yml");
+	arucoDictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
+	charucoBoard = cv::aruco::CharucoBoard::create(8, 6, 0.025, 0.015, arucoDictionary);
+
+	detectorParams = cv::aruco::DetectorParameters::create();
+	//if (parser.has("dp")) {
+	bool readOk = readDetectorParameters(std::string(File::getGTDir()) + "/Config/detector_params.yml", detectorParams);
+
+
+    /*mMapConfig.readFromFile(std::string(File::getGTDir()) + "/Config/markerMapConfig.yml");
     parameters.readFromXMLFile(std::string(File::getGTDir())+"/Config/cameraCalibration1.yml");
 
     if ( mMapConfig.isExpressedInPixels() && mMarkerSize > 0)
@@ -21,29 +29,61 @@ ArucoPoseEstimator::ArucoPoseEstimator() : mMarkerSize(0.059f)
 
     mDetector.setDictionary(aruco::Dictionary::ARUCO_MIP_36h12);
     mDetector.setThresholdParams(7, 7);
-    mDetector.setThresholdParamRange(2, 0);
+    mDetector.setThresholdParamRange(2, 0);*/
 }
 
 void ArucoPoseEstimator::update(CameraPose &cameraPose)
 {
     DECLARE_DEBUG_DRAWING("module:ArucoPoseEstimator:pose","drawingOnImage");
 
-    std::vector<aruco::Marker> markers = mDetector.detect(theGrayScaleImageEq, parameters, mMarkerSize);
+	std::vector<int> markerIds, charucoIds;
+	std::vector<std::vector<cv::Point2f>> markerCorners, rejectedMarkers;
+	std::vector<cv::Point2f> charucoCorners;
 
-    if (mPoseTracker.isValid()){
+	// detect markers
+	cv::aruco::detectMarkers(theGrayScaleImageEq, arucoDictionary, markerCorners, markerIds, detectorParams,
+		rejectedMarkers);
 
-        if ( mPoseTracker.estimatePose(markers)){
-            rvec = mPoseTracker.getRvec();
-            tvec = mPoseTracker.getTvec();
+	// refind strategy to detect more markers
+	//cv::aruco::refineDetectedMarkers(theGrayScaleImageEq, charucoBoard, markerCorners, markerIds, rejectedMarkers, theCameraInfo.K, theCameraInfo.d);
 
-            COMPLEX_DRAWING("module:ArucoPoseEstimator:pose",{draw(cameraPose);});
+	// interpolate charuco corners
+	int interpolatedCorners = 0;
+	if (markerIds.size() > 0)
+		interpolatedCorners = cv::aruco::interpolateCornersCharuco(markerCorners, markerIds, theGrayScaleImageEq, charucoBoard,
+			charucoCorners, charucoIds, theCameraInfo.K, theCameraInfo.d);
+
+	if (charucoIds.size() > 0/*mPoseTracker.isValid()*/) {
+
+		if (cv::aruco::estimatePoseCharucoBoard(charucoCorners,charucoIds,charucoBoard,theCameraInfo.K,theCameraInfo.d,rvec,tvec)/*mPoseTracker.estimatePose(markers)*/) {
+			cameraPose.rvec = rvec;
+			cameraPose.tvec = tvec;
+
+			COMPLEX_DRAWING("module:ArucoPoseEstimator:pose",{draw(cameraPose);});
+
+			cv::aruco::drawAxis(theImageBGR, theCameraInfo.K, theCameraInfo.d, rvec, tvec, 0.01);
         }
-    }
+	}
 
-    cameraPose.rvec = rvec;
-    cameraPose.tvec = tvec;
+	if (markerIds.size() > 0) {
+		cv::aruco::drawDetectedMarkers(theImageBGR, markerCorners);
+	}
+
+	//if (rejectedMarkers.size() > 0)
+	//	cv::aruco::drawDetectedMarkers(theImageBGR, rejectedMarkers, cv::noArray(), cv::Scalar(100, 0, 255));
+
+	if (interpolatedCorners > 0) {
+		cv::Scalar color;
+		color = cv::Scalar(255, 0, 0);
+		cv::aruco::drawDetectedCornersCharuco(theImageBGR, charucoCorners, charucoIds, color);
+	}
+
+    //cameraPose.rvec = rvec;
+    //cameraPose.tvec = tvec;
 
     DEBUG_RESPONSE_ONCE("module:ArucoPoseEstimator:saveCameraPose", saveCameraPose(););
+
+	cv::imshow("out", theImageBGR);
 }
 
 void ArucoPoseEstimator::saveCameraPose()
@@ -72,7 +112,7 @@ void ArucoPoseEstimator::draw(CameraPose &cameraPose)
     objectPoints.at< float >(3, 2) = size;
 
     std::vector<cv::Point2f > imagePoints;
-    cv::projectPoints(objectPoints, cameraPose.rvec, cameraPose.tvec, parameters.CameraMatrix, parameters.Distorsion, imagePoints);
+    cv::projectPoints(objectPoints, cameraPose.rvec, cameraPose.tvec, theCameraInfo.K, theCameraInfo.d, imagePoints);
 
     LINE("module:ArucoPoseEstimator:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[1].x, imagePoints[1].y, 3, Drawings::ps_solid,ColorRGBA::blue);
     LINE("module:ArucoPoseEstimator:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[2].x, imagePoints[2].y, 3, Drawings::ps_solid,ColorRGBA::red);
@@ -82,4 +122,31 @@ void ArucoPoseEstimator::draw(CameraPose &cameraPose)
 bool ArucoPoseEstimator::handleMessage(MessageQueue &message)
 {
     return false;
+}
+
+bool ArucoPoseEstimator::readDetectorParameters(std::string filename, cv::Ptr<cv::aruco::DetectorParameters> &params) {
+	cv::FileStorage fs(filename, cv::FileStorage::READ);
+	if (!fs.isOpened())
+		return false;
+	fs["adaptiveThreshWinSizeMin"] >> params->adaptiveThreshWinSizeMin;
+	fs["adaptiveThreshWinSizeMax"] >> params->adaptiveThreshWinSizeMax;
+	fs["adaptiveThreshWinSizeStep"] >> params->adaptiveThreshWinSizeStep;
+	fs["adaptiveThreshConstant"] >> params->adaptiveThreshConstant;
+	fs["minMarkerPerimeterRate"] >> params->minMarkerPerimeterRate;
+	fs["maxMarkerPerimeterRate"] >> params->maxMarkerPerimeterRate;
+	fs["polygonalApproxAccuracyRate"] >> params->polygonalApproxAccuracyRate;
+	fs["minCornerDistanceRate"] >> params->minCornerDistanceRate;
+	fs["minDistanceToBorder"] >> params->minDistanceToBorder;
+	fs["minMarkerDistanceRate"] >> params->minMarkerDistanceRate;
+	fs["cornerRefinementMethod"] >> params->cornerRefinementMethod;
+	fs["cornerRefinementWinSize"] >> params->cornerRefinementWinSize;
+	fs["cornerRefinementMaxIterations"] >> params->cornerRefinementMaxIterations;
+	fs["cornerRefinementMinAccuracy"] >> params->cornerRefinementMinAccuracy;
+	fs["markerBorderBits"] >> params->markerBorderBits;
+	fs["perspectiveRemovePixelPerCell"] >> params->perspectiveRemovePixelPerCell;
+	fs["perspectiveRemoveIgnoredMarginPerCell"] >> params->perspectiveRemoveIgnoredMarginPerCell;
+	fs["maxErroneousBitsInBorderRate"] >> params->maxErroneousBitsInBorderRate;
+	fs["minOtsuStdDev"] >> params->minOtsuStdDev;
+	fs["errorCorrectionRate"] >> params->errorCorrectionRate;
+	return true;
 }
