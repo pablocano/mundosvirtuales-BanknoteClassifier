@@ -22,12 +22,12 @@ public:
     CameraInfo() = default;
     CameraInfo(Type type, std::string name, cv::Mat& K, cv::Mat& d, cv::Point& fieldCenter, float factor) : type(type), available(true), name(name), K(K), d(d), pix2World(factor)
     {
-        fieldCenterInImage = Vector2<float>(fieldCenter.x, fieldCenter.y);
-        opticalCenter = Vector2<float>(K.at<double>(0,2), K.at<double>(1,2));
+        fieldCenterInImage = Vector2<float>((float) fieldCenter.x, (float) fieldCenter.y);
+        opticalCenter = Vector2<float>((float) K.at<double>(0,2), (float) K.at<double>(1,2));
         fx = (float)K.at<double>(0,0);
         fy = (float)K.at<double>(1,1);
-        invFx = 1.0 / fx;
-        invFy = 1.0 / fy;
+        invFx = 1.f / fx;
+        invFy = 1.f / fy;
 
     }
 

@@ -7,14 +7,19 @@ void BanknotePosition::draw() const
 
     if(banknote != Classification::NONE)
     {
-        ColorRGBA color;
-        Drawings::PenStyle style;
-        getColorAndStyle(color, style);
-
-        for(int i = 0; i < corners.size() - 1; i++)
+        COMPLEX_DRAWING("representation:BanknotePosition",
         {
-            LINE("representation:BanknotePosition", corners[i].x(), corners[i].y() , corners[i + 1].x(), corners[i + 1].y(), 3, style, color );
-        }
+            ColorRGBA color;
+            Drawings::PenStyle style;
+            getColorAndStyle(color, style);
+
+            for(int i = 0; i < corners.size() - 1; i++)
+            {
+                LINE("representation:BanknotePosition", corners[i].x(), corners[i].y() , corners[i + 1].x(), corners[i + 1].y(), 3, style, color );
+            }
+            Vector2f direction = position.translation + Vector2f(100,0).rotate(position.rotation);
+            ARROW("representation:BanknotePosition",position.translation.x(),position.translation.y(),direction.x(),direction.y(),3,Drawings::ps_solid,ColorRGBA::black);
+        });
     }
 }
 
@@ -69,17 +74,21 @@ void BanknotePositionFiltered::draw() const
 {
     DECLARE_DEBUG_DRAWING("representation:BanknotePositionFiltered","drawingOnImage");
 
-    if(banknote != Classification::NONE)
+    COMPLEX_DRAWING("representation:BanknotePositionFiltered",
     {
-        ColorRGBA color;
-        Drawings::PenStyle style;
-        getColorAndStyle(color, style);
-
-        for(int i = 0; i < corners.size() - 1; i++)
+        if(banknote != Classification::NONE)
         {
-            LINE("representation:BanknotePositionFiltered", corners[i].x(), corners[i].y() , corners[i + 1].x(), corners[i + 1].y(), 3, style, color);
-            
-        }  
-        
-    }
+            ColorRGBA color;
+            Drawings::PenStyle style;
+            getColorAndStyle(color, style);
+
+            for(int i = 0; i < corners.size() - 1; i++)
+            {
+                LINE("representation:BanknotePositionFiltered", corners[i].x(), corners[i].y() , corners[i + 1].x(), corners[i + 1].y(), 3, style, color);
+
+            }
+            Vector2f direction = position.translation + Vector2f(100,0).rotate(position.rotation);
+            ARROW("representation:BanknotePositionFiltered",position.translation.x(),position.translation.y(),direction.x(),direction.y(),3,Drawings::ps_solid,ColorRGBA::black);
+        }
+    });
 }

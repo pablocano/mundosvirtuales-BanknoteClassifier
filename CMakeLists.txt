@@ -4,12 +4,20 @@ PROJECT (BanknoteClassifier)
 find_package(OpenCV REQUIRED)
 find_package(Qt4 REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-
+find_package(aruco REQUIRED)
 include(${QT_USE_FILE})
 
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
 
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
+if(WINDOWS)
+	set(CMAKE_SHARED_LINKER_FLAGS "/API_EXPORT")
+endif()
+
 set( BANCKNOTECLASSIFIER_SRC
+  src/Modules/ArucoPoseEstimator.cpp
+  src/Modules/ArucoPoseEstimator.h
   src/Modules/Camera.cpp
   src/Modules/Camera.h
   src/Modules/OpencvCamera.cpp
@@ -24,6 +32,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/BanknotePositionProvider.h
   src/Modules/BanknoteClassifierProvider.cpp
   src/Modules/BanknoteClassifierProvider.h
+  src/Modules/CameraPoseProvider.cpp
+  src/Modules/CameraPoseProvider.h
   src/Modules/Equalizer.cpp
   src/Modules/Equalizer.h
   src/Modules/FeaturesProvider.cpp
@@ -34,10 +44,16 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/PreviousBanknoteCheck.h
   src/Modules/Regionizer.cpp
   src/Modules/Regionizer.h
+  src/Modules/RobotFanucDataProvider.cpp
+  src/Modules/RobotFanucDataProvider.h
+  src/Modules/RobotFanucComm.cpp
+  src/Modules/RobotFanucComm.h
   src/Modules/Segmentator.cpp
   src/Modules/Segmentator.h
   src/Modules/TemplateInspection.cpp
   src/Modules/TemplateInspection.h
+  src/Modules/WorldCoordinatesPoseProvider.cpp
+  src/Modules/WorldCoordinatesPoseProvider.h
   src/Platform/Memory.cpp
   src/Platform/Memory.h
   src/Processes/BanknoteClassifier.cpp
@@ -65,8 +81,14 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/BanknoteClassifierMessages.h
   src/Representations/Image.cpp
   src/Representations/Image.h
+  src/Representations/Modeling/WorldCoordinatesPose.cpp
+  src/Representations/Modeling/WorldCoordinatesPose.h
+  src/Representations/Modeling/CameraPose.cpp
+  src/Representations/Modeling/CameraPose.h
   src/Representations/Regions.cpp
   src/Representations/Regions.h
+  src/Representations/RobotFanuc.cpp
+  src/Representations/RobotFanuc.h
   src/Tools/AlignedMemory.cpp
   src/Tools/AlignedMemory.h
   src/Tools/ColorClasses.cpp
@@ -75,11 +97,6 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/Comm/Comm.h
   src/Tools/Comm/BanknoteClassifierMessageHandler.cpp
   src/Tools/Comm/BanknoteClassifierMessageHandler.h
-  src/Tools/Comm/SPLStandardMessage.h
-  src/Tools/Comm/SPLStandardMessageWrapper.cpp
-  src/Tools/Comm/SPLStandardMessageWrapper.h
-  src/Tools/Comm/UdpComm.cpp
-  src/Tools/Comm/UdpComm.h
   src/Tools/Debugging/Debugging.h
   src/Tools/Debugging/DebugRequest.cpp
   src/Tools/Debugging/DebugRequest.h
@@ -91,6 +108,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/File.h
   src/Tools/Global.cpp
   src/Tools/Global.h
+  src/Tools/Math/Angle.h
+  src/Tools/Math/Constants.h
   src/Tools/Math/Eigen.h
   src/Tools/Math/EigenArrayExtensions.h
   src/Tools/Math/EigenMatrixBaseExtensions.h
@@ -191,11 +210,6 @@ set( VISION_TOOL_SRC
   src/Tools/AlignedMemory.h
   src/Tools/Comm/BanknoteClassifierMessageHandler.cpp
   src/Tools/Comm/BanknoteClassifierMessageHandler.h
-  src/Tools/Comm/SPLStandardMessage.h
-  src/Tools/Comm/SPLStandardMessageWrapper.cpp
-  src/Tools/Comm/SPLStandardMessageWrapper.h
-  src/Tools/Comm/UdpComm.cpp
-  src/Tools/Comm/UdpComm.h
   src/Tools/Enum.cpp
   src/Tools/Enum.h
   src/Tools/File.cpp
@@ -227,6 +241,19 @@ set( LIBQXT_SRC
   ${LIBQXT_SRC_DIR}/qxtspanslider.h
 )
 
+set( LIB_ETHERNETIP_FANUC_SRC
+	src/Tools/Fanuc/PositionRegisterCartesian.cpp
+	src/Tools/Fanuc/PositionRegisterJoint.cpp
+	src/Tools/Comm/TcpComm.cpp
+)
+
+set( LIB_ETHERNETIP_FANUC_INCLUDE
+	src/Tools/Fanuc/PositionRegisterCartesian.h
+	src/Tools/Fanuc/PositionRegisterJoint.h
+	src/Tools/Fanuc/PacketEthernetIPFanuc.h
+	src/Tools/Comm/TcpComm.h
+)
+
 source_group(src\\Processes REGULAR_EXPRESSION "src/Processes/*")
 source_group(src\\Modules REGULAR_EXPRESSION "Modules/*")
 source_group(src\\Representations REGULAR_EXPRESSION "Representations/*")
@@ -244,7 +271,11 @@ source_group(Utils\\CalibratorTool\\Views\\ColorCalibrationView REGULAR_EXPRESSI
 source_group(Utils\\libqxt REGULAR_EXPRESSION "Utils/libqxt*")
 source_group(Utils\\VisionTool REGULAR_EXPRESSION "Utils/VisionTool/*")
 
-set(CMAKE_CXX_FLAGS "-std=c++11")
+if(WIN32)
+	set(CMAKE_CXX_STANDARD 11)
+else()
+	set(CMAKE_CXX_FLAGS "-std=c++11")
+endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -252,6 +283,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_definitions(-DOSX)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 add_definitions(-DLINUX)
+ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 set(PYLON_ROOT /opt/pylon5)
 link_directories(${PYLON_ROOT}/lib64)
 ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -306,4 +338,4 @@ target_link_libraries(calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES})
 target_compile_definitions(calibrationTool PRIVATE QXT_STATIC)
 
 add_executable(visionTool ${VISION_TOOL_SRC} ${VISION_TOOL_MOCSrcs} ${OpenCV_INCLUDE})
-target_link_libraries(visionTool ${OpenCV_LIBS} ${QT_LIBRARIES})
+target_link_libraries( visionTool banknoteClassifier ${OpenCV_LIBS} ${QT_LIBRARIES} )

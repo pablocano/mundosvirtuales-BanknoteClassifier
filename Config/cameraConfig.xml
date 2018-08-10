@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <opencv_storage>
   <!-- Image width & height -->
-  <imgWidth>640</imgWidth>
-  <imgHeight>480</imgHeight>
+  <imgWidth>1280</imgWidth>
+  <imgHeight>720</imgHeight>
 </opencv_storage>

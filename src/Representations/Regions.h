@@ -20,7 +20,7 @@ public:
     
     Vector2i getCenter() const
     {
-      return (left + right)/2;
+      return (left + right) / 2;
     }
   };
   

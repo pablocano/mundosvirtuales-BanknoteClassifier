@@ -25,7 +25,7 @@ Vector2<int> Transformation::imageToImageCorrected(const Vector2<int> &positionI
 {
   Vector2<int> res = positionInImage;
 
-  Vector2<int> cameraCenter = Vector2<int>(cameraInfo.fieldCenterInImage.x,cameraInfo.fieldCenterInImage.y);
+  Vector2<int> cameraCenter = Vector2<int>((int) cameraInfo.fieldCenterInImage.x, (int) cameraInfo.fieldCenterInImage.y);
   
   return res.mirrorY() - cameraCenter.mirrorY();
 }
@@ -33,5 +33,5 @@ Vector2<int> Transformation::imageToImageCorrected(const Vector2<int> &positionI
 Vector2<int> Transformation::imageCorrectedToImage(const Vector2<int> &positionInImageCorrected, const CameraInfo &cameraInfo)
 {
   Vector2<int> resp = positionInImageCorrected;
-  return resp.mirrorY() + Vector2<int>(cameraInfo.fieldCenterInImage.x,cameraInfo.fieldCenterInImage.y);
+  return resp.mirrorY() + Vector2<int>((int) cameraInfo.fieldCenterInImage.x, (int) cameraInfo.fieldCenterInImage.y);
 }

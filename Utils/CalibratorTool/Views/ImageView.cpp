@@ -256,14 +256,14 @@ QMenu* ImageWidget::createFileMenu() const
   
   for (const auto &debugDrawing : drawingManager.drawings) {
     const std::string &name = debugDrawing.first;
-    int pos = name.find_first_of(":");
+    int pos = (int) name.find_first_of(":");
     std::string type = name.substr(0,pos);
     if (type.compare("representation") == 0) {
       representationDrawings.push_back(Drawing(name, name.substr(pos+1)));
     }
     else if(type.compare("module") == 0)
     {
-      int pos2 = name.find_first_of(":",pos+1);
+      int pos2 = (int) name.find_first_of(":",pos+1);
       if (pos2 > name.size()) {
          modulesDrawings[name.substr(pos+1)] = std::vector<Drawing>();
       }

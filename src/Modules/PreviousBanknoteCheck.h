@@ -6,11 +6,13 @@
 #include "Representations/Features.h"
 #include "Representations/Image.h"
 #include <opencv2/xfeatures2d.hpp>
+#include "Representations/RobotFanuc.h"
 
 MODULE(PreviousBanknoteCheck,
 {,
     REQUIRES(GrayScaleImageEq),
     USES(ErrorInfo),
+    REQUIRES(RobotFanuc),
     USES(BanknotePosition),
     PROVIDES(PreviousBanknotePosition),
 });
@@ -30,5 +32,7 @@ public:
     Features features;
 
     int noMatch;
+
+    int newSearch;
 
 };
