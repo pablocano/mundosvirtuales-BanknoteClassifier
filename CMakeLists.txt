@@ -4,7 +4,9 @@ PROJECT (BanknoteClassifier)
 find_package(OpenCV REQUIRED)
 find_package(Qt4 REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+
 find_package(aruco REQUIRED)
+set(PYLON_ROOT /opt/pylon5)
 include(${QT_USE_FILE})
 
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
@@ -48,6 +50,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/RobotFanucDataProvider.h
   src/Modules/RobotFanucComm.cpp
   src/Modules/RobotFanucComm.h
+  src/Modules/RobotStatus.cpp
+  src/Modules/RobotStatus.h
   src/Modules/Segmentator.cpp
   src/Modules/Segmentator.h
   src/Modules/TemplateInspection.cpp
@@ -87,6 +91,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/Modeling/CameraPose.h
   src/Representations/Regions.cpp
   src/Representations/Regions.h
+  src/Representations/RegState.cpp
+  src/Representations/RegState.h
   src/Representations/RobotFanuc.cpp
   src/Representations/RobotFanuc.h
   src/Tools/AlignedMemory.cpp
@@ -145,7 +151,6 @@ set( BANCKNOTECLASSIFIER_SRC
 
 set( CAMERA_CALIBRATION
    Utils/CameraCalibration/calibration.cpp
-   Utils/CameraCalibration/settings.h
    src/Tools/File.cpp
    src/Tools/File.h
 )
@@ -311,8 +316,8 @@ add_library( libqxt STATIC ${LIBQXT_SRC} ${LIBQXT_MOC_Srcs})
 target_link_libraries(libqxt ${QT_LIBRARIES})
 target_compile_definitions(libqxt PRIVATE QXT_STATIC )
 
-add_executable( calibration ${CAMERA_CALIBRATION} ${OpenCV_INCLUDE})
-target_link_libraries( calibration ${OpenCV_LIBS} )
+add_executable( cameraCalibration ${CAMERA_CALIBRATION} ${OpenCV_INCLUDE})
+target_link_libraries( cameraCalibration ${OpenCV_LIBS} ${aruco_LIBS} pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
 
 add_executable( fieldCalibrator ${FIELD_CALIBRATOR} ${OpenCV_INCLUDE})
 target_link_libraries( fieldCalibrator ${OpenCV_LIBS} )

@@ -7,17 +7,19 @@ MAKE_MODULE(PreviousBanknoteCheck, BanknoteClassifier)
 PreviousBanknoteCheck::PreviousBanknoteCheck()
 {
     surf_ = cv::xfeatures2d::SURF::create(500,4,3,true,false);
-    noMatch = 0;
+
+    error = 0;
+    lastbanknote = 0;
     newSearch = 1;
+
 }
 
 
 void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePosition)
 {
-    if (theRobotFanuc.robotModel.reg.at(REG_STATUS_AREA) == 1)
+    if (theRegState.getbanknote)
     {
         previousBanknotePosition.banknote = Classification::NONE;
-
 
         if(theBanknotePosition.banknote != Classification::NONE && !newSearch)
         {
@@ -72,5 +74,6 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
     }
 
 }
+
 
 

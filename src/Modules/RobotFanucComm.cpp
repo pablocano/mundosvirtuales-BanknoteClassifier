@@ -3,6 +3,7 @@
 #include "Tools/Comm/Comm.h"
 #include "Tools/Math/Geometry.h"
 #include "Representations/Classification.h"
+#include "Modules/RobotStatus.h"
 
 MAKE_MODULE(RobotFanucComm, BanknoteClassifier)
 
@@ -11,7 +12,7 @@ MAKE_MODULE(RobotFanucComm, BanknoteClassifier)
 
 int RobotFanucComm::idPacket = 0;
 
-RobotFanucComm::RobotFanucComm()
+RobotFanucComm::RobotFanucComm() : lastTimeSent(0)
 {
 
 }
@@ -32,12 +33,9 @@ void RobotFanucComm::update(DummyComm &dummyComm)
         // TODO:
         pos.x = theWorldCoordinatesPose.translation.x();
         pos.y = theWorldCoordinatesPose.translation.y();
+        pos.z = 0;
 
         pos.r = theWorldCoordinatesPose.rotation.toDegrees();
-
-        //TOOD: fix this
-        //pos.UT = 2;
-        //pos.UF = 1;
 
         pos.Up = true;
         pos.Front = true;
@@ -45,15 +43,21 @@ void RobotFanucComm::update(DummyComm &dummyComm)
         pos.copyToBuffer(packetWrite.payload);
         SEND_MESSAGE(idEthernetIPFanuc, packetWrite);
 
-        //Flag to advertise new pose
-        SEND_MESSAGE(idEthernetIPFanuc, statusPose);
-
         //Flag to indicate side of banknote
         SEND_MESSAGE(idEthernetIPFanuc, side);
+
+        //Flag to advertise new pose
+        SEND_MESSAGE(idEthernetIPFanuc, statusPose);
+        RobotStatus::messageDelivered();
 
         PacketEthernetIPFanuc packetRead(READ_POS, idPacket, REG_POSITION_BANKNOTE);
         SEND_MESSAGE(idEthernetIPFanuc, packetRead);
     }
+
+    if(theFrameInfo.time - lastTimeSent < 33)
+        return;
+
+    lastTimeSent = theFrameInfo.time;
 
     PacketEthernetIPFanuc packetRead(READ_CURR_POS, idPacket, 0);
     SEND_MESSAGE(idEthernetIPFanuc, packetRead);

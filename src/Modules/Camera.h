@@ -73,7 +73,8 @@ public:
      */
     int width;
 
-    Pylon::CBaslerUsbInstantCamera *camera;
+    //Pylon::CBaslerUsbInstantCamera *camera;
+    Pylon::CInstantCamera *camera;
     Pylon::CImageFormatConverter *fc;
 
     Pylon::CPylonImage *grabbedImage;

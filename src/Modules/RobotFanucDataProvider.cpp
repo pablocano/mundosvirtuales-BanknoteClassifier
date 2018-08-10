@@ -77,3 +77,4 @@ void RobotFanucDataProvider::handleMessages(MessageQueue& messages)
         messages.handleAllMessages(*theInstance);
     messages.clear();
 }
+
