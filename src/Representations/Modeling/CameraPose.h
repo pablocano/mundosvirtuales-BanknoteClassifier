@@ -10,3 +10,5 @@ public:
 
     cv::Mat rotationMatrix, rotationMatrixInv;
 };
+
+class CameraPoseFiltered : public CameraPose {};

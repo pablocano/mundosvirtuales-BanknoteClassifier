@@ -59,9 +59,12 @@ void ArucoPoseEstimator::update(CameraPose &cameraPose)
 			cameraPose.rvec = rvec;
 			cameraPose.tvec = tvec;
 
+			cv::Rodrigues(rvec, cameraPose.rotationMatrix);
+			cameraPose.rotationMatrixInv = cameraPose.rotationMatrix.inv();
+
 			COMPLEX_DRAWING("module:ArucoPoseEstimator:pose",{draw(cameraPose);});
 
-			cv::aruco::drawAxis(theImageBGR, theCameraInfo.K, theCameraInfo.d, rvec, tvec, 0.01);
+			//cv::aruco::drawAxis(theImageBGR, theCameraInfo.K, theCameraInfo.d, rvec, tvec, 0.01);
         }
 	}
 

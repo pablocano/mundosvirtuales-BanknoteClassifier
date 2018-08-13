@@ -19,10 +19,6 @@ endif()
 set( BANCKNOTECLASSIFIER_SRC
   src/Modules/ArucoPoseEstimator.cpp
   src/Modules/ArucoPoseEstimator.h
-  src/Modules/Camera.cpp
-  src/Modules/Camera.h
-  src/Modules/OpencvCamera.cpp
-  src/Modules/OpencvCamera.h
   src/Modules/BlobProvider.cpp
   src/Modules/BlobProvider.h
   src/Modules/BlobFilter.cpp
@@ -33,6 +29,10 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/BanknotePositionProvider.h
   src/Modules/BanknoteClassifierProvider.cpp
   src/Modules/BanknoteClassifierProvider.h
+  src/Modules/Camera.cpp
+  src/Modules/Camera.h
+  src/Modules/CameraPoseFilter.cpp
+  src/Modules/CameraPoseFilter.h
   src/Modules/CameraPoseProvider.cpp
   src/Modules/CameraPoseProvider.h
   src/Modules/Equalizer.cpp
@@ -41,6 +41,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/FeaturesProvider.h
   src/Modules/EstimatePosition.cpp
   src/Modules/EstimatePosition.h
+  src/Modules/OpencvCamera.cpp
+  src/Modules/OpencvCamera.h
   src/Modules/PreviousBanknoteCheck.cpp
   src/Modules/PreviousBanknoteCheck.h
   src/Modules/Regionizer.cpp
