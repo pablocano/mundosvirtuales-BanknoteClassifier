@@ -1,6 +1,8 @@
 #include "ArucoPoseEstimator.h"
 #include "Tools/Debugging/DebugDrawings.h"
 #include "Tools/File.h"
+#include "Tools/Math/Eigen.h"
+#include "Tools/Math/Constants.h"
 
 MAKE_MODULE(ArucoPoseEstimator, CameraPose)
 
@@ -40,6 +42,8 @@ void ArucoPoseEstimator::update(CameraPose &cameraPose)
 	std::vector<std::vector<cv::Point2f>> markerCorners, rejectedMarkers;
 	std::vector<cv::Point2f> charucoCorners;
 
+	cameraPose.rotationMatrix.release();
+
 	// detect markers
 	cv::aruco::detectMarkers(theGrayScaleImageEq, arucoDictionary, markerCorners, markerIds, detectorParams,
 		rejectedMarkers);
@@ -62,24 +66,26 @@ void ArucoPoseEstimator::update(CameraPose &cameraPose)
 			cv::Rodrigues(rvec, cameraPose.rotationMatrix);
 			cameraPose.rotationMatrixInv = cameraPose.rotationMatrix.inv();
 
+			calculatePosAndRot(cameraPose);
+
 			COMPLEX_DRAWING("module:ArucoPoseEstimator:pose",{draw(cameraPose);});
 
-			//cv::aruco::drawAxis(theImageBGR, theCameraInfo.K, theCameraInfo.d, rvec, tvec, 0.01);
+			cv::aruco::drawAxis(theImageBGR, theCameraInfo.K, theCameraInfo.d, rvec, tvec, 0.01);
         }
 	}
 
-	if (markerIds.size() > 0) {
+	/*if (markerIds.size() > 0) {
 		cv::aruco::drawDetectedMarkers(theImageBGR, markerCorners);
-	}
+	}*/
 
 	//if (rejectedMarkers.size() > 0)
 	//	cv::aruco::drawDetectedMarkers(theImageBGR, rejectedMarkers, cv::noArray(), cv::Scalar(100, 0, 255));
 
-	if (interpolatedCorners > 0) {
+	/*if (interpolatedCorners > 0) {
 		cv::Scalar color;
 		color = cv::Scalar(255, 0, 0);
 		cv::aruco::drawDetectedCornersCharuco(theImageBGR, charucoCorners, charucoIds, color);
-	}
+	}*/
 
     //cameraPose.rvec = rvec;
     //cameraPose.tvec = tvec;
@@ -152,4 +158,27 @@ bool ArucoPoseEstimator::readDetectorParameters(std::string filename, cv::Ptr<cv
 	fs["minOtsuStdDev"] >> params->minOtsuStdDev;
 	fs["errorCorrectionRate"] >> params->errorCorrectionRate;
 	return true;
+}
+
+void ArucoPoseEstimator::calculatePosAndRot(CameraPose& cameraPose)
+{
+	cameraPose.pos = Eigen::Vector3f(cameraPose.tvec.at<double>(0, 0) * 1000, cameraPose.tvec.at<double>(1, 0) * 1000, cameraPose.tvec.at<double>(2, 0) * (-1000) + 2000);
+
+	float sy = std::sqrt(cameraPose.rotationMatrix.at<double>(0, 0) * cameraPose.rotationMatrix.at<double>(0, 0) + cameraPose.rotationMatrix.at<double>(1, 0) * cameraPose.rotationMatrix.at<double>(1, 0));
+
+	bool singular = sy < 1e-6; // If
+
+	if (!singular)
+	{
+		cameraPose.rot = Eigen::Vector3f(atan2(cameraPose.rotationMatrix.at<double>(2, 1), cameraPose.rotationMatrix.at<double>(2, 2)), atan2(-cameraPose.rotationMatrix.at<double>(2, 0), sy), atan2(cameraPose.rotationMatrix.at<double>(1, 0), cameraPose.rotationMatrix.at<double>(0, 0)));
+	}
+	else
+	{
+		cameraPose.rot = Eigen::Vector3f(atan2(-cameraPose.rotationMatrix.at<double>(1, 2), cameraPose.rotationMatrix.at<double>(1, 1)), atan2(-cameraPose.rotationMatrix.at<double>(2, 0), sy), 0);
+	}
+	float w, p, r;
+	w = cameraPose.rvec.at<double>(0, 0);
+	p = cameraPose.rvec.at<double>(1, 0);
+	r = cameraPose.rvec.at<double>(2, 0);
+	cameraPose.rot *= 180 / pi;
 }

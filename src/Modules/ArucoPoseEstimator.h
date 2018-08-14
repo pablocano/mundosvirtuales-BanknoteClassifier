@@ -52,4 +52,6 @@ public:
     static bool handleMessage(MessageQueue& message);
 
 	bool readDetectorParameters(std::string filename, cv::Ptr<cv::aruco::DetectorParameters> &params);
+
+	void calculatePosAndRot(CameraPose& cameraPose);
 };
