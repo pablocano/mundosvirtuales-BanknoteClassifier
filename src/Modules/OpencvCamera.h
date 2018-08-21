@@ -16,6 +16,7 @@ MODULE(OpencvCamera,
   PROVIDES(Image),
   REQUIRES(Image),
   PROVIDES(GrayScaleImage),
+  PROVIDES(ImageBGR),
 });
 
 /**
@@ -53,6 +54,8 @@ public:
      * Updates the images in grayscale using the image in BGR delivered by the camera
      */
     void update(GrayScaleImage& grayScaleImage);
+
+	void update(ImageBGR& theImageBGR);
 
 
     /**

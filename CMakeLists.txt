@@ -181,6 +181,7 @@ set( CALIBRATOR_TOOL_SRC
   ${CALIBRATOR_SRC_DIR}/MainWindow.h
   ${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.cpp
   ${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.h
+  ${CALIBRATOR_SRC_DIR}/Synchronization.cpp
   ${CALIBRATOR_SRC_DIR}/Synchronization.h
   ${CALIBRATOR_SRC_DIR}/Views/ImageView.cpp
   ${CALIBRATOR_SRC_DIR}/Views/ImageView.h
@@ -285,6 +286,14 @@ endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+IF(WIN32)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Zm200 -wd4503")
+	add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS)
+	message(STATUS "Windows computer")
+	SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:msvcrt.lib")
+	SET(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:msvcrt.lib")
+ENDIF(WIN32)
+
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_definitions(-DOSX)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -294,11 +303,15 @@ link_directories(${PYLON_ROOT}/lib64)
 ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_definitions(-DWINDOWS)
 set(PYLON_ROOT $ENV{PYLON_DEV_DIR})
-link_directories(${PYLON_ROOT}/lib/x64)
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    link_directories(${PYLON_ROOT}/lib/x64)
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    link_directories(${PYLON_ROOT}/lib/Win32)
+endif()
+
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 message(STATUS ${EIGEN3_INCLUDE_DIR})
-message(STATUS ${OpenCV_LIBS})
 
 include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
 

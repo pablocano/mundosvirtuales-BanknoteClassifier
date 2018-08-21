@@ -15,9 +15,9 @@ class SyncObject
 public:
   QMutex mutex;
   
-  void enter() {mutex.lock();}
+  void enter();
   
-  void leave() {mutex.unlock();}
+  void leave();
 };
 
 class Sync

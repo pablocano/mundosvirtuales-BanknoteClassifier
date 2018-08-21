@@ -49,7 +49,7 @@ void ArucoPoseEstimator::update(CameraPose &cameraPose)
 		rejectedMarkers);
 
 	// refind strategy to detect more markers
-	//cv::aruco::refineDetectedMarkers(theGrayScaleImageEq, charucoBoard, markerCorners, markerIds, rejectedMarkers, theCameraInfo.K, theCameraInfo.d);
+	cv::aruco::refineDetectedMarkers(theGrayScaleImageEq, charucoBoard, markerCorners, markerIds, rejectedMarkers, theCameraInfo.K, theCameraInfo.d);
 
 	// interpolate charuco corners
 	int interpolatedCorners = 0;
@@ -70,29 +70,10 @@ void ArucoPoseEstimator::update(CameraPose &cameraPose)
 
 			COMPLEX_DRAWING("module:ArucoPoseEstimator:pose",{draw(cameraPose);});
 
-			cv::aruco::drawAxis(theImageBGR, theCameraInfo.K, theCameraInfo.d, rvec, tvec, 0.01);
         }
 	}
 
-	/*if (markerIds.size() > 0) {
-		cv::aruco::drawDetectedMarkers(theImageBGR, markerCorners);
-	}*/
-
-	//if (rejectedMarkers.size() > 0)
-	//	cv::aruco::drawDetectedMarkers(theImageBGR, rejectedMarkers, cv::noArray(), cv::Scalar(100, 0, 255));
-
-	/*if (interpolatedCorners > 0) {
-		cv::Scalar color;
-		color = cv::Scalar(255, 0, 0);
-		cv::aruco::drawDetectedCornersCharuco(theImageBGR, charucoCorners, charucoIds, color);
-	}*/
-
-    //cameraPose.rvec = rvec;
-    //cameraPose.tvec = tvec;
-
     DEBUG_RESPONSE_ONCE("module:ArucoPoseEstimator:saveCameraPose", saveCameraPose(););
-
-	cv::imshow("out", theImageBGR);
 }
 
 void ArucoPoseEstimator::saveCameraPose()
@@ -176,9 +157,4 @@ void ArucoPoseEstimator::calculatePosAndRot(CameraPose& cameraPose)
 	{
 		cameraPose.rot = Eigen::Vector3f(atan2(-cameraPose.rotationMatrix.at<double>(1, 2), cameraPose.rotationMatrix.at<double>(1, 1)), atan2(-cameraPose.rotationMatrix.at<double>(2, 0), sy), 0);
 	}
-	float w, p, r;
-	w = cameraPose.rvec.at<double>(0, 0);
-	p = cameraPose.rvec.at<double>(1, 0);
-	r = cameraPose.rvec.at<double>(2, 0);
-	cameraPose.rot *= 180 / pi;
 }

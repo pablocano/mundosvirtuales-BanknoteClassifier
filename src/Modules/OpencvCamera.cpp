@@ -3,7 +3,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <sstream>
 
-MAKE_MODULE(OpencvCamera, Common2)
+MAKE_MODULE(OpencvCamera, OpenCVCamera)
 
 OpencvCamera::OpencvCamera(): index(0)
 {
@@ -23,8 +23,8 @@ OpencvCamera::OpencvCamera(): index(0)
     /**
      * Prepare cameras
     */
-    //video0 = cv::VideoCapture(0);
-    video0 = cv::VideoCapture(std::string(File::getGTDir()) + "/Data/vid/caja_muchos.mp4");
+    video0 = cv::VideoCapture(0);
+    //video0 = cv::VideoCapture(std::string(File::getGTDir()) + "/Data/vid/caja_muchos.mp4");
     if(!video0.isOpened())  // check if we succeeded
     {
         cam1.available = false;
@@ -59,7 +59,7 @@ OpencvCamera::OpencvCamera(): index(0)
     /**
      * Prepare Camera Info
      * */
-    cv::Mat K, d;
+    /*cv::Mat K, d;
     cv::Point fieldCenter;
     float pix2World;
     // Load Camera 1 config
@@ -73,11 +73,16 @@ OpencvCamera::OpencvCamera(): index(0)
     file1["Pixel_to_World"] >> pix2World;
     file1["Field_Center"] >> fieldCenter;
     file1.release();
-    cam1 = CameraInfo(CameraInfo::eastCam, "Camera 1", K, d, fieldCenter, pix2World);
+    cam1 = CameraInfo(CameraInfo::eastCam, "Camera 1", K, d, fieldCenter, pix2World);*/
+
+	cv::FileStorage cameraCalibrationFile(std::string(File::getGTDir()) + "/Config/cameracalibration.xml", cv::FileStorage::READ);
+
+	cameraCalibrationFile["camera_matrix"] >> cam1.K;
+	cameraCalibrationFile["distortion_coefficients"] >> cam1.d;
 
 
     // Load Camera 2 config
-    cv::FileStorage file2( std::string(File::getGTDir()) + "/Config/cameraCalibration2.yml", cv::FileStorage::READ);
+    /*cv::FileStorage file2( std::string(File::getGTDir()) + "/Config/cameraCalibration2.yml", cv::FileStorage::READ);
     if(!file2.isOpened())
     {
       std::cout << "Could not open the camera 2 calibration file"<< std::endl;
@@ -87,7 +92,7 @@ OpencvCamera::OpencvCamera(): index(0)
     file2["Pixel_to_World"] >> pix2World;
     file2["Field_Center"] >> fieldCenter;
     file2.release();
-    cam2 = CameraInfo(CameraInfo::westCam, "Camera 2", K, d, fieldCenter, pix2World);
+    cam2 = CameraInfo(CameraInfo::westCam, "Camera 2", K, d, fieldCenter, pix2World);*/
 
     // fill the arrays
     cameras[0] = &video0;
@@ -126,6 +131,11 @@ void OpencvCamera::update(Image& image)
 
   cv::cvtColor(currentImage, image, cv::COLOR_BGR2YCrCb);
 
+}
+
+void OpencvCamera::update(ImageBGR& imageBGR)
+{
+	imageBGR = currentImage.clone();
 }
 
 void OpencvCamera::update(GrayScaleImage& image)

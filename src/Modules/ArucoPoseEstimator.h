@@ -12,7 +12,6 @@ MODULE(ArucoPoseEstimator,
  REQUIRES(CameraInfo),
  REQUIRES(FrameInfo),
  REQUIRES(GrayScaleImageEq),
- REQUIRES(ImageBGR),
  PROVIDES(CameraPose),
 });
 

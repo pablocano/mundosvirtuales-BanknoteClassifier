@@ -11,7 +11,7 @@
 	#define VALID_PATH(s) s
 #endif 
 
-MAKE_MODULE(Camera, Common)
+MAKE_MODULE(Camera, BaslerCamera)
 
 Camera::Camera()
 {

@@ -22,10 +22,22 @@ private:
 
 	unsigned lastTimeSent;
 
-	/**
-	* @brief KalmanFilter
-	*/
-	KalmanFilter kf;
+	void initFilter(const Eigen::VectorXf& x0);
+
+	void updateFilter(const Eigen::VectorXf& y);
+
+	// Matrices for computation
+	Eigen::MatrixXf Q, R, P, K, P0;
+
+	// n-size identity
+	Eigen::MatrixXf I;
+
+	// Estimated states
+	Eigen::VectorXf x_hat, x_hat_new;
+
+	int valid;
+
+	bool draw;
 
 public:
 

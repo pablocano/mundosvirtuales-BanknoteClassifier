@@ -22,7 +22,7 @@ BanknoteClassifier::BanknoteClassifier() :
 INIT_DEBUGGING,
 INIT_GROUND_TRUTH_COMM,
 //moduleManager({"BanknoteClassifier","Segmentation","Common"}),
-moduleManager({ "CameraPose","Communication","Common" }),
+moduleManager({ "CameraPose","Communication","Common","BaslerCamera" }),
 pause(false)
 {
   theDebugOut.setSize(5200000);
