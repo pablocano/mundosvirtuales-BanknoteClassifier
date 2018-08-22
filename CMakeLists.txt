@@ -181,7 +181,6 @@ set( CALIBRATOR_TOOL_SRC
   ${CALIBRATOR_SRC_DIR}/MainWindow.h
   ${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.cpp
   ${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.h
-  ${CALIBRATOR_SRC_DIR}/Synchronization.cpp
   ${CALIBRATOR_SRC_DIR}/Synchronization.h
   ${CALIBRATOR_SRC_DIR}/Views/ImageView.cpp
   ${CALIBRATOR_SRC_DIR}/Views/ImageView.h
@@ -347,12 +346,19 @@ add_executable(bc src/Processes/main.cpp)
 include (GenerateExportHeader)          
 generate_export_header(banknoteClassifier BASE_NAME banknoteClassifier EXPORT_MACRO_NAME BANCKNOTECLASSIFIER_EXPORT EXPORT_FILE_NAME BanknoteClassifier_EXPORTS.h STATIC_DEFINE BANCKNOTECLASSIFIER_EXPORTS_BUILT_AS_STATIC)
 generate_export_header(banknoteClassifier BASE_NAME Process EXPORT_MACRO_NAME PROCESS_EXPORT EXPORT_FILE_NAME Process_EXPORTS.h STATIC_DEFINE PROCESS_EXPORTS_BUILT_AS_STATIC)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(bc banknoteClassifier)
 
 include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/CalibratorTool  ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(calibrationTool ${CALIBRATOR_TOOL_SRC} ${CALIBRATION_TOOL_MOCSrcs} ${CALIBRATION_TOOL_RESOURCES_RCC})
-target_link_libraries(calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES})
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+target_link_libraries( calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES})
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+target_link_libraries( calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES} rt pthread)
+ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+target_link_libraries( calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES})
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 target_compile_definitions(calibrationTool PRIVATE QXT_STATIC)
 
 add_executable(visionTool ${VISION_TOOL_SRC} ${VISION_TOOL_MOCSrcs} ${OpenCV_INCLUDE})

@@ -165,7 +165,7 @@ void onMouseRuler1( int event, int x, int y, int flags, void* userdata)
 {
     switch(event){
 
-        case  CV_EVENT_LBUTTONDOWN:
+        case cv::EVENT_LBUTTONDOWN:
             clicked1 = true;
             img1_P1.x = x;
             img1_P1.y = y;
@@ -174,13 +174,13 @@ void onMouseRuler1( int event, int x, int y, int flags, void* userdata)
             cout << "Camera 1 - Mouse position (" << x << ", " << y << ")" << endl;
             break;
 
-        case  CV_EVENT_LBUTTONUP:
+        case  cv::EVENT_LBUTTONUP:
             img1_P2.x = x;
             img1_P2.y = y;
             clicked1 = false;
             break;
 
-        case  CV_EVENT_MOUSEMOVE:
+        case  cv::EVENT_MOUSEMOVE:
             if(clicked1){
                 img1_P2.x = x;
                 img1_P2.y = y;
@@ -197,7 +197,7 @@ void onMouseRuler2( int event, int x, int y, int flags, void* userdata)
 {
     switch(event){
 
-        case  CV_EVENT_LBUTTONDOWN:
+        case  cv::EVENT_LBUTTONDOWN:
             clicked2 = true;
             img2_P1.x = x;
             img2_P1.y = y;
@@ -206,13 +206,13 @@ void onMouseRuler2( int event, int x, int y, int flags, void* userdata)
             cout << "Camera 2 - Mouse position (" << x << ", " << y << ")" << endl;
             break;
 
-        case  CV_EVENT_LBUTTONUP:
+        case  cv::EVENT_LBUTTONUP:
             img2_P2.x = x;
             img2_P2.y = y;
             clicked2 = false;
             break;
 
-        case  CV_EVENT_MOUSEMOVE:
+        case  cv::EVENT_MOUSEMOVE:
             if(clicked2){
                 img2_P2.x = x;
                 img2_P2.y = y;
@@ -273,18 +273,18 @@ int main(int argc, char* argv[])
     // prepare cameras
     // open first camera
     cv::VideoCapture cam1(CAM1);
-    cam1.set(CV_CAP_PROP_FRAME_HEIGHT, height);
-    cam1.set(CV_CAP_PROP_FRAME_WIDTH, width);
+    cam1.set(cv::CAP_PROP_FRAME_HEIGHT, height);
+    cam1.set(cv::CAP_PROP_FRAME_WIDTH, width);
 
     // open second camera
     cv::VideoCapture cam2(CAM2);
-    cam2.set(CV_CAP_PROP_FRAME_HEIGHT, height);
-    cam2.set(CV_CAP_PROP_FRAME_WIDTH, width);
+    cam2.set(cv::CAP_PROP_FRAME_HEIGHT, height);
+    cam2.set(cv::CAP_PROP_FRAME_WIDTH, width);
 
     // create windows and set properties
     //Create a window
-    namedWindow("cam1", WINDOW_NORMAL | CV_GUI_EXPANDED);
-    namedWindow("cam2", WINDOW_NORMAL | CV_GUI_EXPANDED);
+    namedWindow("cam1", WINDOW_NORMAL);
+    namedWindow("cam2", WINDOW_NORMAL);
     namedWindow("combined", WINDOW_NORMAL);
 
     char key;

@@ -70,10 +70,14 @@ void ArucoPoseEstimator::update(CameraPose &cameraPose)
 
 			COMPLEX_DRAWING("module:ArucoPoseEstimator:pose",{draw(cameraPose);});
 
+            cv::aruco::drawAxis(theImageBGR,theCameraInfo.K,theCameraInfo.d,rvec,tvec,0.3f);
+
         }
 	}
 
     DEBUG_RESPONSE_ONCE("module:ArucoPoseEstimator:saveCameraPose", saveCameraPose(););
+
+    cv::imshow("",theImageBGR);
 }
 
 void ArucoPoseEstimator::saveCameraPose()

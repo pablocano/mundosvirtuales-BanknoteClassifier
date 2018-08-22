@@ -65,6 +65,8 @@ public:
      * @brief currentImage
      */
     ImageBGR currentImage;
+
+    ImageBGR grabbedImageBRG;
   
     /**
     * @brief The height of the image to be delivered
