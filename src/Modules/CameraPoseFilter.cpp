@@ -74,7 +74,7 @@ void CameraPoseFilter::update(CameraPoseFiltered & cameraPoseFiltered)
 	if (valid < 0)
 	{
 		initFilter(measure);
-		updateFilter(measure);
+        updateFilter(measure);
 		valid = 0;
 		return;
 	}
@@ -118,7 +118,7 @@ void CameraPoseFilter::update(CameraPoseFiltered & cameraPoseFiltered)
 	PacketEthernetIPFanuc packetWrite(WRITE_POS, idPacket, 1);
 
 	pos.copyToBuffer(packetWrite.payload);
-	SEND_MESSAGE(idEthernetIPFanuc, packetWrite);
+    //SEND_MESSAGE(idEthernetIPFanuc, packetWrite);
 	OUTPUT_TEXT("Message Sent");
 	RobotStatus::messageDelivered();
 

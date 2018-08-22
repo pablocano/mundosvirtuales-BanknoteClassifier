@@ -28,11 +28,20 @@ Camera::Camera()
         //camera = new Pylon::CBaslerUsbInstantCamera(Pylon::CTlFactory::GetInstance().CreateFirstDevice(info));
         camera = new Pylon::CInstantCamera(Pylon::CTlFactory::GetInstance().CreateFirstDevice());
 
-        // Open the camera
+        // Print the model name of the camera.
+        OUTPUT_TEXT("Using device " + camera->GetDeviceInfo().GetModelName());
+
+        // Initialice the pixel converter
+        fc = new Pylon::CImageFormatConverter();
+        fc->OutputPixelFormat = Pylon::PixelType_BGR8packed;
+
+        // Initialization of a pylon image
+        grabbedImage = new Pylon::CPylonImage();        // Open the camera
         camera->Open();
 
         // Load the persistent configuration
-        std::string nodeFile = std::string(File::getGTDir()) + "/Config/acA2040-90uc_22313646.pfs";
+        //std::string nodeFile = std::string(File::getGTDir()) + "/Config/acA2040-90uc_22313646.pfs";
+        std::string nodeFile = std::string(File::getGTDir()) + "/Config/ubuntu_config.pfs";
         Pylon::CFeaturePersistence::Load(nodeFile.c_str(), &camera->GetNodeMap(), true );
 
         // Initialice the pixel converter
@@ -62,7 +71,7 @@ Camera::~Camera()
 
     delete camera;
 
-    Pylon::PylonTerminate();
+    Pylon::PylonTerminate();// Print the model name of the camera.
 }
 
 void Camera::update(CameraInfo& cameraInfo)
@@ -77,13 +86,17 @@ void Camera::update(Image& image)
         cv::waitKey(1);
 
     try{
-        camera->RetrieveResult( 5000, ptrGrabResult, Pylon::TimeoutHandling_ThrowException);
+        do{
+            camera->RetrieveResult( 5000, ptrGrabResult, Pylon::TimeoutHandling_ThrowException);
+
+        }
+        while(!ptrGrabResult->GrabSucceeded());
 
         // Image grabbed successfully?
         if (ptrGrabResult->GrabSucceeded())
         {
             fc->Convert(*grabbedImage, ptrGrabResult);
-            currentImage = cv::Mat(ptrGrabResult->GetHeight(), ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)grabbedImage->GetBuffer());
+            grabbedImageBRG = cv::Mat(ptrGrabResult->GetHeight(), ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)grabbedImage->GetBuffer());
         }
     }
     catch (GenICam::GenericException &e)
@@ -91,14 +104,16 @@ void Camera::update(Image& image)
         std::cerr << "An exception occurred." << std::endl << e.GetDescription() << std::endl;
     }
 
+    cv::resize(grabbedImageBRG,currentImage,cv::Size(),0.7,0.7,cv::INTER_AREA);
+
     currentImage.timeStamp = theFrameInfo.time;
+
+    cv::cvtColor(currentImage, image, cv::COLOR_BGR2YCrCb);
 
     DEBUG_RESPONSE("representation:ImageBGR",
     {
         OUTPUT(idImage,currentImage);
     });
-
-    cv::cvtColor(currentImage, image, cv::COLOR_BGR2YCrCb);
   
 }
 

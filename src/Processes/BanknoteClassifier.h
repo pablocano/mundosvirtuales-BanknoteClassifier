@@ -13,7 +13,7 @@
 #include <opencv2/core/core.hpp>
 #include <string>
 
-#include "BanknoteClassifier_EXPORTs.h"
+#include "BanknoteClassifier_EXPORTS.h"
 
 class BANCKNOTECLASSIFIER_EXPORT BanknoteClassifier : public Process{
   
