@@ -77,7 +77,7 @@ void ArucoPoseEstimator::update(CameraPose &cameraPose)
 
     DEBUG_RESPONSE_ONCE("module:ArucoPoseEstimator:saveCameraPose", saveCameraPose(););
 
-    cv::imshow("",theImageBGR);
+    //cv::imshow("",theImageBGR);
 }
 
 void ArucoPoseEstimator::saveCameraPose()

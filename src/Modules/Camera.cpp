@@ -40,8 +40,8 @@ Camera::Camera()
         camera->Open();
 
         // Load the persistent configuration
-        //std::string nodeFile = std::string(File::getGTDir()) + "/Config/acA2040-90uc_22313646.pfs";
-        std::string nodeFile = std::string(File::getGTDir()) + "/Config/ubuntu_config.pfs";
+        std::string nodeFile = std::string(File::getGTDir()) + "/Config/acA2040-90uc_22313646.pfs";
+        //std::string nodeFile = std::string(File::getGTDir()) + "/Config/ubuntu_config.pfs";
         Pylon::CFeaturePersistence::Load(nodeFile.c_str(), &camera->GetNodeMap(), true );
 
         // Initialice the pixel converter
@@ -71,7 +71,7 @@ Camera::~Camera()
 
     delete camera;
 
-    Pylon::PylonTerminate();// Print the model name of the camera.
+    Pylon::PylonTerminate();
 }
 
 void Camera::update(CameraInfo& cameraInfo)

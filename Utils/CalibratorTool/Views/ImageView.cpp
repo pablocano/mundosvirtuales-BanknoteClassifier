@@ -114,7 +114,12 @@ void ImageWidget::paintDrawings(QPainter& painter)
 bool ImageWidget::needsRepaint() const
 {
   SYNC_WITH(imageView.controller);
-  const ImageBGR* image = imageView.eastCam ? &imageView.controller.eastImage : &imageView.controller.westmage;
+  const ImageBGR* image;
+  if (!imageView.custom)
+	  image = imageView.eastCam ? &imageView.controller.eastImage : &imageView.controller.westmage;
+  else if (imageView.controller.customImages.count(imageView.name) > 0)
+	  image = &imageView.controller.customImages[imageView.name];
+
   if (!image->empty()) {
     return image->timeStamp != lastImageTimeStamp || (imageView.segmented && imageView.controller.colorTableTimeStamp != lastColorTableTimeStamp);
   }
