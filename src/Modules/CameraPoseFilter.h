@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Tools/ModuleManager/Module.h"
+#include "Representations/CameraInfo.h"
 #include "Representations/FrameInfo.h"
 #include "Representations/Modeling/CameraPose.h"
 #include "Tools/Math/Kalman.h"
@@ -9,6 +10,7 @@ MODULE(CameraPoseFilter,
 {,
  REQUIRES(FrameInfo),
  REQUIRES(CameraPose),
+ REQUIRES(CameraInfo),
  PROVIDES(CameraPoseFiltered),
 });
 
@@ -26,6 +28,8 @@ private:
 
 	void updateFilter(const Eigen::VectorXf& y);
 
+    void draw(CameraPoseFiltered& cameraPose);
+
 	// Matrices for computation
 	Eigen::MatrixXf Q, R, P, K, P0;
 
@@ -36,8 +40,6 @@ private:
 	Eigen::VectorXf x_hat, x_hat_new;
 
 	int valid;
-
-	bool draw;
 
 public:
 

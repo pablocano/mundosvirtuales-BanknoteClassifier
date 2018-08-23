@@ -22,7 +22,7 @@ Controller::Controller(CalibratorTool::Application& application)
 {
   this->application = &application;
   
-  debugIn.setSize(15200000);
+  debugIn.setSize(20200000);
   debugOut.setSize(2800000);
   
   for(int i = 0; i < numOfMessageIDs; ++i)

@@ -6,6 +6,7 @@
 #include "Tools/Debugging/Debugging.h"
 #include "Tools/Math/Constants.h"
 #include "Tools/Math/Angle.h"
+#include "Tools/Debugging/DebugDrawings.h"
 
 MAKE_MODULE(CameraPoseFilter, CameraPose)
 
@@ -36,9 +37,9 @@ CameraPoseFilter::CameraPoseFilter() : valid(-1)
 
 	R.setIdentity();
 	
-	R(0, 0) = 200;
-	R(1, 1) = 200;
-	R(2, 2) = 200;
+    R(0, 0) = 1000;
+    R(1, 1) = 1000;
+    R(2, 2) = 1000;
 	R(3, 3) = 25;
 	R(4, 4) = 25;
 	R(5, 5) = 25;
@@ -52,11 +53,18 @@ CameraPoseFilter::CameraPoseFilter() : valid(-1)
 
 void CameraPoseFilter::update(CameraPoseFiltered & cameraPoseFiltered)
 {
-	if (theFrameInfo.time - lastTimeSent < 33)
+
+    DECLARE_DEBUG_DRAWING("module:CameraPoseFilter:pose", "drawingOnImage");
+
+    if (theFrameInfo.time - lastTimeSent < 33)
+    {
+        COMPLEX_DRAWING("module:CameraPoseFilter:pose", {draw(cameraPoseFiltered);});
 		return;
+    }
 
 	if (theCameraPose.rotationMatrix.empty())
 	{
+        COMPLEX_DRAWING("module:CameraPoseFilter:pose", {draw(cameraPoseFiltered);});
 		valid--;
 		return;
 	}
@@ -88,17 +96,54 @@ void CameraPoseFilter::update(CameraPoseFiltered & cameraPoseFiltered)
 
 	OUTPUT_TEXT(s.str());
 
-	if (valid < 10)
-		return;
+    if(valid > 10)
+        valid--;
 
-	valid--;
+    cameraPoseFiltered.pos = Eigen::Vector3f(x_hat[0],x_hat[1],x_hat[2]);
+    cameraPoseFiltered.rot = Eigen::Vector3f(x_hat[3],x_hat[4],x_hat[5]);
+
+    cameraPoseFiltered.tvec = (cv::Mat_<double>(3,1) << cameraPoseFiltered.pos.x(), cameraPoseFiltered.pos.y(), cameraPoseFiltered.pos.z());
+
+    // Calculate rotation about x axis
+    cv::Mat R_x = (cv::Mat_<double>(3,3) <<
+                   1,       0,              0,
+                   0,       cos(cameraPoseFiltered.rot.x()),   -sin(cameraPoseFiltered.rot.x()),
+                   0,       sin(cameraPoseFiltered.rot.x()),   cos(cameraPoseFiltered.rot.x())
+                   );
+
+    // Calculate rotation about y axis
+    cv::Mat R_y = (cv::Mat_<double>(3,3) <<
+                   cos(cameraPoseFiltered.rot.y()),    0,      sin(cameraPoseFiltered.rot.y()),
+                   0,               1,      0,
+                   -sin(cameraPoseFiltered.rot.y()),   0,      cos(cameraPoseFiltered.rot.y())
+                   );
+
+    // Calculate rotation about z axis
+    cv::Mat R_z = (cv::Mat_<double>(3,3) <<
+                   cos(cameraPoseFiltered.rot.z()),    -sin(cameraPoseFiltered.rot.z()),      0,
+                   sin(cameraPoseFiltered.rot.z()),    cos(cameraPoseFiltered.rot.z()),       0,
+                   0,               0,                  1);
+
+
+        // Combined rotation matrix
+    cv::Mat R = R_z * R_y * R_x;
+
+    cv::Rodrigues(R,cameraPoseFiltered.rvec);
+
+    OUTPUT_TEXT(R);
+
+    double a = cameraPoseFiltered.rvec.at<double>(0);
+    double b = cameraPoseFiltered.rvec.at<double>(1);
+    double c = cameraPoseFiltered.rvec.at<double>(2);
+
+    COMPLEX_DRAWING("module:CameraPoseFilter:pose",{draw(cameraPoseFiltered);});
 
 	PositionRegisterCartesian pos;
 
 	// TODO:
-	pos.x = x_hat[0] * 1.5f;
-	pos.y = x_hat[1] * 1.5f;
-	pos.z = x_hat[2] * 1.2f;
+    pos.x = x_hat[0] * 1000 * 1.5f;
+    pos.y = x_hat[1] * 1000 * 1.5f;
+    pos.z = x_hat[2] * -1000 + 2000;
 
 	pos.w = Angle(x_hat[3]).normalize().toDegrees();
 	pos.p = Angle(x_hat[4]).normalize().toDegrees();
@@ -140,10 +185,35 @@ void CameraPoseFilter::updateFilter(const Eigen::VectorXf& y)
 	Eigen::VectorXf diff = y - x_hat_new;
 
 	diff[3] = Angle(diff[3]).normalize();
-	diff[4] = Angle(diff[4]).normalize();
+    diff[4] = Angle(diff[4]).normalize();	bool draw;
 	diff[5] = Angle(diff[5]).normalize();
 
 	x_hat_new += K * diff;
 	P = (I - K)*P;
 	x_hat = x_hat_new;
+}
+
+void CameraPoseFilter::draw(CameraPoseFiltered &cameraPose)
+{
+    float size = 0.04f;
+    cv::Mat objectPoints(4, 3, CV_32FC1);
+    objectPoints.at< float >(0, 0) = 0;
+    objectPoints.at< float >(0, 1) = 0;
+    objectPoints.at< float >(0, 2) = 0;
+    objectPoints.at< float >(1, 0) = size;	bool draw;
+    objectPoints.at< float >(1, 1) = 0;
+    objectPoints.at< float >(1, 2) = 0;
+    objectPoints.at< float >(2, 0) = 0;
+    objectPoints.at< float >(2, 1) = size;
+    objectPoints.at< float >(2, 2) = 0;
+    objectPoints.at< float >(3, 0) = 0;
+    objectPoints.at< float >(3, 1) = 0;
+    objectPoints.at< float >(3, 2) = size;
+
+    std::vector<cv::Point2f > imagePoints;
+    cv::projectPoints(objectPoints, cameraPose.rvec, cameraPose.tvec, theCameraInfo.K, theCameraInfo.d, imagePoints);
+
+    LINE("module:CameraPoseFilter:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[1].x, imagePoints[1].y, 7, Drawings::ps_solid,ColorRGBA::yellow);
+    LINE("module:CameraPoseFilter:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[2].x, imagePoints[2].y, 7, Drawings::ps_solid,ColorRGBA::yellow);
+    LINE("module:CameraPoseFilter:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[3].x, imagePoints[3].y, 7, Drawings::ps_solid,ColorRGBA::yellow);
 }

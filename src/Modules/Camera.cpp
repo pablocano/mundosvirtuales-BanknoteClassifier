@@ -40,8 +40,8 @@ Camera::Camera()
         camera->Open();
 
         // Load the persistent configuration
-        std::string nodeFile = std::string(File::getGTDir()) + "/Config/acA2040-90uc_22313646.pfs";
-        //std::string nodeFile = std::string(File::getGTDir()) + "/Config/ubuntu_config.pfs";
+        //std::string nodeFile = std::string(File::getGTDir()) + "/Config/acA2040-90uc_22313646.pfs";
+        std::string nodeFile = std::string(File::getGTDir()) + "/Config/ubuntu_config.pfs";
         Pylon::CFeaturePersistence::Load(nodeFile.c_str(), &camera->GetNodeMap(), true );
 
         // Initialice the pixel converter
@@ -96,7 +96,7 @@ void Camera::update(Image& image)
         if (ptrGrabResult->GrabSucceeded())
         {
             fc->Convert(*grabbedImage, ptrGrabResult);
-            grabbedImageBRG = cv::Mat(ptrGrabResult->GetHeight(), ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)grabbedImage->GetBuffer());
+            currentImage = cv::Mat(ptrGrabResult->GetHeight(), ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)grabbedImage->GetBuffer());
         }
     }
     catch (GenICam::GenericException &e)
@@ -104,7 +104,7 @@ void Camera::update(Image& image)
         std::cerr << "An exception occurred." << std::endl << e.GetDescription() << std::endl;
     }
 
-    cv::resize(grabbedImageBRG,currentImage,cv::Size(),0.7,0.7,cv::INTER_AREA);
+    //cv::resize(grabbedImageBRG,currentImage,cv::Size(),0.7,0.7,cv::INTER_AREA);
 
     currentImage.timeStamp = theFrameInfo.time;
 

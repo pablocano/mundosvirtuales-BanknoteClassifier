@@ -26,7 +26,7 @@ private:
 
     void draw(CameraPose& cameraPose);
 
-    void saveCameraPose();
+    void saveCameraPose(CameraPose& cameraPose);
 
     //cv::aruco::MarkerDetector mDetector;
 

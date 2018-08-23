@@ -7,6 +7,10 @@ class CameraPose : public Streamable
 {
 public:
 
+    void draw() const;
+
+    void drawPose() const;
+
     cv::Mat rvec,tvec;
 
     cv::Mat rotationMatrix, rotationMatrixInv;
@@ -14,4 +18,7 @@ public:
 	Eigen::Vector3f pos, rot;
 };
 
-class CameraPoseFiltered : public CameraPose {};
+class CameraPoseFiltered : public CameraPose
+{
+    void draw() const;
+};

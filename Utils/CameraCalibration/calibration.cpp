@@ -299,10 +299,14 @@ int main(int argc, char *argv[]) {
 			if (currentCharucoCorners.total() > 0)
 				aruco::drawDetectedCornersCharuco(TheInputImageCopy, currentCharucoCorners, currentCharucoIds);
 
-			putText(TheInputImageCopy, "Press 'c' to add current frame. 'ESC' to finish and calibrate",
+            Mat sizedCopy;
+
+            resize(TheInputImageCopy,sizedCopy,Size(),0.3,0.3,INTER_AREA);
+
+            putText(sizedCopy, "Press 'c' to add current frame. 'ESC' to finish and calibrate",
 				Point(10, 20), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255, 0, 0), 2);
 
-			imshow("out", TheInputImageCopy);
+            imshow("out", sizedCopy);
 			char key = (char)waitKey(10);
 			if (key == 27) break;
 			if (key == 'c' && ids.size() > 0) {

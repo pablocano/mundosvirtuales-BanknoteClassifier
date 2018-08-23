@@ -8,15 +8,18 @@ MAKE_MODULE(ArucoPoseEstimator, CameraPose)
 
 ArucoPoseEstimator* ArucoPoseEstimator::theInstance = 0;
 
-ArucoPoseEstimator::ArucoPoseEstimator() : mMarkerSize(0.059f)
+ArucoPoseEstimator::ArucoPoseEstimator() : mMarkerSize(0.115f)
 {
     theInstance = this;
 
-	arucoDictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
-	charucoBoard = cv::aruco::CharucoBoard::create(8, 6, 0.025, 0.015, arucoDictionary);
+    arucoDictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
+    //arucoDictionary = cv::aruco::generateCustomDictionary(1,10);
+    //arucoDictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_5X5_50);
+
+    charucoBoard = cv::aruco::CharucoBoard::create(3, 3, 0.034, 0.027, arucoDictionary);
 
 	detectorParams = cv::aruco::DetectorParameters::create();
-	//if (parser.has("dp")) {
+
 	bool readOk = readDetectorParameters(std::string(File::getGTDir()) + "/Config/detector_params.yml", detectorParams);
 
 
@@ -49,43 +52,44 @@ void ArucoPoseEstimator::update(CameraPose &cameraPose)
 		rejectedMarkers);
 
 	// refind strategy to detect more markers
-	cv::aruco::refineDetectedMarkers(theGrayScaleImageEq, charucoBoard, markerCorners, markerIds, rejectedMarkers, theCameraInfo.K, theCameraInfo.d);
+    cv::aruco::refineDetectedMarkers(theGrayScaleImageEq, charucoBoard, markerCorners, markerIds, rejectedMarkers, theCameraInfo.K, theCameraInfo.d);
 
 	// interpolate charuco corners
-	int interpolatedCorners = 0;
+    int interpolatedCorners = 0;
 	if (markerIds.size() > 0)
 		interpolatedCorners = cv::aruco::interpolateCornersCharuco(markerCorners, markerIds, theGrayScaleImageEq, charucoBoard,
 			charucoCorners, charucoIds, theCameraInfo.K, theCameraInfo.d);
 
-	if (charucoIds.size() > 0/*mPoseTracker.isValid()*/) {
+    if (charucoIds.size() > 0 /* mPoseTracker.isValid()*/) {
 
-		if (cv::aruco::estimatePoseCharucoBoard(charucoCorners,charucoIds,charucoBoard,theCameraInfo.K,theCameraInfo.d,rvec,tvec)/*mPoseTracker.estimatePose(markers)*/) {
-			cameraPose.rvec = rvec;
-			cameraPose.tvec = tvec;
+        //cv::aruco::estimatePoseSingleMarkers(markerCorners, mMarkerSize, theCameraInfo.K, theCameraInfo.d, rvecs, tvecs);
 
-			cv::Rodrigues(rvec, cameraPose.rotationMatrix);
-			cameraPose.rotationMatrixInv = cameraPose.rotationMatrix.inv();
+        if (cv::aruco::estimatePoseCharucoBoard(charucoCorners,charucoIds,charucoBoard,theCameraInfo.K,theCameraInfo.d,rvec,tvec)/*mPoseTracker.estimatePose(markers)*/)
+        {
+            cameraPose.rvec = rvec;
+            cameraPose.tvec = tvec;
+
+            //cameraPose.rvec = cv::Mat(rvecs.front());
+            //cameraPose.tvec = cv::Mat(tvecs.front());
+
+            cv::Rodrigues(cameraPose.rvec, cameraPose.rotationMatrix);
+            //cameraPose.rotationMatrixInv = cameraPose.rotationMatrix.inv();
 
 			calculatePosAndRot(cameraPose);
 
 			COMPLEX_DRAWING("module:ArucoPoseEstimator:pose",{draw(cameraPose);});
-
-            cv::aruco::drawAxis(theImageBGR,theCameraInfo.K,theCameraInfo.d,rvec,tvec,0.3f);
-
         }
 	}
 
-    DEBUG_RESPONSE_ONCE("module:ArucoPoseEstimator:saveCameraPose", saveCameraPose(););
-
-    //cv::imshow("",theImageBGR);
+    DEBUG_RESPONSE_ONCE("module:ArucoPoseEstimator:saveCameraPose", saveCameraPose(cameraPose););
 }
 
-void ArucoPoseEstimator::saveCameraPose()
+void ArucoPoseEstimator::saveCameraPose(CameraPose &cameraPose)
 {
     cv::FileStorage file(std::string(File::getGTDir()) + "/Config/cameraPose.yml", cv::FileStorage::WRITE);
 
-    file << "rvec" << rvec;
-    file << "tvec" << tvec;
+    file << "rvec" << cameraPose.rvec;
+    file << "tvec" << cameraPose.tvec;
 }
 
 void ArucoPoseEstimator::draw(CameraPose &cameraPose)
@@ -147,7 +151,7 @@ bool ArucoPoseEstimator::readDetectorParameters(std::string filename, cv::Ptr<cv
 
 void ArucoPoseEstimator::calculatePosAndRot(CameraPose& cameraPose)
 {
-	cameraPose.pos = Eigen::Vector3f(cameraPose.tvec.at<double>(0, 0) * 1000, cameraPose.tvec.at<double>(1, 0) * 1000, cameraPose.tvec.at<double>(2, 0) * (-1000) + 2000);
+    cameraPose.pos = Eigen::Vector3f(cameraPose.tvec.at<double>(0, 0), cameraPose.tvec.at<double>(1, 0), cameraPose.tvec.at<double>(2, 0));
 
 	float sy = std::sqrt(cameraPose.rotationMatrix.at<double>(0, 0) * cameraPose.rotationMatrix.at<double>(0, 0) + cameraPose.rotationMatrix.at<double>(1, 0) * cameraPose.rotationMatrix.at<double>(1, 0));
 

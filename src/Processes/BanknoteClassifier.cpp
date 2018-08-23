@@ -25,7 +25,7 @@ INIT_GROUND_TRUTH_COMM,
 moduleManager({ "CameraPose","Communication","Common","BaslerCamera","Segmentation" }),
 pause(false)
 {
-  theDebugOut.setSize(15200000);
+  theDebugOut.setSize(20200000);
   theDebugIn.setSize(2800000);
   theCommSender.setSize(5000 * SIZE_PACKET);
   theCommReceiver.setSize(5000 * SIZE_PACKET); // more than 4 because of additional data
