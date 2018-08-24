@@ -147,8 +147,7 @@ void CameraPoseFilter::update(CameraPoseFiltered & cameraPoseFiltered)
     OUTPUT_TEXT(s2.str());
 
 	PacketEthernetIPFanuc packetWrite(WRITE_POS, idPacket, 1);
-    PacketEthernetIPFanuc packetReadReg(READ_REG, idPacket, REG_STATUS_AREA);
-    SEND_MESSAGE(idEthernetIPFanuc, packetReadReg);
+
 	pos.copyToBuffer(packetWrite.payload);
     SEND_MESSAGE(idEthernetIPFanuc, packetWrite);
 
