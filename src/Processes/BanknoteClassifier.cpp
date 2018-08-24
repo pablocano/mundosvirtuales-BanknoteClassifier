@@ -34,7 +34,7 @@ pause(false)
 void BanknoteClassifier::init()
 {
   Global::theCommunicationOut = &theCommSender;
-  //START_BANKNOTE_CLASSIFIER_COMM;
+  START_BANKNOTE_CLASSIFIER_COMM;
   moduleManager.load();
 }
 

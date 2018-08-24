@@ -12,11 +12,11 @@ ArucoPoseEstimator::ArucoPoseEstimator() : mMarkerSize(0.115f)
 {
     theInstance = this;
 
-    arucoDictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
+    //arucoDictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
     //arucoDictionary = cv::aruco::generateCustomDictionary(1,10);
-    //arucoDictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_5X5_50);
+    arucoDictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50);
 
-    charucoBoard = cv::aruco::CharucoBoard::create(3, 3, 0.034, 0.027, arucoDictionary);
+    charucoBoard = cv::aruco::CharucoBoard::create(3, 3, 0.0275, 0.0185, arucoDictionary);
 
 	detectorParams = cv::aruco::DetectorParameters::create();
 
