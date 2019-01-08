@@ -21,8 +21,8 @@
 BanknoteClassifier::BanknoteClassifier() :
 INIT_DEBUGGING,
 INIT_GROUND_TRUTH_COMM,
-//moduleManager({"BanknoteClassifier","Segmentation","Common"}),
-moduleManager({ "CameraPose","Communication","Common","BaslerCamera","Segmentation" }),
+moduleManager({"BanknoteClassifier","Segmentation","Common","BaslerCamera","Communication"}),
+//moduleManager({ "CameraPose","Communication","Common","BaslerCamera","Segmentation" }),
 pause(false)
 {
   theDebugOut.setSize(20200000);
