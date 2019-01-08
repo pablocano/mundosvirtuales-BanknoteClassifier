@@ -1,6 +1,7 @@
 #include "Equalizer.h"
+#include "Tools/Debugging/DebugDrawings.h"
 
-MAKE_MODULE(Equalizer,BanknoteClassifier)
+MAKE_MODULE(Equalizer, Common)
 
 Equalizer::Equalizer()
 {
@@ -10,4 +11,5 @@ Equalizer::Equalizer()
 void Equalizer::update(GrayScaleImageEq& grayscaleimageEq)
 {
     clahe_->apply(theGrayScaleImage,grayscaleimageEq);
+    DRAW_IMAGE("equalizer", (cv::Mat) grayscaleimageEq, theFrameInfo.time);
 }

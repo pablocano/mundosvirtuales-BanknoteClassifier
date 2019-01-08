@@ -1,10 +1,12 @@
 #pragma once
 
+#include "Tools/ModuleManager/Module.h"
+#include "Representations/CameraInfo.h"
 #include "Representations/ColorModel/ColorCalibration.h"
 #include "Representations/ColorModel/ColorModel.h"
 #include "Representations/FrameInfo.h"
 #include "Representations/RobotIdentifier.h"
-#include "Tools/ModuleManager/Module.h"
+
 #include "Tools/Messages/MessageQueue.h"
 
 MODULE(BanknoteClassifierConfiguration,
@@ -12,6 +14,7 @@ MODULE(BanknoteClassifierConfiguration,
   PROVIDES(ColorModel),
   PROVIDES(RobotsIdentifiers),
   PROVIDES(FrameInfo),
+  //PROVIDES(CameraInfo),
 });
 
 class BanknoteClassifierConfiguration : public BanknoteClassifierConfigurationBase
@@ -25,6 +28,8 @@ private:
   void update(RobotsIdentifiers& robotsIdentifiers);
   
   void update(FrameInfo& frameInfo);
+
+  //void update(CameraInfo& cameraInfo);
   
   void readColorCalibration();
   

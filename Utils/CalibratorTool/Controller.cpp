@@ -22,7 +22,7 @@ Controller::Controller(CalibratorTool::Application& application)
 {
   this->application = &application;
   
-  debugIn.setSize(5200000);
+  debugIn.setSize(20200000);
   debugOut.setSize(2800000);
   
   for(int i = 0; i < numOfMessageIDs; ++i)
@@ -150,7 +150,9 @@ void Controller::saveColorCalibration()
   SYNC_WITH(*banknoteClassifierWrapper);
   debugOut << DebugRequest("module:GroundTruthConfiguration:saveColorCalibration");
   debugOut.finishMessage(idDebugRequest);
-  
+
+  debugOut << DebugRequest("module:ArucoPoseEstimator:saveCameraPose");
+  debugOut.finishMessage(idDebugRequest);
 }
 
 bool Controller::poll(MessageID id)

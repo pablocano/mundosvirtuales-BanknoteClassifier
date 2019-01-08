@@ -2,163 +2,127 @@
 #include "Tools/Debugging/Debugging.h"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <sstream>
+#include <string>
+#include <regex>
 
-MAKE_MODULE(Camera, Common)
+#ifdef WINDOWS
+	#define VALID_PATH(s) std::regex_replace(s, std::regex("\/"), "\\\\")
+#else
+	#define VALID_PATH(s) s
+#endif 
 
-Camera::Camera(): index(0)
+MAKE_MODULE(Camera, BaslerCamera)
+
+Camera::Camera()
 {
-    /**
-     * Read image configuration
-     * */
-    cv::FileStorage file( std::string(File::getGTDir())+"/Config/cameraConfig.xml", cv::FileStorage::READ);
-    if(!file.isOpened())
-    {
-      std::cout << "Could not open the camera configuration file"<< std::endl;
-    }
-    file["imgWidth" ] >> width;
-    file["imgHeight"] >> height;
-    file.release();
+    //Needed for the basler camera to work
+    Pylon::PylonInitialize();
 
+    try
+    {
+        // Find the type of camera of the current camera
+        //Pylon::CDeviceInfo info;
+        //info.SetDeviceClass( Pylon::CBaslerUsbInstantCamera::DeviceClass());
 
-    /**
-     * Prepare cameras
-    */
-    //video0 = cv::VideoCapture(0);
-    video0 = cv::VideoCapture(std::string(File::getGTDir()) + "/Data/vid/basler_tunned.avi");
-    if(!video0.isOpened())  // check if we succeeded
-    {
-        cam1.available = false;
-        std::cout << "Camera 1 is unavailable"<< std::endl;
-    }
-    else // the camera is available
-    {
-        std::cout << "Camera 1 was successfully opened"<< std::endl;
-        cam1.available = true;
+        // Find the first camera of the previous type
+        //camera = new Pylon::CBaslerUsbInstantCamera(Pylon::CTlFactory::GetInstance().CreateFirstDevice(info));
+        camera = new Pylon::CInstantCamera(Pylon::CTlFactory::GetInstance().CreateFirstDevice());
 
-        video0.set(CV_CAP_PROP_FRAME_HEIGHT, height);
-        video0.set(CV_CAP_PROP_FRAME_WIDTH, width);
+        // Print the model name of the camera.
+        OUTPUT_TEXT("Using device " + camera->GetDeviceInfo().GetModelName());
+
+        // Initialice the pixel converter
+        fc = new Pylon::CImageFormatConverter();
+        fc->OutputPixelFormat = Pylon::PixelType_BGR8packed;
+
+        // Initialization of a pylon image
+        grabbedImage = new Pylon::CPylonImage();        // Open the camera
+        camera->Open();
+
+        // Load the persistent configuration
+        //std::string nodeFile = std::string(File::getGTDir()) + "/Config/acA2040-90uc_22313646.pfs";
+        std::string nodeFile = std::string(File::getGTDir()) + "/Config/ubuntu_config.pfs";
+        Pylon::CFeaturePersistence::Load(nodeFile.c_str(), &camera->GetNodeMap(), true );
+
+        // Initialice the pixel converter
+        fc = new Pylon::CImageFormatConverter();
+        fc->OutputPixelFormat = Pylon::PixelType_BGR8packed;
+
+        // Initialization of a pylon image
+        grabbedImage = new Pylon::CPylonImage();
+
+        // Start the adquisition of images
+        camera->StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
     }
-    // open second camera
-    //video1 = cv::VideoCapture(1);
-    if(!video1.isOpened())  // check if we succeeded
+    catch (GenICam::GenericException &e)
     {
-        cam2.available = false;
-        std::cout << "Camera 2 is unavailable"<< std::endl;
-    }
-    else // the camera is available
-    {
-        std::cout << "Camera 2 was successfully opened"<< std::endl;
-        cam2.available = true;
-        video1.set(CV_CAP_PROP_FRAME_HEIGHT, height);
-        video1.set(CV_CAP_PROP_FRAME_WIDTH, width);
+        std::cerr << "An exception occurred." << std::endl << e.GetDescription() << std::endl;
     }
 
-    numCameras = (cam1.available? 1 : 0) + (cam2.available? 1 : 0);
-    // std::cout << "numCameras: " << numCameras << std::endl;
+	cv::FileStorage cameraCalibrationFile(std::string(File::getGTDir()) + "/Config/cameracalibration.xml", cv::FileStorage::READ);
 
-    /**
-     * Prepare Camera Info
-     * */
-    cv::Mat K, d;
-    cv::Point fieldCenter;
-    float pix2World;
-    // Load Camera 1 config
-    cv::FileStorage file1( std::string(File::getGTDir()) + "/Config/cameraCalibration1.yml", cv::FileStorage::READ);
-    if(!file1.isOpened())
-    {
-      std::cout << "Could not open the camera 1 calibration file"<< std::endl;
-    }
-    file1["Camera_Matrix" ] >> K;
-    file1["Distortion_Coefficients"] >> d;
-    file1["Pixel_to_World"] >> pix2World;
-    file1["Field_Center"] >> fieldCenter;
-    file1.release();
-    cam1 = CameraInfo(CameraInfo::eastCam, "Camera 1", K, d, fieldCenter, pix2World);
+	cameraCalibrationFile["camera_matrix"] >> info.K;
+	cameraCalibrationFile["distortion_coefficients"] >> info.d;
+}
+Camera::~Camera()
+{
+    camera->StopGrabbing();
+    camera->Close();
 
+    delete camera;
 
-    // Load Camera 2 config
-    cv::FileStorage file2( std::string(File::getGTDir()) + "/Config/cameraCalibration2.yml", cv::FileStorage::READ);
-    if(!file2.isOpened())
-    {
-      std::cout << "Could not open the camera 2 calibration file"<< std::endl;
-    }
-    file2["Camera_Matrix" ] >> K;
-    file2["Distortion_Coefficients"] >> d;
-    file2["Pixel_to_World"] >> pix2World;
-    file2["Field_Center"] >> fieldCenter;
-    file2.release();
-    cam2 = CameraInfo(CameraInfo::westCam, "Camera 2", K, d, fieldCenter, pix2World);
-
-    // fill the arrays
-    cameras[0] = &video0;
-    cameras[1] = &video1;
-    camerasInfo[0] = &cam1;
-    camerasInfo[1] = &cam2;
+    Pylon::PylonTerminate();
 }
 
 void Camera::update(CameraInfo& cameraInfo)
 {
-  index = (index + 1)%numCameras;
-  cameraInfo = *camerasInfo[index];
-}
-
-void Camera::update(ImageBGR& image)
-{
-  cv::Mat tmp, undistorted;
-  int i = 0;
-  do{
-    *cameras[index] >> tmp;
-    i++;
-    if (tmp.empty()) {
-        cameras[index]->set(CV_CAP_PROP_POS_AVI_RATIO , 0);
-        *cameras[index] >> tmp;
-    }
-  }
-  while(tmp.empty() || i < 0);
-
-  //cv::resize(tmp,tmp,cv::Size(800,600));
-
-  // correct and rotate images
-  //cv::undistort(tmp, undistorted, camerasInfo[index]->K, camerasInfo[index]->d);
-  //rotateImage90(undistorted, rotated, index == 0? ANGLES::COUNTERCLOCKWISE : ANGLES::CLOCKWISE);
-  image = ImageBGR(tmp);
-  image.timeStamp = theFrameInfo.time;
-  
-  DEBUG_RESPONSE("representation:ImageBGR",
-  {
-    OUTPUT(idImage,image);
-  });
-  
+  cameraInfo = info;
 }
 
 void Camera::update(Image& image)
 {
-    cv::cvtColor(theImageBGR, image, CV_BGR2YCrCb);
+    Pylon::CGrabResultPtr ptrGrabResult;
+    while(!camera->IsGrabbing())
+        cv::waitKey(1);
+
+    try{
+        do{
+            camera->RetrieveResult( 5000, ptrGrabResult, Pylon::TimeoutHandling_ThrowException);
+
+        }
+        while(!ptrGrabResult->GrabSucceeded());
+
+        // Image grabbed successfully?
+        if (ptrGrabResult->GrabSucceeded())
+        {
+            fc->Convert(*grabbedImage, ptrGrabResult);
+            currentImage = cv::Mat(ptrGrabResult->GetHeight(), ptrGrabResult->GetWidth(), CV_8UC3,(uint8_t*)grabbedImage->GetBuffer());
+        }
+    }
+    catch (GenICam::GenericException &e)
+    {
+        std::cerr << "An exception occurred." << std::endl << e.GetDescription() << std::endl;
+    }
+
+    //cv::resize(grabbedImageBRG,currentImage,cv::Size(),0.7,0.7,cv::INTER_AREA);
+
+    currentImage.timeStamp = theFrameInfo.time;
+
+    cv::cvtColor(currentImage, image, cv::COLOR_BGR2YCrCb);
+
+    DEBUG_RESPONSE("representation:ImageBGR",
+    {
+        OUTPUT(idImage,currentImage);
+    });
+  
 }
 
 void Camera::update(GrayScaleImage& image)
 {
-  cv::cvtColor(theImageBGR, image, CV_BGR2GRAY);
+    cv::extractChannel(theImage,image, 0);
 }
 
-
-void Camera::rotateImage90(cv::Mat &src, cv::Mat &dst, int angle)
+void Camera::update(ImageBGR& imageBGR)
 {
-    dst.create(src.size(), src.type());
-    if(angle == 270 || angle == -90){
-        // Rotate clockwise 270 degrees
-        cv::transpose(src, dst);
-        cv::flip(dst, dst, 0);
-    }else if(angle == 180 || angle == -180){
-        // Rotate clockwise 180 degrees
-        cv::flip(src, dst, -1);
-    }else if(angle == 90 || angle == -270){
-        // Rotate clockwise 90 degrees
-        cv::transpose(src, dst);
-        cv::flip(dst, dst, 1);
-    }else if(angle == 360 || angle == 0){
-        if(src.data != dst.data){
-            src.copyTo(dst);
-        }
-    }
+	imageBGR = currentImage.clone();
 }

@@ -7,6 +7,8 @@
 #include "Tools/ModuleManager/Blackboard.h"
 #include "Tools/Settings.h"
 
+#include "Process_EXPORTS.h"
+
 #define DEBUGGING \
 MessageQueue theDebugIn; \
 MessageQueue theDebugOut;
@@ -14,7 +16,7 @@ MessageQueue theDebugOut;
 #define INIT_DEBUGGING \
 Process(theDebugIn,theDebugOut)
 
-class Process : public MessageHandler, public AlignedMemory{
+class PROCESS_EXPORT Process : public MessageHandler, public AlignedMemory{
   
 public:
   

@@ -1,401 +1,422 @@
-/**
- * @file calibration.cpp
- * OpenCV CameraCalibration-based program
- * @author OpenCV team
- * @author Matías Mattamala
- */
+/*
+By downloading, copying, installing or using the software you agree to this
+license. If you do not agree to this license, do not download, install,
+copy or use the software.
 
+License Agreement
+For Open Source Computer Vision Library
+(3-clause BSD License)
+
+Copyright (C) 2013, OpenCV Foundation, all rights reserved.
+Third party copyrights are property of their respective owners.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice,
+this list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+
+* Neither the names of the copyright holders nor the names of the contributors
+may be used to endorse or promote products derived from this software
+without specific prior written permission.
+
+This software is provided by the copyright holders and contributors "as is" and
+any express or implied warranties, including, but not limited to, the implied
+warranties of merchantability and fitness for a particular purpose are
+disclaimed. In no event shall copyright holders or contributors be liable for
+any direct, indirect, incidental, special, exemplary, or consequential damages
+(including, but not limited to, procurement of substitute goods or services;
+loss of use, data, or profits; or business interruption) however caused
+and on any theory of liability, whether in contract, strict liability,
+or tort (including negligence or otherwise) arising in any way out of
+the use of this software, even if advised of the possibility of such damage.
+*/
+
+
+#include <opencv2/highgui.hpp>
+#include <opencv2/calib3d.hpp>
+#include <opencv2/aruco/charuco.hpp>
+#include <opencv2/imgproc.hpp>
+#include <vector>
 #include <iostream>
-#include <sstream>
-#include <time.h>
-#include <stdio.h>
+#include <ctime>
+#include <pylon/PylonIncludes.h>
+#include <pylon/usb/BaslerUsbInstantCamera.h>
 
-#include "settings.h"
-
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/calib3d/calib3d.hpp>
-#include <opencv2/highgui/highgui.hpp>
 #include "Tools/File.h"
 
-#ifndef _CRT_SECURE_NO_WARNINGS
-# define _CRT_SECURE_NO_WARNINGS
-#endif
-
-using namespace cv;
 using namespace std;
+using namespace cv;
+using namespace Pylon;
 
-// global variables
-const string configPath = string(File::getGTDir())+"/Config/";
-enum { DETECTION = 0, CAPTURING = 1, CALIBRATED = 2 };
+VideoCapture TheVideoCapturer;
+Mat TheInputImage, TheInputImageCopy;
 
-// some functions definitions
-bool runCalibrationAndSave(Settings& s, Size imageSize, Mat&  cameraMatrix, Mat& distCoeffs,
-                           vector<vector<Point2f> > imagePoints );
+namespace {
+	const char* about =
+		"Calibration using a ChArUco board\n"
+		"  To capture a frame for calibration, press 'c',\n"
+		"  If input comes from video, press any key for next frame\n"
+		"  To finish capturing, press 'ESC' key and calibration starts.\n";
+	const char* keys =
+		"{w        |       | Number of squares in X direction }"
+		"{h        |       | Number of squares in Y direction }"
+		"{sl       |       | Square side length (in meters) }"
+		"{ml       |       | Marker side length (in meters) }"
+		"{d        |       | dictionary: DICT_4X4_50=0, DICT_4X4_100=1, DICT_4X4_250=2,"
+		"DICT_4X4_1000=3, DICT_5X5_50=4, DICT_5X5_100=5, DICT_5X5_250=6, DICT_5X5_1000=7, "
+		"DICT_6X6_50=8, DICT_6X6_100=9, DICT_6X6_250=10, DICT_6X6_1000=11, DICT_7X7_50=12,"
+		"DICT_7X7_100=13, DICT_7X7_250=14, DICT_7X7_1000=15, DICT_ARUCO_ORIGINAL = 16}"
+		"{@outfile |<none> | Output file with calibrated camera parameters }"
+		"{v        |       | Input from video file, if ommited, input comes from camera }"
+		"{ci       | 0     | Camera id if input doesnt come from video (-v) }"
+		"{dp       |       | File of marker detector parameters }"
+		"{rs       | false | Apply refind strategy }"
+		"{zt       | false | Assume zero tangential distortion }"
+		"{a        |       | Fix aspect ratio (fx/fy) to this value }"
+		"{pc       | false | Fix the principal point at the center }"
+		"{sc       | false | Show detected chessboard corners after calibration }";
+}
 
-static void help(Settings& s);
-
-static void read(const FileNode& node, Settings& x, const Settings& default_value = Settings());
-
-// main program
-int main(int argc, char* argv[])
-{
-    Settings s;
-    help(s);
-    const string inputSettingsFile = argc > 1 ? argv[1] : configPath + "calibrationSettings.xml";
-    FileStorage fs(inputSettingsFile, FileStorage::READ); // Read the settings
-    if (!fs.isOpened())
-    {
-        cout << "Could not open the configuration file: \"" << inputSettingsFile << "\"" << endl;
-        return -1;
-    }
-    fs["Settings"] >> s;
-    fs.release();                                         // close Settings file
-
-    if (!s.goodInput)
-    {
-        cout << "Invalid input detected. Application stopping. " << endl;
-        return -1;
-    }
-
-    vector<vector<Point2f> > imagePoints;
-    Mat cameraMatrix, distCoeffs;
-    Size imageSize;
-    int mode = s.inputType == Settings::IMAGE_LIST ? CAPTURING : DETECTION;
-    clock_t prevTimestamp = 0;
-    const Scalar RED(0,0,255), GREEN(0,255,0);
-    const char ESC_KEY = 27;
-
-    for(int i = 0;;++i)
-    {
-      Mat view;
-      bool blinkOutput = false;
-
-      view = s.nextImage();
-
-      //-----  If no more image, or got enough, then stop calibration and show result -------------
-      if( mode == CAPTURING && imagePoints.size() >= (unsigned)s.nrFrames )
-      {
-          if( runCalibrationAndSave(s, imageSize,  cameraMatrix, distCoeffs, imagePoints))
-              mode = CALIBRATED;
-          else
-              mode = DETECTION;
-      }
-      if(view.empty())          // If no more images then run calibration, save and stop loop.
-      {
-            if( imagePoints.size() > 0 )
-                runCalibrationAndSave(s, imageSize,  cameraMatrix, distCoeffs, imagePoints);
-            break;
-      }
-
-
-        imageSize = view.size();  // Format input image.
-        if( s.flipVertical )    flip( view, view, 0 );
-
-        vector<Point2f> pointBuf;
-
-        bool found;
-        switch( s.calibrationPattern ) // Find feature points on the input format
-        {
-        case Settings::CHESSBOARD:
-            found = findChessboardCorners( view, s.boardSize, pointBuf,
-                CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_FAST_CHECK | CV_CALIB_CB_NORMALIZE_IMAGE);
-            break;
-        case Settings::CIRCLES_GRID:
-            found = findCirclesGrid( view, s.boardSize, pointBuf );
-            break;
-        case Settings::ASYMMETRIC_CIRCLES_GRID:
-            found = findCirclesGrid( view, s.boardSize, pointBuf, CALIB_CB_ASYMMETRIC_GRID );
-            break;
-        default:
-            found = false;
-            break;
-        }
-
-        if (found)                // If done with success,
-        {
-              // improve the found corners' coordinate accuracy for chessboard
-                if( s.calibrationPattern == Settings::CHESSBOARD)
-                {
-                    Mat viewGray;
-                    cvtColor(view, viewGray, COLOR_BGR2GRAY);
-                    cornerSubPix( viewGray, pointBuf, Size(11,11),
-                        Size(-1,-1), TermCriteria( CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 30, 0.1 ));
-                }
-
-                if( mode == CAPTURING &&  // For camera only take new samples after delay time
-                    (!s.inputCapture.isOpened() || clock() - prevTimestamp > s.delay*1e-3*CLOCKS_PER_SEC) )
-                {
-                    imagePoints.push_back(pointBuf);
-                    prevTimestamp = clock();
-                    blinkOutput = s.inputCapture.isOpened();
-                }
-
-                // Draw the corners.
-                drawChessboardCorners( view, s.boardSize, Mat(pointBuf), found );
-        }
-
-        //----------------------------- Output Text ------------------------------------------------
-        string msg = (mode == CAPTURING) ? "100/100" :
-                      mode == CALIBRATED ? "Calibrated" : "Press 'g' to start";
-        int baseLine = 0;
-        Size textSize = getTextSize(msg, 1, 1, 1, &baseLine);
-        Point textOrigin(view.cols - 2*textSize.width - 10, view.rows - 2*baseLine - 10);
-
-        if( mode == CAPTURING )
-        {
-            if(s.showUndistorsed)
-                msg = format( "%d/%d Undist", (int)imagePoints.size(), s.nrFrames );
-            else
-                msg = format( "%d/%d", (int)imagePoints.size(), s.nrFrames );
-        }
-
-        putText( view, msg, textOrigin, 1, 1, mode == CALIBRATED ?  GREEN : RED);
-
-        if( blinkOutput )
-            bitwise_not(view, view);
-
-        //------------------------- Video capture  output  undistorted ------------------------------
-        if( mode == CALIBRATED && s.showUndistorsed )
-        {
-            Mat temp = view.clone();
-            undistort(temp, view, cameraMatrix, distCoeffs);
-        }
-
-        //------------------------------ Show image and check for input commands -------------------
-        namedWindow("Image View", WINDOW_NORMAL);
-        imshow("Image View", view);
-        char key = (char)waitKey(s.inputCapture.isOpened() ? 50 : s.delay);
-
-        if( key  == ESC_KEY )
-            break;
-
-        if( key == 'u' && mode == CALIBRATED )
-           s.showUndistorsed = !s.showUndistorsed;
-
-        if( s.inputCapture.isOpened() && key == 'g' )
-        {
-            mode = CAPTURING;
-            imagePoints.clear();
-        }
-    }
-
-    // -----------------------Show the undistorted image for the image list ------------------------
-    if( s.inputType == Settings::IMAGE_LIST && s.showUndistorsed )
-    {
-        Mat view, rview, map1, map2;
-        initUndistortRectifyMap(cameraMatrix, distCoeffs, Mat(),
-            getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, imageSize, 1, imageSize, 0),
-            imageSize, CV_16SC2, map1, map2);
-
-        for(int i = 0; i < (int)s.imageList.size(); i++ )
-        {
-            view = imread(s.imageList[i], 1);
-            if(view.empty())
-                continue;
-            remap(view, rview, map1, map2, INTER_LINEAR);
-            imshow("Image View", rview);
-            char c = (char)waitKey();
-            if( c  == ESC_KEY || c == 'q' || c == 'Q' )
-                break;
-        }
-    }
-
-
-    return 0;
+/**
+*/
+static bool readDetectorParameters(string filename, Ptr<aruco::DetectorParameters> &params) {
+	FileStorage fs(filename, FileStorage::READ);
+	if (!fs.isOpened())
+		return false;
+	fs["adaptiveThreshWinSizeMin"] >> params->adaptiveThreshWinSizeMin;
+	fs["adaptiveThreshWinSizeMax"] >> params->adaptiveThreshWinSizeMax;
+	fs["adaptiveThreshWinSizeStep"] >> params->adaptiveThreshWinSizeStep;
+	fs["adaptiveThreshConstant"] >> params->adaptiveThreshConstant;
+	fs["minMarkerPerimeterRate"] >> params->minMarkerPerimeterRate;
+	fs["maxMarkerPerimeterRate"] >> params->maxMarkerPerimeterRate;
+	fs["polygonalApproxAccuracyRate"] >> params->polygonalApproxAccuracyRate;
+	fs["minCornerDistanceRate"] >> params->minCornerDistanceRate;
+	fs["minDistanceToBorder"] >> params->minDistanceToBorder;
+	fs["minMarkerDistanceRate"] >> params->minMarkerDistanceRate;
+	fs["cornerRefinementMethod"] >> params->cornerRefinementMethod;
+	fs["cornerRefinementWinSize"] >> params->cornerRefinementWinSize;
+	fs["cornerRefinementMaxIterations"] >> params->cornerRefinementMaxIterations;
+	fs["cornerRefinementMinAccuracy"] >> params->cornerRefinementMinAccuracy;
+	fs["markerBorderBits"] >> params->markerBorderBits;
+	fs["perspectiveRemovePixelPerCell"] >> params->perspectiveRemovePixelPerCell;
+	fs["perspectiveRemoveIgnoredMarginPerCell"] >> params->perspectiveRemoveIgnoredMarginPerCell;
+	fs["maxErroneousBitsInBorderRate"] >> params->maxErroneousBitsInBorderRate;
+	fs["minOtsuStdDev"] >> params->minOtsuStdDev;
+	fs["errorCorrectionRate"] >> params->errorCorrectionRate;
+	return true;
 }
 
 
-static void help(Settings& s)
-{
-    cout <<  "Camera Calibration" << endl
-         <<  "Current cheessboard configuration:"  << endl
-         <<  "Board size: " << s.boardSize.height << " x " << s.boardSize.width << endl
-         <<  "Square size (mm): " << s.squareSize << endl;
+
+/**
+*/
+static bool saveCameraParams(const string &filename, Size imageSize, float aspectRatio, int flags,
+	const Mat &cameraMatrix, const Mat &distCoeffs, double totalAvgErr) {
+	FileStorage fs(filename, FileStorage::WRITE);
+	if (!fs.isOpened())
+		return false;
+
+	time_t tt;
+	time(&tt);
+	struct tm *t2 = localtime(&tt);
+	char buf[1024];
+	strftime(buf, sizeof(buf) - 1, "%c", t2);
+
+	fs << "calibration_time" << buf;
+
+	fs << "image_width" << imageSize.width;
+	fs << "image_height" << imageSize.height;
+
+	if (flags & CALIB_FIX_ASPECT_RATIO) fs << "aspectRatio" << aspectRatio;
+
+	if (flags != 0) {
+		sprintf(buf, "flags: %s%s%s%s",
+			flags & CALIB_USE_INTRINSIC_GUESS ? "+use_intrinsic_guess" : "",
+			flags & CALIB_FIX_ASPECT_RATIO ? "+fix_aspectRatio" : "",
+			flags & CALIB_FIX_PRINCIPAL_POINT ? "+fix_principal_point" : "",
+			flags & CALIB_ZERO_TANGENT_DIST ? "+zero_tangent_dist" : "");
+	}
+
+	fs << "flags" << flags;
+
+	fs << "camera_matrix" << cameraMatrix;
+	fs << "distortion_coefficients" << distCoeffs;
+
+	fs << "avg_reprojection_error" << totalAvgErr;
+
+	return true;
 }
 
 
-static void read(const FileNode& node, Settings& x, const Settings& default_value)
-{
-    if(node.empty())
-        x = default_value;
-    else
-        x.read(node);
-}
+
+/**
+*/
+int main(int argc, char *argv[]) {
+	CommandLineParser parser(argc, argv, keys);
+	parser.about(about);
+
+	if (argc < 7) {
+		parser.printMessage();
+		return 0;
+	}
+
+	// Before using any pylon methods, the pylon runtime must be initialized.
+	PylonInitialize();
+
+	try {
+
+		int squaresX = parser.get<int>("w");
+		int squaresY = parser.get<int>("h");
+		float squareLength = parser.get<float>("sl");
+		float markerLength = parser.get<float>("ml");
+		int dictionaryId = parser.get<int>("d");
+		string outputFile = std::string(File::getGTDir()) + "/Config/cameracalibration.xml";
+
+		bool showChessboardCorners = parser.get<bool>("sc");
+
+		int calibrationFlags = 0;
+		float aspectRatio = 1;
+		if (parser.has("a")) {
+			calibrationFlags |= CALIB_FIX_ASPECT_RATIO;
+			aspectRatio = parser.get<float>("a");
+		}
+		if (parser.get<bool>("zt")) calibrationFlags |= CALIB_ZERO_TANGENT_DIST;
+		if (parser.get<bool>("pc")) calibrationFlags |= CALIB_FIX_PRINCIPAL_POINT;
+
+		Ptr<aruco::DetectorParameters> detectorParams = aruco::DetectorParameters::create();
+		//if (parser.has("dp")) {
+		bool readOk = readDetectorParameters(std::string(File::getGTDir()) + "/Config/detector_params.yml", detectorParams);
+		if (!readOk) {
+			cerr << "Invalid detector parameters file" << endl;
+			return 0;
+		}
+
+		bool refindStrategy = parser.get<bool>("rs");
+		int camId = parser.get<int>("ci");
+		String video;
+
+		if (parser.has("v")) {
+			video = parser.get<String>("v");
+		}
+
+		if (!parser.check()) {
+			parser.printErrors();
+			return 0;
+		}
+
+		Ptr<aruco::Dictionary> dictionary =
+			aruco::getPredefinedDictionary(aruco::PREDEFINED_DICTIONARY_NAME(dictionaryId));
+
+		// create charuco board object
+		Ptr<aruco::CharucoBoard> charucoboard =
+			aruco::CharucoBoard::create(squaresX, squaresY, squareLength, markerLength, dictionary);
+
+		Ptr<aruco::Board> board = charucoboard.staticCast<aruco::Board>();
+
+		cv::Mat boardImage;
+		charucoboard->draw(cv::Size(600, 500), boardImage, 10, 1);
+		cv::imwrite(std::string(File::getGTDir()) + "/Config/charucoBoard.jpg", boardImage);
+
+		CDeviceInfo info;
+		info.SetDeviceClass(CBaslerUsbInstantCamera::DeviceClass());
+		// Create an instant camera object with the camera device found first.
+		CBaslerUsbInstantCamera camera(CTlFactory::GetInstance().CreateFirstDevice(info));
+
+		camera.Open();
+
+		CImageFormatConverter fc;
+
+		fc.OutputPixelFormat = PixelType_BGR8packed;
+
+		// Start the grabbing of c_countOfImagesToGrab images.
+		// The camera device is parameterized with a default configuration which
+		// sets up free-running continuous acquisition.
+		camera.StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
+
+		// This smart pointer will receive the grab result data.
+		CGrabResultPtr ptrGrabResult;
+
+		CPylonImage pylonImage;
+
+		// read first image to get the dimensions
+		TheVideoCapturer >> TheInputImage;
+
+		std::cout << camera.Width.GetValue() << "," << camera.Height.GetValue() << std::endl;
+
+		/*VideoCapture inputVideo;
+		int waitTime;
+		if (!video.empty()) {
+			inputVideo.open(video);
+			waitTime = 0;
+		}
+		else {
+			inputVideo.open(camId);
+			waitTime = 10;
+		}*/
 
 
-static double computeReprojectionErrors( const vector<vector<Point3f> >& objectPoints,
-                                         const vector<vector<Point2f> >& imagePoints,
-                                         const vector<Mat>& rvecs, const vector<Mat>& tvecs,
-                                         const Mat& cameraMatrix , const Mat& distCoeffs,
-                                         vector<float>& perViewErrors)
-{
-    vector<Point2f> imagePoints2;
-    int i, totalPoints = 0;
-    double totalErr = 0, err;
-    perViewErrors.resize(objectPoints.size());
+		// collect data from each frame
+		vector< vector< vector< Point2f > > > allCorners;
+		vector< vector< int > > allIds;
+		vector< Mat > allImgs;
+		Size imgSize;
 
-    for( i = 0; i < (int)objectPoints.size(); ++i )
-    {
-        projectPoints( Mat(objectPoints[i]), rvecs[i], tvecs[i], cameraMatrix,
-                       distCoeffs, imagePoints2);
-        err = norm(Mat(imagePoints[i]), Mat(imagePoints2), CV_L2);
+		while (true/*inputVideo.grab()*/) {
+			//Mat image, imageCopy;
+			//inputVideo.retrieve(image);
 
-        int n = (int)objectPoints[i].size();
-        perViewErrors[i] = (float) std::sqrt(err*err/n);
-        totalErr        += err*err;
-        totalPoints     += n;
-    }
+			camera.RetrieveResult(5000, ptrGrabResult, TimeoutHandling_ThrowException);
 
-    return std::sqrt(totalErr/totalPoints);
-}
+			fc.Convert(pylonImage, ptrGrabResult);
 
-static void calcBoardCornerPositions(Size boardSize, float squareSize, vector<Point3f>& corners,
-                                     Settings::Pattern patternType /*= Settings::CHESSBOARD*/)
-{
-    corners.clear();
+			TheInputImage = cv::Mat(ptrGrabResult->GetHeight(), ptrGrabResult->GetWidth(), CV_8UC3, (uint8_t*)pylonImage.GetBuffer());
 
-    switch(patternType)
-    {
-    case Settings::CHESSBOARD:
-    case Settings::CIRCLES_GRID:
-        for( int i = 0; i < boardSize.height; ++i )
-            for( int j = 0; j < boardSize.width; ++j )
-                corners.push_back(Point3f(float( j*squareSize ), float( i*squareSize ), 0));
-        break;
+			vector< int > ids;
+			vector< vector< Point2f > > corners, rejected;
 
-    case Settings::ASYMMETRIC_CIRCLES_GRID:
-        for( int i = 0; i < boardSize.height; i++ )
-            for( int j = 0; j < boardSize.width; j++ )
-                corners.push_back(Point3f(float((2*j + i % 2)*squareSize), float(i*squareSize), 0));
-        break;
-    default:
-        break;
-    }
-}
+			// detect markers
+			aruco::detectMarkers(TheInputImage, dictionary, corners, ids, detectorParams, rejected);
 
-static bool runCalibration( Settings& s, Size& imageSize, Mat& cameraMatrix, Mat& distCoeffs,
-                            vector<vector<Point2f> > imagePoints, vector<Mat>& rvecs, vector<Mat>& tvecs,
-                            vector<float>& reprojErrs,  double& totalAvgErr)
-{
+			// refind strategy to detect more markers
+			if (refindStrategy) aruco::refineDetectedMarkers(TheInputImage, board, corners, ids, rejected);
 
-    cameraMatrix = Mat::eye(3, 3, CV_64F);
-    if( s.flag & CV_CALIB_FIX_ASPECT_RATIO )
-        cameraMatrix.at<double>(0,0) = 1.0;
+			// interpolate charuco corners
+			Mat currentCharucoCorners, currentCharucoIds;
+			if (ids.size() > 0)
+				aruco::interpolateCornersCharuco(corners, ids, TheInputImage, charucoboard, currentCharucoCorners,
+					currentCharucoIds);
 
-    distCoeffs = Mat::zeros(8, 1, CV_64F);
+			// draw results
+			//image.copyTo(imageCopy);
+			TheInputImage.copyTo(TheInputImageCopy);
+			if (ids.size() > 0) aruco::drawDetectedMarkers(TheInputImageCopy, corners);
 
-    vector<vector<Point3f> > objectPoints(1);
-    calcBoardCornerPositions(s.boardSize, s.squareSize, objectPoints[0], s.calibrationPattern);
+			if (currentCharucoCorners.total() > 0)
+				aruco::drawDetectedCornersCharuco(TheInputImageCopy, currentCharucoCorners, currentCharucoIds);
 
-    objectPoints.resize(imagePoints.size(),objectPoints[0]);
+            Mat sizedCopy;
 
-    //Find intrinsic and extrinsic camera parameters
-    double rms = calibrateCamera(objectPoints, imagePoints, imageSize, cameraMatrix,
-                                 distCoeffs, rvecs, tvecs, s.flag|CV_CALIB_FIX_K4|CV_CALIB_FIX_K5);
+            resize(TheInputImageCopy,sizedCopy,Size(),0.3,0.3,INTER_AREA);
 
-    cout << "Re-projection error reported by calibrateCamera: "<< rms << endl;
+            putText(sizedCopy, "Press 'c' to add current frame. 'ESC' to finish and calibrate",
+				Point(10, 20), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255, 0, 0), 2);
 
-    bool ok = checkRange(cameraMatrix) && checkRange(distCoeffs);
+            imshow("out", sizedCopy);
+			char key = (char)waitKey(10);
+			if (key == 27) break;
+			if (key == 'c' && ids.size() > 0) {
+				cout << "Frame captured" << endl;
+				allCorners.push_back(corners);
+				allIds.push_back(ids);
+				allImgs.push_back(TheInputImage);
+				imgSize = TheInputImage.size();
+			}
+		}
 
-    totalAvgErr = computeReprojectionErrors(objectPoints, imagePoints,
-                                             rvecs, tvecs, cameraMatrix, distCoeffs, reprojErrs);
+		if (allIds.size() < 1) {
+			cerr << "Not enough captures for calibration" << endl;
+			return 0;
+		}
 
-    return ok;
-}
+		Mat cameraMatrix, distCoeffs;
+		vector< Mat > rvecs, tvecs;
+		double repError;
 
-// Print camera parameters to the output file
-static void saveCameraParams( Settings& s, Size& imageSize, Mat& cameraMatrix, Mat& distCoeffs,
-                              const vector<Mat>& rvecs, const vector<Mat>& tvecs,
-                              const vector<float>& reprojErrs, const vector<vector<Point2f> >& imagePoints,
-                              double totalAvgErr )
-{
-    FileStorage fs( configPath + s.outputFileName, FileStorage::WRITE );
+		if (calibrationFlags & CALIB_FIX_ASPECT_RATIO) {
+			cameraMatrix = Mat::eye(3, 3, CV_64F);
+			cameraMatrix.at< double >(0, 0) = aspectRatio;
+		}
 
-    time_t tm;
-    time( &tm );
-    struct tm *t2 = localtime( &tm );
-    char buf[1024];
-    strftime( buf, sizeof(buf)-1, "%c", t2 );
+		// prepare data for calibration
+		vector< vector< Point2f > > allCornersConcatenated;
+		vector< int > allIdsConcatenated;
+		vector< int > markerCounterPerFrame;
+		markerCounterPerFrame.reserve(allCorners.size());
+		for (unsigned int i = 0; i < allCorners.size(); i++) {
+			markerCounterPerFrame.push_back((int)allCorners[i].size());
+			for (unsigned int j = 0; j < allCorners[i].size(); j++) {
+				allCornersConcatenated.push_back(allCorners[i][j]);
+				allIdsConcatenated.push_back(allIds[i][j]);
+			}
+		}
 
-    fs << "calibration_Time" << buf;
+		// calibrate camera using aruco markers
+		double arucoRepErr;
+		arucoRepErr = aruco::calibrateCameraAruco(allCornersConcatenated, allIdsConcatenated,
+			markerCounterPerFrame, board, imgSize, cameraMatrix,
+			distCoeffs, noArray(), noArray(), calibrationFlags);
 
-    if( !rvecs.empty() || !reprojErrs.empty() )
-        fs << "nrOfFrames" << (int)std::max(rvecs.size(), reprojErrs.size());
-    fs << "image_Width" << imageSize.width;
-    fs << "image_Height" << imageSize.height;
-    fs << "board_Width" << s.boardSize.width;
-    fs << "board_Height" << s.boardSize.height;
-    fs << "square_Size" << s.squareSize;
+		// prepare data for charuco calibration
+		int nFrames = (int)allCorners.size();
+		vector< Mat > allCharucoCorners;
+		vector< Mat > allCharucoIds;
+		vector< Mat > filteredImages;
+		allCharucoCorners.reserve(nFrames);
+		allCharucoIds.reserve(nFrames);
 
-    if( s.flag & CV_CALIB_FIX_ASPECT_RATIO )
-        fs << "FixAspectRatio" << s.aspectRatio;
+		for (int i = 0; i < nFrames; i++) {
+			// interpolate using camera parameters
+			Mat currentCharucoCorners, currentCharucoIds;
+			aruco::interpolateCornersCharuco(allCorners[i], allIds[i], allImgs[i], charucoboard,
+				currentCharucoCorners, currentCharucoIds, cameraMatrix,
+				distCoeffs);
 
-    if( s.flag )
-    {
-        sprintf( buf, "flags: %s%s%s%s",
-            s.flag & CV_CALIB_USE_INTRINSIC_GUESS ? " +use_intrinsic_guess" : "",
-            s.flag & CV_CALIB_FIX_ASPECT_RATIO ? " +fix_aspectRatio" : "",
-            s.flag & CV_CALIB_FIX_PRINCIPAL_POINT ? " +fix_principal_point" : "",
-            s.flag & CV_CALIB_ZERO_TANGENT_DIST ? " +zero_tangent_dist" : "" );
-        cvWriteComment( *fs, buf, 0 );
+			allCharucoCorners.push_back(currentCharucoCorners);
+			allCharucoIds.push_back(currentCharucoIds);
+			filteredImages.push_back(allImgs[i]);
+		}
 
-    }
+		if (allCharucoCorners.size() < 4) {
+			cerr << "Not enough corners for calibration" << endl;
+			return 0;
+		}
 
-    fs << "flagValue" << s.flag;
+		// calibrate camera using charuco
+		repError =
+			aruco::calibrateCameraCharuco(allCharucoCorners, allCharucoIds, charucoboard, imgSize,
+				cameraMatrix, distCoeffs, rvecs, tvecs, calibrationFlags);
 
-    fs << "Camera_Matrix" << cameraMatrix;
-    fs << "Distortion_Coefficients" << distCoeffs;
+		bool saveOk = saveCameraParams(outputFile, imgSize, aspectRatio, calibrationFlags,
+			cameraMatrix, distCoeffs, repError);
+		if (!saveOk) {
+			cerr << "Cannot save output file" << endl;
+			return 0;
+		}
 
-    fs << "Avg_Reprojection_Error" << totalAvgErr;
-    if( !reprojErrs.empty() )
-        fs << "Per_View_Reprojection_Errors" << Mat(reprojErrs);
+		cout << "Rep Error: " << repError << endl;
+		cout << "Rep Error Aruco: " << arucoRepErr << endl;
+		cout << "Calibration saved to " << outputFile << endl;
 
-    if( !rvecs.empty() && !tvecs.empty() )
-    {
-        CV_Assert(rvecs[0].type() == tvecs[0].type());
-        Mat bigmat((int)rvecs.size(), 6, rvecs[0].type());
-        for( int i = 0; i < (int)rvecs.size(); i++ )
-        {
-            Mat r = bigmat(Range(i, i+1), Range(0,3));
-            Mat t = bigmat(Range(i, i+1), Range(3,6));
+		// show interpolated charuco corners for debugging
+		if (showChessboardCorners) {
+			for (unsigned int frame = 0; frame < filteredImages.size(); frame++) {
+				Mat imageCopy = filteredImages[frame].clone();
+				if (allIds[frame].size() > 0) {
 
-            CV_Assert(rvecs[i].rows == 3 && rvecs[i].cols == 1);
-            CV_Assert(tvecs[i].rows == 3 && tvecs[i].cols == 1);
-            //*.t() is MatExpr (not Mat) so we can use assignment operator
-            r = rvecs[i].t();
-            t = tvecs[i].t();
-        }
-        cvWriteComment( *fs, "a set of 6-tuples (rotation vector + translation vector) for each view", 0 );
-        fs << "Extrinsic_Parameters" << bigmat;
-    }
+					if (allCharucoCorners[frame].total() > 0) {
+						aruco::drawDetectedCornersCharuco(imageCopy, allCharucoCorners[frame],
+							allCharucoIds[frame]);
+					}
+				}
 
-    if( !imagePoints.empty() )
-    {
-        Mat imagePtMat((int)imagePoints.size(), (int)imagePoints[0].size(), CV_32FC2);
-        for( int i = 0; i < (int)imagePoints.size(); i++ )
-        {
-            Mat r = imagePtMat.row(i).reshape(2, imagePtMat.cols);
-            Mat imgpti(imagePoints[i]);
-            imgpti.copyTo(r);
-        }
-        fs << "Image_points" << imagePtMat;
-    }
-}
+				imshow("out", imageCopy);
+				char key = (char)waitKey(0);
+				if (key == 27) break;
+			}
+		}
 
-bool runCalibrationAndSave(Settings& s, Size imageSize, Mat&  cameraMatrix, Mat& distCoeffs,vector<vector<Point2f> > imagePoints )
-{
-    vector<Mat> rvecs, tvecs;
-    vector<float> reprojErrs;
-    double totalAvgErr = 0;
+		return 0;
 
-    bool ok = runCalibration(s,imageSize, cameraMatrix, distCoeffs, imagePoints, rvecs, tvecs,
-                             reprojErrs, totalAvgErr);
-    cout << (ok ? "Calibration succeeded" : "Calibration failed")
-        << ". avg re projection error = "  << totalAvgErr ;
+	}
 
-    if( ok )
-        saveCameraParams( s, imageSize, cameraMatrix, distCoeffs, rvecs ,tvecs, reprojErrs,
-                            imagePoints, totalAvgErr);
-    return ok;
+	catch (std::exception &ex)
+	{
+		cout << "Exception :" << ex.what() << endl;
+		return -1;
+	}
 }

@@ -3,10 +3,11 @@
 #include "Tools/ModuleManager/Module.h"
 #include "Representations/Image.h"
 #include <opencv2/imgproc.hpp>
-
+#include "Representations/FrameInfo.h"
 MODULE(Equalizer,
 {,
  REQUIRES(GrayScaleImage),
+ REQUIRES(FrameInfo),
  PROVIDES(GrayScaleImageEq),
 });
 

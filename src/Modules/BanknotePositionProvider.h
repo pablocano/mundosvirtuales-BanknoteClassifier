@@ -19,7 +19,7 @@ MODULE(BanknotePositionProvider,
  REQUIRES(Classification),
  REQUIRES(Features),
  REQUIRES(FrameInfo),
- REQUIRES(ImageBGR),
+ //REQUIRES(ImageBGR),
  REQUIRES(PreviousBanknotePosition),
  PROVIDES(BanknotePosition),
  PROVIDES(ErrorInfo),
@@ -64,7 +64,7 @@ public:
      * @param corners the corners of the area to analyse
      * @return if the area is valid
      */
-    static bool analyzeArea(cv::Mat &homography, std::vector<Vector2f>& corners);
+    static bool analyzeArea(cv::Mat &homography, std::vector<Vector2f>& corners, Pose2D& pose);
 
     /**
      * @brief compare the current image with the acoording template using the Classification representation
@@ -78,7 +78,7 @@ public:
     // Models features
     std::vector<cv::Mat> modelsImage;
     std::vector<Features> modelsFeatures;
-    std::vector<cv::Point2f> modelsCorners;
+    std::vector<Vector3d> modelsCorners;
 
     std::vector<cv::DMatch> matches;
 

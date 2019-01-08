@@ -4,7 +4,7 @@
 #include "Tools/Debugging/DebugDrawings.h"
 #include <opencv2/imgproc.hpp>
 
-MAKE_MODULE(TemplateInspection, BanknoteClassifier)
+MAKE_MODULE(TemplateInspection, BanknoteClassifier2)
 
 TemplateInspection::TemplateInspection()
 {

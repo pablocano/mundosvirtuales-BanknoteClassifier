@@ -96,8 +96,8 @@ public:
             if (inputType == CAMERA){
                 inputCapture.open(cameraID);
                 cout << "Camera /dev/video" << cameraID << " opened" << endl;
-                inputCapture.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
-                inputCapture.set(CV_CAP_PROP_FRAME_WIDTH, 640);
+                inputCapture.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+                inputCapture.set(cv::CAP_PROP_FRAME_WIDTH, 640);
             }
             if (inputType == VIDEO_FILE)
                 inputCapture.open(input);
@@ -111,9 +111,9 @@ public:
         }
 
         flag = 0;
-        if(calibFixPrincipalPoint) flag |= CV_CALIB_FIX_PRINCIPAL_POINT;
-        if(calibZeroTangentDist)   flag |= CV_CALIB_ZERO_TANGENT_DIST;
-        if(aspectRatio)            flag |= CV_CALIB_FIX_ASPECT_RATIO;
+        if(calibFixPrincipalPoint) flag |= cv::CALIB_FIX_PRINCIPAL_POINT;
+        if(calibZeroTangentDist)   flag |= cv::CALIB_ZERO_TANGENT_DIST;
+        if(aspectRatio)            flag |= cv::CALIB_FIX_ASPECT_RATIO;
 
 
         calibrationPattern = NOT_EXISTING;
@@ -138,7 +138,7 @@ public:
             view0.copyTo(result);
         }
         else if( atImageList < (int)imageList.size() )
-            result = imread(imageList[atImageList++], CV_LOAD_IMAGE_COLOR);
+            result = imread(imageList[atImageList++], cv::IMREAD_COLOR);
 
         cout << result.rows << "x" << result.cols << endl;
         return result;

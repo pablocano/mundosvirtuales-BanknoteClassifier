@@ -4,13 +4,21 @@ PROJECT (BanknoteClassifier)
 find_package(OpenCV REQUIRED)
 find_package(Qt4 REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+
+set(PYLON_ROOT /opt/pylon5)
 include(${QT_USE_FILE})
 
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
 
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
+if(WINDOWS)
+	set(CMAKE_SHARED_LINKER_FLAGS "/API_EXPORT")
+endif()
+
 set( BANCKNOTECLASSIFIER_SRC
-  src/Modules/Camera.cpp
-  src/Modules/Camera.h
+  src/Modules/ArucoPoseEstimator.cpp
+  src/Modules/ArucoPoseEstimator.h
   src/Modules/BlobProvider.cpp
   src/Modules/BlobProvider.h
   src/Modules/BlobFilter.cpp
@@ -21,20 +29,36 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/BanknotePositionProvider.h
   src/Modules/BanknoteClassifierProvider.cpp
   src/Modules/BanknoteClassifierProvider.h
+  src/Modules/Camera.cpp
+  src/Modules/Camera.h
+  src/Modules/CameraPoseFilter.cpp
+  src/Modules/CameraPoseFilter.h
+  src/Modules/CameraPoseProvider.cpp
+  src/Modules/CameraPoseProvider.h
   src/Modules/Equalizer.cpp
   src/Modules/Equalizer.h
   src/Modules/FeaturesProvider.cpp
   src/Modules/FeaturesProvider.h
   src/Modules/EstimatePosition.cpp
   src/Modules/EstimatePosition.h
+  src/Modules/OpencvCamera.cpp
+  src/Modules/OpencvCamera.h
   src/Modules/PreviousBanknoteCheck.cpp
   src/Modules/PreviousBanknoteCheck.h
   src/Modules/Regionizer.cpp
   src/Modules/Regionizer.h
+  src/Modules/RobotFanucDataProvider.cpp
+  src/Modules/RobotFanucDataProvider.h
+  src/Modules/RobotFanucComm.cpp
+  src/Modules/RobotFanucComm.h
+  src/Modules/RobotStatus.cpp
+  src/Modules/RobotStatus.h
   src/Modules/Segmentator.cpp
   src/Modules/Segmentator.h
   src/Modules/TemplateInspection.cpp
   src/Modules/TemplateInspection.h
+  src/Modules/WorldCoordinatesPoseProvider.cpp
+  src/Modules/WorldCoordinatesPoseProvider.h
   src/Platform/Memory.cpp
   src/Platform/Memory.h
   src/Processes/BanknoteClassifier.cpp
@@ -62,8 +86,16 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/BanknoteClassifierMessages.h
   src/Representations/Image.cpp
   src/Representations/Image.h
+  src/Representations/Modeling/WorldCoordinatesPose.cpp
+  src/Representations/Modeling/WorldCoordinatesPose.h
+  src/Representations/Modeling/CameraPose.cpp
+  src/Representations/Modeling/CameraPose.h
   src/Representations/Regions.cpp
   src/Representations/Regions.h
+  src/Representations/RegState.cpp
+  src/Representations/RegState.h
+  src/Representations/RobotFanuc.cpp
+  src/Representations/RobotFanuc.h
   src/Tools/AlignedMemory.cpp
   src/Tools/AlignedMemory.h
   src/Tools/ColorClasses.cpp
@@ -72,11 +104,6 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/Comm/Comm.h
   src/Tools/Comm/BanknoteClassifierMessageHandler.cpp
   src/Tools/Comm/BanknoteClassifierMessageHandler.h
-  src/Tools/Comm/SPLStandardMessage.h
-  src/Tools/Comm/SPLStandardMessageWrapper.cpp
-  src/Tools/Comm/SPLStandardMessageWrapper.h
-  src/Tools/Comm/UdpComm.cpp
-  src/Tools/Comm/UdpComm.h
   src/Tools/Debugging/Debugging.h
   src/Tools/Debugging/DebugRequest.cpp
   src/Tools/Debugging/DebugRequest.h
@@ -88,6 +115,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/File.h
   src/Tools/Global.cpp
   src/Tools/Global.h
+  src/Tools/Math/Angle.h
+  src/Tools/Math/Constants.h
   src/Tools/Math/Eigen.h
   src/Tools/Math/EigenArrayExtensions.h
   src/Tools/Math/EigenMatrixBaseExtensions.h
@@ -123,7 +152,6 @@ set( BANCKNOTECLASSIFIER_SRC
 
 set( CAMERA_CALIBRATION
    Utils/CameraCalibration/calibration.cpp
-   Utils/CameraCalibration/settings.h
    src/Tools/File.cpp
    src/Tools/File.h
 )
@@ -188,11 +216,6 @@ set( VISION_TOOL_SRC
   src/Tools/AlignedMemory.h
   src/Tools/Comm/BanknoteClassifierMessageHandler.cpp
   src/Tools/Comm/BanknoteClassifierMessageHandler.h
-  src/Tools/Comm/SPLStandardMessage.h
-  src/Tools/Comm/SPLStandardMessageWrapper.cpp
-  src/Tools/Comm/SPLStandardMessageWrapper.h
-  src/Tools/Comm/UdpComm.cpp
-  src/Tools/Comm/UdpComm.h
   src/Tools/Enum.cpp
   src/Tools/Enum.h
   src/Tools/File.cpp
@@ -224,6 +247,19 @@ set( LIBQXT_SRC
   ${LIBQXT_SRC_DIR}/qxtspanslider.h
 )
 
+set( LIB_ETHERNETIP_FANUC_SRC
+	src/Tools/Fanuc/PositionRegisterCartesian.cpp
+	src/Tools/Fanuc/PositionRegisterJoint.cpp
+	src/Tools/Comm/TcpComm.cpp
+)
+
+set( LIB_ETHERNETIP_FANUC_INCLUDE
+	src/Tools/Fanuc/PositionRegisterCartesian.h
+	src/Tools/Fanuc/PositionRegisterJoint.h
+	src/Tools/Fanuc/PacketEthernetIPFanuc.h
+	src/Tools/Comm/TcpComm.h
+)
+
 source_group(src\\Processes REGULAR_EXPRESSION "src/Processes/*")
 source_group(src\\Modules REGULAR_EXPRESSION "Modules/*")
 source_group(src\\Representations REGULAR_EXPRESSION "Representations/*")
@@ -241,41 +277,89 @@ source_group(Utils\\CalibratorTool\\Views\\ColorCalibrationView REGULAR_EXPRESSI
 source_group(Utils\\libqxt REGULAR_EXPRESSION "Utils/libqxt*")
 source_group(Utils\\VisionTool REGULAR_EXPRESSION "Utils/VisionTool/*")
 
-set(CMAKE_CXX_FLAGS "-std=c++11")
+if(WIN32)
+	set(CMAKE_CXX_STANDARD 11)
+else()
+	set(CMAKE_CXX_FLAGS "-std=c++11")
+endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+IF(WIN32)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Zm200 -wd4503")
+	add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS)
+	message(STATUS "Windows computer")
+	SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:msvcrt.lib")
+	SET(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:msvcrt.lib")
+ENDIF(WIN32)
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_definitions(-DOSX)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 add_definitions(-DLINUX)
-ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+set(PYLON_ROOT /opt/pylon5)
+link_directories(${PYLON_ROOT}/lib64)
+ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_definitions(-DWINDOWS)
+set(PYLON_ROOT $ENV{PYLON_DEV_DIR})
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    link_directories(${PYLON_ROOT}/lib/x64)
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    link_directories(${PYLON_ROOT}/lib/Win32)
+endif()
+
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
+message(STATUS ${EIGEN3_INCLUDE_DIR})
 
-add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE})
-target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen)
+include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
+
+message(STATUS "Pylon dir find in " ${PYLON_ROOT})
+
+add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE} ${LIB_ETHERNETIP_FANUC_SRC} ${LIB_ETHERNETIP_FANUC_INCLUDE})
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
+ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen PylonBase_MD_VC120_v5_0 PylonUtility_MD_VC120_v5_0 GenApi_MD_VC120_v3_0_Basler_pylon_v5_0 GCBase_MD_VC120_v3_0_Basler_pylon_v5_0 ws2_32 winmm)
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
 
 add_library( libqxt STATIC ${LIBQXT_SRC} ${LIBQXT_MOC_Srcs})
 target_link_libraries(libqxt ${QT_LIBRARIES})
 target_compile_definitions(libqxt PRIVATE QXT_STATIC )
 
-add_executable( calibration ${CAMERA_CALIBRATION} ${OpenCV_INCLUDE})
-target_link_libraries( calibration ${OpenCV_LIBS} )
+add_executable( cameraCalibration ${CAMERA_CALIBRATION} ${OpenCV_INCLUDE})
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+target_link_libraries( cameraCalibration ${OpenCV_LIBS} pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+target_link_libraries( cameraCalibration ${OpenCV_LIBS} pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
+ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+target_link_libraries( cameraCalibration ${OpenCV_LIBS} pylonBase_MD_VC120_v5_0 PylonUtility_MD_VC120_v5_0 GenApi_MD_VC120_v3_0_Basler_pylon_v5_0 GCBase_MD_VC120_v3_0_Basler_pylon_v5_0)
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 add_executable( fieldCalibrator ${FIELD_CALIBRATOR} ${OpenCV_INCLUDE})
 target_link_libraries( fieldCalibrator ${OpenCV_LIBS} )
 
 add_executable(bc src/Processes/main.cpp)
+include (GenerateExportHeader)          
+generate_export_header(banknoteClassifier BASE_NAME banknoteClassifier EXPORT_MACRO_NAME BANCKNOTECLASSIFIER_EXPORT EXPORT_FILE_NAME BanknoteClassifier_EXPORTS.h STATIC_DEFINE BANCKNOTECLASSIFIER_EXPORTS_BUILT_AS_STATIC)
+generate_export_header(banknoteClassifier BASE_NAME Process EXPORT_MACRO_NAME PROCESS_EXPORT EXPORT_FILE_NAME Process_EXPORTS.h STATIC_DEFINE PROCESS_EXPORTS_BUILT_AS_STATIC)
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(bc banknoteClassifier)
 
 include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/CalibratorTool  ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(calibrationTool ${CALIBRATOR_TOOL_SRC} ${CALIBRATION_TOOL_MOCSrcs} ${CALIBRATION_TOOL_RESOURCES_RCC})
-target_link_libraries(calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES} ${OpenCV_LIBS} Eigen3::Eigen)
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+target_link_libraries( calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES})
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+target_link_libraries( calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES} rt pthread)
+ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+target_link_libraries( calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES})
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 target_compile_definitions(calibrationTool PRIVATE QXT_STATIC)
 
 add_executable(visionTool ${VISION_TOOL_SRC} ${VISION_TOOL_MOCSrcs} ${OpenCV_INCLUDE})
-target_link_libraries(visionTool ${OpenCV_LIBS} ${QT_LIBRARIES})
+target_link_libraries( visionTool banknoteClassifier ${OpenCV_LIBS} ${QT_LIBRARIES} )
