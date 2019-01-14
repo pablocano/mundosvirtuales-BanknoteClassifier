@@ -17,6 +17,7 @@ void Features::write(cv::FileStorage &fs) const
 
 void Features::read(const cv::FileNode &node)
 {
+#ifndef BC_WITH_CUDA
     node["descriptors"] >> descriptors;
 
     // iterate through a sequence using FileNodeIterator
@@ -46,4 +47,5 @@ void Features::read(const cv::FileNode &node)
         keypoints.push_back(cv::KeyPoint(cv::Point2f(pos[0],pos[1]),size, angle, response, octave, class_id));
 
     }
+#endif
 }

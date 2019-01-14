@@ -3,6 +3,10 @@
 #include "Tools/Streamable.h"
 #include <opencv2/features2d.hpp>
 
+#ifdef BC_WITH_CUDA
+#include "opencv2/cudafeatures2d.hpp"
+#endif
+
 /**
  * @brief Class to storage features
  * Class that contains the keypoints and the descriptors of an image
@@ -32,7 +36,12 @@ public:
 
     std::vector<cv::KeyPoint> keypoints;
 
+#ifndef BC_WITH_CUDA
     cv::Mat descriptors;
+#else
+    cv::cuda::GpuMat keypointsGpu;
+    cv::cuda::GpuMat descriptors;
+#endif
 };
 
 static void write(cv::FileStorage& fs, const std::string &, const Features& x)

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1.0)
 
 PROJECT (BanknoteClassifier)
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 4 REQUIRED)
 find_package(Qt4 REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
@@ -9,6 +9,12 @@ set(PYLON_ROOT /opt/pylon5)
 include(${QT_USE_FILE})
 
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
+
+set(BC_WITH_CUDA OFF CACHE BOOL "Use CUDA")
+
+if(${BC_WITH_CUDA})
+    add_definitions(-DBC_WITH_CUDA)
+endif(${BC_WITH_CUDA})
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
@@ -318,11 +324,11 @@ message(STATUS "Pylon dir find in " ${PYLON_ROOT})
 
 add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE} ${LIB_ETHERNETIP_FANUC_SRC} ${LIB_ETHERNETIP_FANUC_INCLUDE})
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
+target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
+target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1)
 ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen PylonBase_MD_VC120_v5_0 PylonUtility_MD_VC120_v5_0 GenApi_MD_VC120_v3_0_Basler_pylon_v5_0 GCBase_MD_VC120_v3_0_Basler_pylon_v5_0 ws2_32 winmm)
+target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen PylonBase_MD_VC120_v5_1 PylonUtility_MD_VC120_v5_1 GenApi_MD_VC120_v3_0_Basler_pylon_v5_1 GCBase_MD_VC120_v3_1_Basler_pylon_v5_1 ws2_32 winmm)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
@@ -332,11 +338,11 @@ target_compile_definitions(libqxt PRIVATE QXT_STATIC )
 
 add_executable( cameraCalibration ${CAMERA_CALIBRATION} ${OpenCV_INCLUDE})
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-target_link_libraries( cameraCalibration ${OpenCV_LIBS} pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
+target_link_libraries( cameraCalibration ${OpenCV_LIBS} pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-target_link_libraries( cameraCalibration ${OpenCV_LIBS} pylonbase pylonutility GenApi_gcc_v3_0_Basler_pylon_v5_0 GCBase_gcc_v3_0_Basler_pylon_v5_0)
+target_link_libraries( cameraCalibration ${OpenCV_LIBS} pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1)
 ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-target_link_libraries( cameraCalibration ${OpenCV_LIBS} pylonBase_MD_VC120_v5_0 PylonUtility_MD_VC120_v5_0 GenApi_MD_VC120_v3_0_Basler_pylon_v5_0 GCBase_MD_VC120_v3_0_Basler_pylon_v5_0)
+target_link_libraries( cameraCalibration ${OpenCV_LIBS} pylonBase_MD_VC120_v5_1 PylonUtility_MD_VC120_v5_1 GenApi_MD_VC120_v3_1_Basler_pylon_v5_1 GCBase_MD_VC120_v3_1_Basler_pylon_v5_1)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 add_executable( fieldCalibrator ${FIELD_CALIBRATOR} ${OpenCV_INCLUDE})

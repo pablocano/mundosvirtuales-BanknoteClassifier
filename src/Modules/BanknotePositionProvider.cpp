@@ -11,15 +11,21 @@ MAKE_MODULE(BanknotePositionProvider, BanknoteClassifier)
 
 BanknotePositionProvider* BanknotePositionProvider::theInstance = 0;
 
-BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),maxAreaPolygon(80000)
+BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),maxAreaPolygon(80000000000)
 {
     theInstance = this;
     error = 0;
 
     // Initialize the used tools
     clahe = cv::createCLAHE(2.0, cv::Size(7,7));
+
+#ifndef BC_WITH_CUDA
     matcher.create(cv::NORM_L2, false);
     surf = cv::xfeatures2d::SURF::create(400,4,3,true,false);
+#else
+    matcher = cv::cuda::DescriptorMatcher::createBFMatcher();
+    surf = cv::cuda::SURF_CUDA(400);
+#endif
 
     // Import and analize each template image
     for(unsigned i = 0; i < Classification::numOfBanknotes - 2; i++)
@@ -30,7 +36,14 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),max
 
         // Calculate the features of the image
         Features f;
+#ifndef BC_WITH_CUDA
         surf->detectAndCompute(image,cv::noArray(),f.keypoints,f.descriptors,false);
+#else
+        cv::cuda::GpuMat imageGpu;
+        imageGpu.upload(image);
+        surf(imageGpu,cv::cuda::GpuMat(),f.keypointsGpu,f.descriptors);
+        surf.downloadKeypoints(f.keypointsGpu,f.keypoints);
+#endif
 
         //cv::Mat canny;
 
@@ -40,7 +53,11 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),max
 
         // Store the features and the image
         modelsFeatures.push_back(f);
+#ifndef BC_WITH_CUDA
         modelsImage.push_back(image);
+#else
+        modelsImage.push_back(imageGpu);
+#endif
     }
 
     // Create the corners of the model
@@ -68,7 +85,7 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
     for(int i = 0; i < Classification::numOfBanknotes - 1; i++)
     {
         std::string name = "Templates " + std::string(Classification::getName((Classification::Banknote)i));
-        DRAW_IMAGE(name.c_str(), modelsImage[i], 1);
+        DRAW_IMAGE(name.c_str(), modpreviousBanknotePosition.banknote = Classification::NONE;elsImage[i], 1);
     }*/
 
     if(thePreviousBanknotePosition.banknote != Classification::NONE)
@@ -145,7 +162,11 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
         for(int i = first; i <= last; i++){
 
             aux_matches.clear();
+#ifndef BC_WITH_CUDA
             theInstance->matcher.knnMatch(theInstance->modelsFeatures[i].descriptors, features.descriptors, aux_matches, 2);
+#else
+            theInstance->matcher->knnMatch(theInstance->modelsFeatures[i].descriptors, features.descriptors, aux_matches, 2);
+#endif
 
             good_matches.clear();
             for(auto& match : aux_matches)
@@ -272,7 +293,7 @@ bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vect
 void BanknotePositionProvider::resizeImage(cv::Mat& image)
 {
     //resize
-	cv::resize(image, image, cv::Size(350, 175), 0, 0, cv::INTER_AREA);
+    cv::resize(image, image, cv::Size(400, 200), 0, 0, cv::INTER_AREA);
 
     //Equalize histogram
     clahe->apply(image,image);

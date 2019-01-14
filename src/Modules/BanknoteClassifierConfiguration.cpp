@@ -12,7 +12,7 @@ BanknoteClassifierConfiguration::BanknoteClassifierConfiguration()
   theInstance = this;
   
   readColorCalibration();
-  readRobotsIdentifiers();
+  //readRobotsIdentifiers();
   
   last = SystemCall::getCurrentSystemTime();
 }

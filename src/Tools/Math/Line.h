@@ -6,7 +6,7 @@
 
 #pragma once
 #include "Tools/Math/Vector2.h"
-#include <cv.h>
+#include <opencv2/core/core.hpp>
 
 class Line {
 public:

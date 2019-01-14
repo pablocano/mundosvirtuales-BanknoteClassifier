@@ -17,6 +17,9 @@ PreviousBanknoteCheck::PreviousBanknoteCheck()
 
 void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePosition)
 {
+    previousBanknotePosition.banknote = Classification::NONE;
+    return;
+
     if (theRegState.getbanknote)
     {
         previousBanknotePosition.banknote = Classification::NONE;

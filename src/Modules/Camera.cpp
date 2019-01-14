@@ -104,7 +104,7 @@ void Camera::update(Image& image)
         std::cerr << "An exception occurred." << std::endl << e.GetDescription() << std::endl;
     }
 
-    //cv::resize(grabbedImageBRG,currentImage,cv::Size(),0.7,0.7,cv::INTER_AREA);
+    //cv::resize(currentImage,currentImage,cv::Size(),0.4,0.4,cv::INTER_AREA);
 
     currentImage.timeStamp = theFrameInfo.time;
 

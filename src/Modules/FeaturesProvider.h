@@ -7,6 +7,13 @@
 #include "Representations/Image.h"
 #include <opencv2/xfeatures2d.hpp>
 
+#ifdef BC_WITH_CUDA
+#include "opencv2/core/cuda.hpp"
+#include "opencv2/cudaarithm.hpp"
+#include "opencv2/cudafeatures2d.hpp"
+#include "opencv2/xfeatures2d/cuda.hpp"
+#endif
+
 MODULE(FeaturesProvider,
 {,
     REQUIRES(BestBlob),
@@ -20,7 +27,11 @@ class FeaturesProvider : public FeaturesProviderBase
 public:
     FeaturesProvider();
 
+#ifndef BC_WITH_CUDA
     cv::Ptr<cv::xfeatures2d::SURF> surf_;
+#else
+    cv::cuda::SURF_CUDA surf_;
+#endif
 
     cv::Mat mask;
 

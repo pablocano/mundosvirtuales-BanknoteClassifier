@@ -13,6 +13,13 @@
 #include <opencv2/imgproc.hpp>
 #include <map>
 
+#ifdef BC_WITH_CUDA
+#include "opencv2/core/cuda.hpp"
+#include "opencv2/cudaarithm.hpp"
+#include "opencv2/cudafeatures2d.hpp"
+#include "opencv2/xfeatures2d/cuda.hpp"
+#endif
+
 MODULE(BanknotePositionProvider,
 {,
  REQUIRES(Blobs),
@@ -75,6 +82,7 @@ public:
      */
     static int compare(const Features& features, cv::Mat& resultHomography, int first, int last);
 
+#ifndef BC_WITH_CUDA
     // Models features
     std::vector<cv::Mat> modelsImage;
     std::vector<Features> modelsFeatures;
@@ -88,6 +96,20 @@ public:
     cv::Ptr<cv::xfeatures2d::SURF> surf;
 
     std::vector<cv::Mat> cannys;
+#else
+    std::vector<cv::cuda::GpuMat> modelsImage;
+    std::vector<Features> modelsFeatures;
+    std::vector<Vector3d> modelsCorners;
+
+    std::vector<cv::DMatch> matches;
+
+    cv::Ptr<cv::cuda::DescriptorMatcher> matcher;
+    cv::Ptr<cv::CLAHE> clahe;
+    cv::cuda::SURF_CUDA surf;
+
+    std::vector<cv::Mat> cannys;
+
+#endif
 
     // Constants
     double minAreaPolygon;
