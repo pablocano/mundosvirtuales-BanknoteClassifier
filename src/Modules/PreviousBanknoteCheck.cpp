@@ -6,7 +6,11 @@ MAKE_MODULE(PreviousBanknoteCheck, BanknoteClassifier)
 
 PreviousBanknoteCheck::PreviousBanknoteCheck()
 {
+#ifndef BC_WITH_CUDA
     surf_ = cv::xfeatures2d::SURF::create(500,4,3,true,false);
+#else
+    surf_ = cv::cuda::SURF_CUDA(500);
+#endif
 
     error = 0;
     lastbanknote = 0;
@@ -17,15 +21,15 @@ PreviousBanknoteCheck::PreviousBanknoteCheck()
 
 void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePosition)
 {
-    previousBanknotePosition.banknote = Classification::NONE;
-    return;
 
     if (theRegState.getbanknote)
     {
+        OUTPUT_TEXT("start prev pos");
         previousBanknotePosition.banknote = Classification::NONE;
 
         if(theBanknotePosition.banknote != Classification::NONE && !newSearch)
         {
+            OUTPUT_TEXT("trying prev pos");
             if(mask.empty())
                 mask = cv::Mat::zeros(theGrayScaleImageEq.rows, theGrayScaleImageEq.cols, CV_8U);
             else
@@ -41,7 +45,14 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
 
             mask(cv::Rect(leftUpper.x(),leftUpper.y(),rightLower.x() - leftUpper.x(),rightLower.y() - leftUpper.y())) = 1;
 
+#ifndef BC_WITH_CUDA
             surf_->detectAndCompute(theGrayScaleImageEq,mask,features.keypoints,features.descriptors);
+#else
+            cv::cuda::GpuMat grayScaleImageGpu(theGrayScaleImageEq);
+            cv::cuda::GpuMat maskGpu(mask);
+            surf_(grayScaleImageGpu,maskGpu,features.keypointsGpu,features.descriptors);
+            surf_.downloadKeypoints(features.keypointsGpu,features.keypoints);
+#endif
 
             cv::Mat H;
 
@@ -72,6 +83,7 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
     }
     else
     {
+        //OUTPUT_TEXT("no prev pos");
         newSearch = 1;
         previousBanknotePosition.banknote = Classification::STOP;
     }

@@ -1,4 +1,5 @@
 #include "RobotStatus.h"
+#include "Tools/Debugging/Debugging.h"
 
 MAKE_MODULE(RobotStatus, Communication)
 
@@ -23,7 +24,9 @@ void RobotStatus::update(RegState& regstate)
         regstate.getbanknote = 1;
     }
     else
+    {
         regstate.getbanknote = 0;
+    }
 
     previousPoseState = theRobotFanuc.robotModel.reg.at(REG_STATUS_POSE);
 

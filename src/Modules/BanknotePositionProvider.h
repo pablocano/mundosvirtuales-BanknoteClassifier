@@ -119,6 +119,10 @@ public:
     int error;
     int lastbanknote;
 
+    //Parameters
+    int trainBanknoteWidth;
+    int trainBanknoteHeight;
+
 
 };
 

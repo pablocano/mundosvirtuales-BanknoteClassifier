@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1.0)
 
 PROJECT (BanknoteClassifier)
-find_package(OpenCV 4 REQUIRED)
+find_package(OpenCV REQUIRED)
 find_package(Qt4 REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 

@@ -16,7 +16,12 @@ ArucoPoseEstimator::ArucoPoseEstimator() : mMarkerSize(0.115f)
     //arucoDictionary = cv::aruco::generateCustomDictionary(1,10);
     arucoDictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50);
 
-    charucoBoard = cv::aruco::CharucoBoard::create(3, 3, 0.0275, 0.0185, arucoDictionary);
+    charucoBoard = cv::aruco::CharucoBoard::create(8, 6, 0.0275, 0.0185, arucoDictionary);
+
+
+    cv::Mat charucoImage;
+    charucoBoard->draw(cv::Size(1920,1080),charucoImage);
+    cv::imwrite(std::string(File::getGTDir()) + "/Config/prosegur_charuco.jpg",charucoImage);
 
 	detectorParams = cv::aruco::DetectorParameters::create();
 

@@ -37,7 +37,13 @@ public:
     */
     Camera();
 
+    /**
+    * @brief Destructor
+    * Destructor of the class
+    */
     ~Camera();
+
+    static Camera *theInstance;
   
     /**
      * @brief Update function of the camera info representation
@@ -85,4 +91,6 @@ public:
     Pylon::CPylonImage *grabbedImage;
 
     CameraInfo info;
+
+    static CameraInfo& getCameraInfo();
 };

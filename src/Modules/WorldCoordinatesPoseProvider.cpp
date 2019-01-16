@@ -43,7 +43,8 @@ void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinates
         cv::Mat tempMat, tempMat2;
         float s, zConst = 0;
 
-        cv::Mat tvec = theCameraPose.tvec.t();
+        //cv::Mat tvec = theCameraPose.tvec.t();
+        cv::Mat tvec = theCameraPose.tvec;
 
         // Calculate a ray and intersect it with the ground plane
         tempMat = rInv * kInv * uvPoint;
@@ -79,6 +80,12 @@ void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinates
         direction = direction*1000 - worldCoordinatesPose.translation;
 
         worldCoordinatesPose.rotation = direction.angle();
+
+
+        std::stringstream ss;
+
+        ss << "Banknote" << (Classification::Banknote)theBanknotePositionFiltered.banknote <<  " \nPos:\n\t x: " << worldCoordinatesPose.translation.x() << "\n\t y: " << worldCoordinatesPose.translation.y() << "\n\t rot: " << worldCoordinatesPose.rotation.toDegrees() << "\n";
+        OUTPUT_TEXT(ss.str());
 
     }
 

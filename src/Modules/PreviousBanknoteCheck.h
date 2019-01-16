@@ -9,6 +9,13 @@
 #include "Representations/RobotFanuc.h"
 #include "Representations/RegState.h"
 
+#ifdef BC_WITH_CUDA
+#include "opencv2/core/cuda.hpp"
+#include "opencv2/cudaarithm.hpp"
+#include "opencv2/cudafeatures2d.hpp"
+#include "opencv2/xfeatures2d/cuda.hpp"
+#endif
+
 MODULE(PreviousBanknoteCheck,
 {,
     REQUIRES(GrayScaleImageEq),
@@ -26,7 +33,11 @@ public:
 
     void update(PreviousBanknotePosition& previousBanknotePosition);
 
+#ifndef BC_WITH_CUDA
     cv::Ptr<cv::xfeatures2d::SURF> surf_;
+#else
+    cv::cuda::SURF_CUDA surf_;
+#endif
 
     cv::Mat mask;
 

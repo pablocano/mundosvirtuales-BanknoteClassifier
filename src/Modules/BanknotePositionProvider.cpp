@@ -11,7 +11,7 @@ MAKE_MODULE(BanknotePositionProvider, BanknoteClassifier)
 
 BanknotePositionProvider* BanknotePositionProvider::theInstance = 0;
 
-BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),maxAreaPolygon(80000000000)
+BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),maxAreaPolygon(80000000000), trainBanknoteWidth(400), trainBanknoteHeight(200)
 {
     theInstance = this;
     error = 0;
@@ -62,11 +62,11 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),max
 
     // Create the corners of the model
     modelsCorners.push_back(Vector3d(0,0,1));
-    modelsCorners.push_back(Vector3d(350,0,1));
-    modelsCorners.push_back(Vector3d(350,175,1));
-    modelsCorners.push_back(Vector3d(0,175,1));
-    modelsCorners.push_back(Vector3d(175,87.5,1));
-    modelsCorners.push_back(Vector3d(350,87.5,1));
+    modelsCorners.push_back(Vector3d(trainBanknoteWidth,0,1));
+    modelsCorners.push_back(Vector3d(trainBanknoteWidth,trainBanknoteHeight,1));
+    modelsCorners.push_back(Vector3d(0,trainBanknoteHeight,1));
+    modelsCorners.push_back(Vector3d(trainBanknoteHeight,trainBanknoteHeight/2.0,1));
+    modelsCorners.push_back(Vector3d(trainBanknoteWidth,trainBanknoteHeight/2.0,1));
 
 }
 
@@ -88,11 +88,13 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
         DRAW_IMAGE(name.c_str(), modpreviousBanknotePosition.banknote = Classification::NONE;elsImage[i], 1);
     }*/
 
-    if(thePreviousBanknotePosition.banknote != Classification::NONE)
+    if(thePreviousBanknotePosition.banknote != Classification::NONE && thePreviousBanknotePosition.banknote != Classification::STOP)
     {
+        OUTPUT_TEXT("using prev pos");
         banknotePosition.corners = thePreviousBanknotePosition.corners;
         banknotePosition.homography = thePreviousBanknotePosition.homography;
         banknotePosition.position = thePreviousBanknotePosition.position;
+        banknotePosition.banknote = thePreviousBanknotePosition.banknote;
         return;
     }
 
@@ -104,12 +106,11 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
         banknotePosition.banknote = Classification::NONE;
 
         if (!H.empty() && banknote != Classification::NONE){
-
             Pose2D pose;
             std::vector<Vector2f> scene_corners;
             if(analyzeArea(H, scene_corners, pose))
             {
-                OUTPUT_TEXT("ransac");
+                //OUTPUT_TEXT("ransac");
                 error = 0;
                 banknotePosition.banknote = (Classification::Banknote)banknote;
                 scene_corners.push_back(scene_corners.front());
@@ -118,7 +119,7 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
                 banknotePosition.position = pose;
             }
             else{
-                OUTPUT_TEXT("No ransac");
+                //OUTPUT_TEXT("No ransac");
                 error = 1;
                 lastbanknote = theClassification.result;
                 OUTPUT_TEXT(lastbanknote);
@@ -293,7 +294,7 @@ bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vect
 void BanknotePositionProvider::resizeImage(cv::Mat& image)
 {
     //resize
-    cv::resize(image, image, cv::Size(400, 200), 0, 0, cv::INTER_AREA);
+    cv::resize(image, image, cv::Size(trainBanknoteWidth, trainBanknoteHeight), 0, 0, cv::INTER_AREA);
 
     //Equalize histogram
     clahe->apply(image,image);

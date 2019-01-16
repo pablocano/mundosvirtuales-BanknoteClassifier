@@ -9,7 +9,7 @@ FeaturesProvider::FeaturesProvider()
 #ifndef BC_WITH_CUDA
     surf_ = cv::xfeatures2d::SURF::create(400,4,3,true,false);
 #else
-    surf_ = cv::cuda::SURF_CUDA(100);
+    surf_ = cv::cuda::SURF_CUDA(400);
 #endif
 }
 
@@ -86,9 +86,9 @@ void FeaturesProvider::update(Features &features)
 #else
     cv::cuda::GpuMat grayScaleImageGpu(theGrayScaleImageEq);
     cv::cuda::GpuMat maskGpu(mask);
-    //surf_(grayScaleImageGpu,maskGpu,features.keypointsGpu,features.descriptors);
+    surf_(grayScaleImageGpu,maskGpu,features.keypointsGpu,features.descriptors);
 
-    //surf_.downloadKeypoints(features.keypointsGpu,features.keypoints);
+    surf_.downloadKeypoints(features.keypointsGpu,features.keypoints);
 #endif
 
 }

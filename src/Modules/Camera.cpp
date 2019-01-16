@@ -13,8 +13,13 @@
 
 MAKE_MODULE(Camera, BaslerCamera)
 
+Camera* Camera::theInstance = 0;
+
 Camera::Camera()
 {
+
+    theInstance = this;
+
     //Needed for the basler camera to work
     Pylon::PylonInitialize();
 
@@ -41,7 +46,8 @@ Camera::Camera()
 
         // Load the persistent configuration
         //std::string nodeFile = std::string(File::getGTDir()) + "/Config/acA2040-90uc_22313646.pfs";
-        std::string nodeFile = std::string(File::getGTDir()) + "/Config/ubuntu_config.pfs";
+        //std::string nodeFile = std::string(File::getGTDir()) + "/Config/ubuntu_config.pfs";
+        std::string nodeFile = std::string(File::getGTDir()) + "/Config/prosegur_test.pfs";
         Pylon::CFeaturePersistence::Load(nodeFile.c_str(), &camera->GetNodeMap(), true );
 
         // Initialice the pixel converter
@@ -125,4 +131,10 @@ void Camera::update(GrayScaleImage& image)
 void Camera::update(ImageBGR& imageBGR)
 {
 	imageBGR = currentImage.clone();
+}
+
+CameraInfo& Camera::getCameraInfo()
+{
+    if(theInstance)
+        return theInstance->info;
 }
