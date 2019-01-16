@@ -24,7 +24,7 @@ void RobotFanucDataProvider::processPacket(PacketEthernetIPFanuc & packet)
 	{
 
 	case READ_REG_OK:
-		robotModel.reg[packet.reg] = ((int *) packet.payload)[0];
+		robotModel.reg[packet.reg] = (std::static_cast<int *>(packet.payload))[0];
 		break;
 
     case READ_POS_OK:
@@ -47,7 +47,7 @@ void RobotFanucDataProvider::processPacket(PacketEthernetIPFanuc & packet)
 	case READ_CURR_POS_ERROR:
 	case READ_CURR_JPOS_ERROR:
 
-        OUTPUT_TEXT("Error: " + std::string((char *)packet.payload));
+        OUTPUT_TEXT("Error: " + std::string(std::static_cast<char *>(packet.payload)));
 		break;
 
 	default:

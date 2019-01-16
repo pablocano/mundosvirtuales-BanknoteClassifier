@@ -7,10 +7,15 @@
 /*
 * Data Packets
 */
-#define PORT_SERVER			3333
-#define SIZE_PAYLOAD		44
-#define SIZE_PACKET			(SIZE_PAYLOAD + 12)
+#define MAX_SIZE_PAYLOAD  	500
+#define SIZE_HEADER			16
 #define VALID_MAGIC_NUMBER	0x87
+#define MAX_SIZE_PACKET		MAX_SIZE_PAYLOAD + SIZE_HEADER
+#define DEFAULT_PORT		5789
+#define TEST_PORT			5790
+#define PORT_SERVER			DEFAULT_PORT
+
+#define DEFAULT_ID_ROBOT	72
 
 /*
 * Commands
@@ -57,49 +62,61 @@
 #endif
 
 #include <cstdlib>
-#include <string.h>
+
 
 STRUCT_PACKET PacketEthernetIPFanuc{
 
 	int16_t magicNum;
 	int16_t command;
-	int32_t	idPacket;
-	int32_t reg;
-	uint8_t payload[SIZE_PAYLOAD] = {};
+	int32_t idPacket;
+	int32_t register;
+	int16_t idDevice;
+	int16_t sizePayload;
+	uint8_t *payload;
 
 	PacketEthernetIPFanuc()
 	{
 		magicNum = VALID_MAGIC_NUMBER;
 	}
 
-	PacketEthernetIPFanuc(int16_t _command, int _idPacket, int _reg)
+	~PacketEthernetIPFanuc()
 	{
-		magicNum = VALID_MAGIC_NUMBER;
-		command = _command;
-		idPacket = _idPacket;
-		reg = _reg;
+		if (payload != nullptr)
+		{
+			delete[] payload;
+		}
 	}
 
-    PacketEthernetIPFanuc(int16_t _command, int _idPacket, int _reg, int value)
+	PacketEthernetIPFanuc(int16_t _command, int32_t _idPacket, int32_t _reg, int16_t _idDevice = DEFAULT_ID_ROBOT) :
+	magicNum(VALID_MAGIC_NUMBER), command(_command), idPacket(_idPacket), register(_reg),
+	idDevice(_idDevice), sizePayload(0), payload(nullptr)
+	{
+
+	}
+
+    PacketEthernetIPFanuc(int16_t _command, int32_t _idPacket, int32_t _reg, int value, int16_t _idDevice = DEFAULT_ID_ROBOT):
+	magicNum(VALID_MAGIC_NUMBER), command(_command), idPacket(_idPacket), register(_reg),
+	idDevice(_idDevice), sizePayload(sizeof(int))
     {
-        magicNum = VALID_MAGIC_NUMBER;
-        command = _command;
-        idPacket = _idPacket;
-        reg = _reg;
-        *((int *) payload) = value;
+        std::static_cast<int *>(payload) = new int(value);
     }
 
-	PacketEthernetIPFanuc(int16_t _command, int _idPacket, int _reg, std::string _message)
+	PacketEthernetIPFanuc(int16_t _command, int32_t _idPacket, int32_t _reg, std::string _message, int16_t _idDevice = DEFAULT_ID_ROBOT):
+	magicNum(VALID_MAGIC_NUMBER), command(_command), idPacket(_idPacket), register(_reg),
+	idDevice(_idDevice)
 	{
-		magicNum = VALID_MAGIC_NUMBER;
-		command = _command;
-		idPacket = _idPacket;
-		reg = _reg;
 		const char *p = _message.c_str();
-        memcpy(payload, p, strlen(p) + 1);
+		sizePayload = message.length() + 1
+		payload = new char[sizePayload];
+        memcpy(payload, p, sizePayload);
 	}
 
-	bool isValid()
+	int getSize() const noexcept
+	{
+		return sizePayload + SIZE_HEADER;
+	}
+
+	bool isValid() const noexcept
 	{
 		return magicNum == VALID_MAGIC_NUMBER;
 	}
