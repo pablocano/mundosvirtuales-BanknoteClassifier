@@ -20,6 +20,9 @@ void RobotFanucDataProvider::update(RobotFanuc& robotFanuc)
 
 void RobotFanucDataProvider::processPacket(PacketEthernetIPFanuc & packet)
 {
+
+	OUTPUT_TEXT("Receive packet: " + packet.getStrCommand());
+
 	switch (packet.command)
 	{
 
@@ -51,7 +54,7 @@ void RobotFanucDataProvider::processPacket(PacketEthernetIPFanuc & packet)
 		break;
 
 	default:
-        OUTPUT_TEXT("Error: Unknow packet");
+        OUTPUT_TEXT("Packet not caught");
 	}
 }
 
