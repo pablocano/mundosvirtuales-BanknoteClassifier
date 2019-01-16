@@ -1,0 +1,8 @@
+package com.mv.serverethernetip.devices;
+
+public enum EErrorDevice {
+
+	ERROR_CIP, ERROR_EIP, ERROR_READ, ERROR_WRITE, NONE, TIMEOUT_CLOSE_CONNECTION, TIMEOUT_CONNECTION, TIMEOUT_READ,
+	TIMEOUT_WRITE
+
+}
