@@ -46,7 +46,7 @@ void BanknoteClassifierMessageHandler::send()
 
 		  out >> packet;
 
-		  if (!lpSocket->send(std::static_cast<char *>(&packet), packet.getSize()))
+          if (!lpSocket->send(reinterpret_cast<char *>(&packet), packet.getSize()))
 		  {
               printf("Could not send the message\n");
 		  }
@@ -66,14 +66,14 @@ unsigned BanknoteClassifierMessageHandler::receive()
   PacketEthernetIPFanuc packet;
   
   unsigned totalSize = 0;
-  while(lpSocket->receive(std::static_cast<char *>(&packet), SIZE_HEADER, false))
+  while(lpSocket->receive(reinterpret_cast<char *>(&packet), SIZE_HEADER, false))
   {
 	  if (packet.isValid())
 	  {
-      if(packet.sizePayload == 0 || lpSocket->receive(std::static_cast<char *>(packet.payload), packet.sizePayload, false))
+      if(packet.sizePayload == 0 || lpSocket->receive(reinterpret_cast<char *>(packet.payload), packet.sizePayload, false))
       {
         in << packet;
-		    in.finishMessage(idEthernetIPFanuc);
+        in.finishMessage(idEthernetIPFanuc);
         totalSize += packet.getSize();
       }
 	  }

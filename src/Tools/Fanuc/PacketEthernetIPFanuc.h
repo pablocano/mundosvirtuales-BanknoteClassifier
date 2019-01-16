@@ -128,6 +128,7 @@
 #endif
 
 #include <cstdlib>
+#include <string.h>
 
 
 STRUCT_PACKET PacketEthernetIPFanuc{
@@ -135,45 +136,47 @@ STRUCT_PACKET PacketEthernetIPFanuc{
 	int16_t magicNum;
 	int16_t command;
 	int32_t idPacket;
-	int32_t register;
+    int32_t reg;
 	int16_t idDevice;
 	int16_t sizePayload;
 	uint8_t *payload;
 
-	PacketEthernetIPFanuc()
+    PacketEthernetIPFanuc(): magicNum(VALID_MAGIC_NUMBER), command(0), idPacket(0), reg(0),
+        idDevice(DEFAULT_ID_ROBOT), sizePayload(0), payload(nullptr)
 	{
-		magicNum = VALID_MAGIC_NUMBER;
+
 	}
 
 	~PacketEthernetIPFanuc()
 	{
-		if (payload != nullptr)
+        if (payload != nullptr)
 		{
-			delete[] payload;
+            delete[] payload;
 		}
 	}
 
 	PacketEthernetIPFanuc(int16_t _command, int32_t _idPacket, int32_t _reg, int16_t _idDevice = DEFAULT_ID_ROBOT) :
-	magicNum(VALID_MAGIC_NUMBER), command(_command), idPacket(_idPacket), register(_reg),
+    magicNum(VALID_MAGIC_NUMBER), command(_command), idPacket(_idPacket), reg(_reg),
 	idDevice(_idDevice), sizePayload(0), payload(nullptr)
 	{
 
 	}
 
     PacketEthernetIPFanuc(int16_t _command, int32_t _idPacket, int32_t _reg, int value, int16_t _idDevice = DEFAULT_ID_ROBOT):
-	magicNum(VALID_MAGIC_NUMBER), command(_command), idPacket(_idPacket), register(_reg),
+    magicNum(VALID_MAGIC_NUMBER), command(_command), idPacket(_idPacket), reg(_reg),
 	idDevice(_idDevice), sizePayload(sizeof(int))
     {
-        std::static_cast<int *>(payload) = new int(value);
+        payload = new uint8_t[sizeof(int)];
+        *((int *)payload) = value;
     }
 
 	PacketEthernetIPFanuc(int16_t _command, int32_t _idPacket, int32_t _reg, std::string _message, int16_t _idDevice = DEFAULT_ID_ROBOT):
-	magicNum(VALID_MAGIC_NUMBER), command(_command), idPacket(_idPacket), register(_reg),
+    magicNum(VALID_MAGIC_NUMBER), command(_command), idPacket(_idPacket), reg(_reg),
 	idDevice(_idDevice)
 	{
 		const char *p = _message.c_str();
-		sizePayload = message.length() + 1
-		payload = new char[sizePayload];
+        sizePayload = _message.length() + 1;
+        payload = new uint8_t[sizePayload];
         memcpy(payload, p, sizePayload);
 	}
 
@@ -189,7 +192,7 @@ STRUCT_PACKET PacketEthernetIPFanuc{
 
 	std::string getStrCommand()
 	{
-		return PacketEthernetIPFanuc.getCommand(command);
+        return PacketEthernetIPFanuc::getCommand(command);
 	}
 
 	static std::string getCommand(short cmd) noexcept
