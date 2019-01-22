@@ -29,6 +29,7 @@ ENUM(StatusRobotFanuc,
 #define REG_STATUS_AREA 0x01
 #define REG_STATUS_POSE 0x02
 #define REG_STATUS_SIDE 0x03
+#define REG_STATUS_GRIP 0x07
 
 
 /**
@@ -46,6 +47,7 @@ struct RobotModelFanuc
         reg[REG_STATUS_AREA] = 0;
         reg[REG_STATUS_POSE] = 0;
         reg[REG_STATUS_SIDE] = 0;
+        reg[REG_STATUS_GRIP] = 0;
 
         regPos[1] = PositionRegisterCartesian();
     }

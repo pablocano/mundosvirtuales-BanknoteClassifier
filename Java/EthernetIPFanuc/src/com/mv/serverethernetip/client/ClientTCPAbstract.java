@@ -171,7 +171,7 @@ public abstract class ClientTCPAbstract extends ClientAbstract {
 				
 			} else {
 				
-				throw new ExceptionClient("Error socket", e.toString());
+				throw new ExceptionClient("Error socket", e.toString(), ETypeActionException.CLOSE);
 				
 			}
 			

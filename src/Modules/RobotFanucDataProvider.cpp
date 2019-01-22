@@ -21,7 +21,7 @@ void RobotFanucDataProvider::update(RobotFanuc& robotFanuc)
 void RobotFanucDataProvider::processPacket(PacketEthernetIPFanuc & packet)
 {
 
-	OUTPUT_TEXT("Receive packet: " + packet.getStrCommand());
+    // OUTPUT_TEXT("Receive packet: " + packet.getStrCommand());
 
 	switch (packet.command)
 	{
@@ -39,6 +39,9 @@ void RobotFanucDataProvider::processPacket(PacketEthernetIPFanuc & packet)
 		break;
 
     case WRITE_POS_OK:
+        break;
+
+    case WRITE_REG_OK:
         break;
 
 	case WRITE_REG_ERROR:

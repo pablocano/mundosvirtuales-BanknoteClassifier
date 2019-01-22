@@ -41,6 +41,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/CameraPoseFilter.h
   src/Modules/CameraPoseProvider.cpp
   src/Modules/CameraPoseProvider.h
+  src/Modules/CustomCommunication.cpp
+  src/Modules/CustomCommunication.h
   src/Modules/Equalizer.cpp
   src/Modules/Equalizer.h
   src/Modules/FeaturesProvider.cpp
@@ -69,6 +71,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Platform/Memory.h
   src/Processes/BanknoteClassifier.cpp
   src/Processes/BanknoteClassifier.h
+  src/Processes/GripperCommunication.cpp
+  src/Processes/GripperCommunication.h
   src/Representations/Blobs.cpp
   src/Representations/Blobs.h
   src/Representations/BanknotePosition.cpp
@@ -354,6 +358,10 @@ generate_export_header(banknoteClassifier BASE_NAME banknoteClassifier EXPORT_MA
 generate_export_header(banknoteClassifier BASE_NAME Process EXPORT_MACRO_NAME PROCESS_EXPORT EXPORT_FILE_NAME Process_EXPORTS.h STATIC_DEFINE PROCESS_EXPORTS_BUILT_AS_STATIC)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(bc banknoteClassifier)
+
+
+add_executable(gripperComm src/Processes/mainGripperComm.cpp)
+target_link_libraries(gripperComm banknoteClassifier)
 
 include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/CalibratorTool  ${CMAKE_CURRENT_BINARY_DIR})
 

@@ -77,7 +77,7 @@ public class MainServer {
 
 			if (interfaceServer != null) {
 				
-				interfaceServer.setLogDebug(false);
+				interfaceServer.setLogDebug(true);
 				interfaceServer.setLogInfo(true);
 				interfaceServer.setLogError(true);
 
@@ -124,7 +124,8 @@ public class MainServer {
 		ListDevices devices = new ListDevices("List devices celda");
 
 		// Append devices
-		devices.appendDevice(new DeviceRobotFanuc("Robot Fanuc M10iA", "10.0.42.72", 72));
+		//devices.appendDevice(new DeviceRobotFanuc("Robot Fanuc M10iA", "10.0.42.72", 72));
+		devices.appendDevice(new DeviceRobotFanuc("Robot Fanuc M3iA6s", "192.168.1.71", 72));
 		
 		return new ServerTCP(devices, PacketCommServer.DEFAULT_PORT, 3000);
 		

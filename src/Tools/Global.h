@@ -71,4 +71,5 @@ public:
   friend class BanknoteClassifier; // The class BanknoteClassifier can set theTeamOut.
   friend class VisionTool;
   friend class Settings; // The class Settings can set a default StreamHandler.
+  friend class GripperCommunication;
 };

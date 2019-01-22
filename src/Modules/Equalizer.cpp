@@ -1,7 +1,7 @@
 #include "Equalizer.h"
 #include "Tools/Debugging/DebugDrawings.h"
 
-MAKE_MODULE(Equalizer, Common)
+MAKE_MODULE(Equalizer, BaslerCamera)
 
 Equalizer::Equalizer()
 {

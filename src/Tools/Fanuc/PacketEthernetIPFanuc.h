@@ -139,25 +139,17 @@ STRUCT_PACKET PacketEthernetIPFanuc{
     int32_t reg;
 	int16_t idDevice;
 	int16_t sizePayload;
-	uint8_t *payload;
+    uint8_t payload[MAX_SIZE_PAYLOAD];
 
     PacketEthernetIPFanuc(): magicNum(VALID_MAGIC_NUMBER), command(0), idPacket(0), reg(0),
-        idDevice(DEFAULT_ID_ROBOT), sizePayload(0), payload(nullptr)
+        idDevice(DEFAULT_ID_ROBOT), sizePayload(0)
 	{
 
-	}
-
-	~PacketEthernetIPFanuc()
-	{
-        if (payload != nullptr)
-		{
-            delete[] payload;
-		}
 	}
 
 	PacketEthernetIPFanuc(int16_t _command, int32_t _idPacket, int32_t _reg, int16_t _idDevice = DEFAULT_ID_ROBOT) :
     magicNum(VALID_MAGIC_NUMBER), command(_command), idPacket(_idPacket), reg(_reg),
-	idDevice(_idDevice), sizePayload(0), payload(nullptr)
+    idDevice(_idDevice), sizePayload(0)
 	{
 
 	}
@@ -166,7 +158,6 @@ STRUCT_PACKET PacketEthernetIPFanuc{
     magicNum(VALID_MAGIC_NUMBER), command(_command), idPacket(_idPacket), reg(_reg),
 	idDevice(_idDevice), sizePayload(sizeof(int))
     {
-        payload = new uint8_t[sizeof(int)];
         *((int *)payload) = value;
     }
 
@@ -176,7 +167,7 @@ STRUCT_PACKET PacketEthernetIPFanuc{
 	{
 		const char *p = _message.c_str();
         sizePayload = _message.length() + 1;
-        payload = new uint8_t[sizePayload];
+        sizePayload = (sizePayload > MAX_SIZE_PAYLOAD ? MAX_SIZE_PACKET - 1 : sizePayload);
         memcpy(payload, p, sizePayload);
 	}
 

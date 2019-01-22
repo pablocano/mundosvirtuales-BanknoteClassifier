@@ -10,11 +10,13 @@
 #include "Tools/Fanuc/PacketEthernetIPFanuc.h"
 #include "Representations/RobotFanuc.h"
 #include "Tools/Messages/MessageQueue.h"
+#include "Representations/FrameInfo.h"
 
 
 MODULE(RobotFanucDataProvider,
 {,
-PROVIDES(RobotFanuc),
+    REQUIRES(FrameInfo),
+    PROVIDES(RobotFanuc),
 });
 
 /**
