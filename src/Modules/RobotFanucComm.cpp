@@ -34,6 +34,7 @@ void RobotFanucComm::update(DummyComm &dummyComm)
         pos.x = theWorldCoordinatesPose.translation.x();
         pos.y = theWorldCoordinatesPose.translation.y();
         //pos.z = 0;
+
         pos.z = 170;
 
         pos.w = -180;
