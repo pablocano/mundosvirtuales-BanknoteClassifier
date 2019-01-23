@@ -9,7 +9,7 @@ FeaturesProvider::FeaturesProvider()
 #ifndef BC_WITH_CUDA
     surf_ = cv::xfeatures2d::SURF::create(400,4,3,true,false);
 #else
-    surf_ = cv::cuda::SURF_CUDA(400);
+    surf_ = cv::cuda::SURF_CUDA(400,4,4,true);
 #endif
 }
 
@@ -26,6 +26,7 @@ void FeaturesProvider::update(Features &features)
     else
         mask.setTo(cv::Scalar(0));
 
+    /*
     if(theBestBlob.exists)
     {
         Vector2i leftUpper, rightLower;
@@ -80,6 +81,10 @@ void FeaturesProvider::update(Features &features)
 
         mask(cv::Rect(leftUpper.x(),leftUpper.y(),rightLower.x() - leftUpper.x(),rightLower.y() - leftUpper.y())) = 1;
     }
+    */
+
+    mask(cv::Rect(200,200,1700,1700)) = 1;
+
 
 #ifndef BC_WITH_CUDA
     surf_->detectAndCompute(theGrayScaleImageEq,mask,features.keypoints,features.descriptors);

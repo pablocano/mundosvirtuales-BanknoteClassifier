@@ -27,6 +27,8 @@ public:
 
     cv::Mat homography;
 
+    Vector2f massCenter;
+
 
 };
 

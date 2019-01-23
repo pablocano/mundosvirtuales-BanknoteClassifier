@@ -82,9 +82,32 @@ void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinates
         worldCoordinatesPose.rotation = direction.angle();
 
 
+        // Calculate the offset for the gripper
+        // Reinitialice the test point with the mass center
+        uvPoint.at<float>(0,0) = theBanknotePositionFiltered.massCenter.x();
+        uvPoint.at<float>(1,0) = theBanknotePositionFiltered.massCenter.y();
+
+        // Calculate the intersection of the ray with the ground plane
+        tempMat = rInv * kInv * uvPoint;
+        tempMat2 = rInv * tvec;
+        s = zConst + tempMat2.at<float>(2,0);
+        s /= tempMat.at<float>(2,0);
+        wcPoint = rInv * (s * kInv * uvPoint - tvec);
+
+        // Offset of the gripper position in world coordinates
+        worldCoordinatesPose.pickOffset = Vector2f(wcPoint.at<float>(0, 0), wcPoint.at<float>(1, 0))*1000 - worldCoordinatesPose.translation;
+
+        worldCoordinatesPose.dropOffset = Eigen::Rotation2D<float>(-worldCoordinatesPose.rotation) * worldCoordinatesPose.pickOffset;
+
+        if(std::abs(worldCoordinatesPose.dropOffset.x()) > 65 || std::abs(worldCoordinatesPose.dropOffset.y()) > 25)
+        {
+            worldCoordinatesPose.valid = false;
+            return;
+        }
+
         std::stringstream ss;
 
-        ss << "Banknote" << (Classification::Banknote)theBanknotePositionFiltered.banknote <<  " \nPos:\n\t x: " << worldCoordinatesPose.translation.x() << "\n\t y: " << worldCoordinatesPose.translation.y() << "\n\t rot: " << worldCoordinatesPose.rotation.toDegrees() << "\n";
+        ss << "Banknote" << (Classification::Banknote)theBanknotePositionFiltered.banknote <<  " \nPos:\n\t x: " << worldCoordinatesPose.translation.x() << "\n\t y: " << worldCoordinatesPose.translation.y() << "\n\t rot: " << worldCoordinatesPose.rotation.toDegrees() << "\nOfsset:\n\tx: " << worldCoordinatesPose.pickOffset.x() << "\n\ty: " << worldCoordinatesPose.pickOffset.y() << "\n";
         OUTPUT_TEXT(ss.str());
 
     }

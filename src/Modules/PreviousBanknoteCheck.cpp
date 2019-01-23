@@ -9,7 +9,7 @@ PreviousBanknoteCheck::PreviousBanknoteCheck()
 #ifndef BC_WITH_CUDA
     surf_ = cv::xfeatures2d::SURF::create(500,4,3,true,false);
 #else
-    surf_ = cv::cuda::SURF_CUDA(500);
+    surf_ = cv::cuda::SURF_CUDA(500,4,4,true);
 #endif
 
     error = 0;
@@ -55,15 +55,16 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
 #endif
 
             cv::Mat H;
+            Vector2f massCenter;
 
-            int banknote = BanknotePositionProvider::compare(features, H, theBanknotePosition.banknote, theBanknotePosition.banknote);
+            int banknote = BanknotePositionProvider::compare(features, H, theBanknotePosition.banknote, theBanknotePosition.banknote, massCenter);
 
             if (!H.empty() && banknote == theBanknotePosition.banknote){
                 Pose2D pose;
                 std::vector<Vector2f> scene_corners;
                 OUTPUT_TEXT("previous banknote test");
                 OUTPUT_TEXT((Classification::Banknote)banknote);
-                if(BanknotePositionProvider::analyzeArea(H, scene_corners, pose))
+                if(BanknotePositionProvider::analyzeArea(H, scene_corners, pose, banknote))
                 {
                     error = 0;
                     previousBanknotePosition.banknote = (Classification::Banknote)banknote;
@@ -71,6 +72,7 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
                     scene_corners.push_back(scene_corners.front());
                     previousBanknotePosition.corners = scene_corners;
                     previousBanknotePosition.position = pose;
+                    previousBanknotePosition.massCenter = massCenter;
                 }
                 else{
                     error = 1;
@@ -83,7 +85,6 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
     }
     else
     {
-        //OUTPUT_TEXT("no prev pos");
         newSearch = 1;
         previousBanknotePosition.banknote = Classification::STOP;
     }

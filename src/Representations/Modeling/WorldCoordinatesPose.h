@@ -10,5 +10,9 @@ public:
 
     bool valid;
 
+    Vector2f pickOffset;
+
+    Vector2f dropOffset;
+
 };
 

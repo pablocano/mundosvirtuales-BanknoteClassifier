@@ -24,6 +24,8 @@ ENUM(StatusRobotFanuc,
 /** Definition Register Position */
 #define REG_POSITION_BANKNOTE 0x01
 #define REG_POSITION_HOME 0x02
+#define REG_POSITION_OFFSET_PICK 0x06
+#define REG_POSITION_OFFSET_DROP 0x07
 
 /** Definition Register Status */
 #define REG_STATUS_AREA 0x01

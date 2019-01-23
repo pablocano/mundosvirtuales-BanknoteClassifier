@@ -107,4 +107,6 @@ void EstimatePosition::sendPositionFiltered(BanknotePositionFiltered& banknotePo
 
     banknotePositionFiltered.position = Pose2D(state[10],Vector2f(state[8], state[9]));
 
+    banknotePositionFiltered.massCenter = theBanknotePosition.massCenter;
+
 }

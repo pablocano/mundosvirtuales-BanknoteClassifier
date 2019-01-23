@@ -71,16 +71,17 @@ public:
      * @param corners the corners of the area to analyse
      * @return if the area is valid
      */
-    static bool analyzeArea(cv::Mat &homography, std::vector<Vector2f>& corners, Pose2D& pose);
+    static bool analyzeArea(cv::Mat &homography, std::vector<Vector2f>& corners, Pose2D& pose, int banknote);
 
     /**
      * @brief compare the current image with the acoording template using the Classification representation
      * @param resultHomography the resulting homography between the template and the current image
      * @param fisrt the fisrt banknote to compare
      * @param last the last banknote to compare
+     * @param the center of mass of the inliers
      * @return the banknote detected
      */
-    static int compare(const Features& features, cv::Mat& resultHomography, int first, int last);
+    static int compare(const Features& features, cv::Mat& resultHomography, int first, int last, Vector2f& massCenter);
 
 #ifndef BC_WITH_CUDA
     // Models features
@@ -99,7 +100,7 @@ public:
 #else
     std::vector<cv::cuda::GpuMat> modelsImage;
     std::vector<Features> modelsFeatures;
-    std::vector<Vector3d> modelsCorners;
+    std::vector<std::vector<Vector3d> > modelsCorners;
 
     std::vector<cv::DMatch> matches;
 
@@ -120,7 +121,6 @@ public:
     int lastbanknote;
 
     //Parameters
-    int trainBanknoteWidth;
     int trainBanknoteHeight;
 
 

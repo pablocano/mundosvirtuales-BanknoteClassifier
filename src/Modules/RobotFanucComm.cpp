@@ -22,6 +22,9 @@ void RobotFanucComm::update(DummyComm &dummyComm)
     if (theWorldCoordinatesPose.valid)
     {
         PacketEthernetIPFanuc packetWrite(WRITE_POS, idPacket, REG_POSITION_BANKNOTE);
+        PacketEthernetIPFanuc offsetPick(WRITE_POS, idPacket, REG_POSITION_OFFSET_PICK);
+        PacketEthernetIPFanuc offsetDrop(WRITE_POS, idPacket, REG_POSITION_OFFSET_DROP);
+
         PacketEthernetIPFanuc statusPose(WRITE_REG, idPacket, REG_STATUS_POSE, 1);
 
         //Cara o sello
@@ -46,6 +49,24 @@ void RobotFanucComm::update(DummyComm &dummyComm)
         pos.copyToBuffer(packetWrite.payload);
         packetWrite.sizePayload = sizeof(pos);
         SEND_MESSAGE(idEthernetIPFanuc, packetWrite);
+
+        PositionRegisterCartesian offset;
+
+        offset.x = theWorldCoordinatesPose.pickOffset.x();
+        offset.y = theWorldCoordinatesPose.pickOffset.y();
+
+        offset.copyToBuffer(offsetPick.payload);
+        offsetPick.sizePayload = sizeof(offset);
+        SEND_MESSAGE(idEthernetIPFanuc, offsetPick);
+
+        PositionRegisterCartesian offset2;
+
+        offset2.x = theWorldCoordinatesPose.dropOffset.x();
+        offset2.y = theWorldCoordinatesPose.dropOffset.y();
+
+        offset2.copyToBuffer(offsetDrop.payload);
+        offsetDrop.sizePayload = sizeof(offset2);
+        SEND_MESSAGE(idEthernetIPFanuc, offsetDrop);
 
         //Flag to indicate side of banknote
         SEND_MESSAGE(idEthernetIPFanuc, side);
