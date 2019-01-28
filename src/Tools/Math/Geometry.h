@@ -49,5 +49,12 @@ public:
      * @param rightLower the right lower corner of the rect
      */
     static void calculateRect(const std::vector<Vector2f>& points, Vector2i& leftUpper, Vector2i& rightLower);
+
+    /**
+     * @brief geometricMedian
+     * @param points The points from where calculate the geometric median
+     * @return the geometric median point
+     */
+    static Vector2f geometricMedian(const std::vector<Vector2f>& points);
 };
 

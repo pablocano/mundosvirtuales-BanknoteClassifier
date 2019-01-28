@@ -5,6 +5,7 @@
 #include "Tools/Debugging/DebugDrawings.h"
 #include <algorithm>
 #include "Tools/SystemCall.h"
+#include "Tools/Math/Geometry.h"
 
 
 MAKE_MODULE(BanknotePositionProvider, BanknoteClassifier)
@@ -82,6 +83,7 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
     DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:ransac_result","drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:inliers","drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:mass_center","drawingOnImage");
+    DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:median","drawingOnImage");
 
     /*for(int i = 0; i < Classification::numOfBanknotes - 1; i++)
     {
@@ -169,6 +171,7 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
         std::vector<std::vector<cv::DMatch> > aux_matches;
         std::vector<cv::DMatch> good_matches;
         std::vector<cv::Point2f> result_inliers;
+        std::vector<Vector2f> inliers;
         cv::Mat result_mask;
 
         int max_good_matches = 0;
@@ -187,7 +190,7 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
             good_matches.clear();
             for(auto& match : aux_matches)
             {
-                if(match[0].distance < 0.95f * match[1].distance)
+                if(match[0].distance < 0.9f * match[1].distance)
                 {
                     good_matches.push_back(match[0]);
                 }
@@ -229,19 +232,28 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
 
         massCenter = Vector2f();
 
+        inliers.reserve(cv::countNonZero(result_mask));
+
         for(int i = 0; i < result_mask.rows; i++)
         {
 
             if(result_mask.at<char>(i))
             {
-                massCenter += Vector2f(result_inliers[i].x,result_inliers[i].y);
+                inliers.push_back(Vector2f(result_inliers[i].x,result_inliers[i].y));
+                massCenter += inliers.back();
                 DOT("module:BanknotePositionProvider:inliers", result_inliers[i].x, result_inliers[i].y, ColorRGBA::red, ColorRGBA::red);
             }
         }
 
         massCenter /= cv::countNonZero(result_mask);
 
-        CIRCLE("module:BanknotePositionProvider:mass_center",massCenter.x(), massCenter.y(), 60, 3, Drawings::ps_solid, ColorRGBA::blue, Drawings::ps_null, ColorRGBA::blue);
+        CIRCLE("module:BanknotePositionProvider:mass_center",massCenter.x(), massCenter.y(), 20, 3, Drawings::ps_solid, ColorRGBA::blue, Drawings::ps_solid, ColorRGBA::blue);
+
+        Vector2f median = Geometry::geometricMedian(inliers);
+
+        CIRCLE("module:BanknotePositionProvider:median", median.x(), median.y(), 20, 3, Drawings::ps_solid,ColorRGBA::red, Drawings::ps_solid, ColorRGBA::red);
+
+        massCenter = median;
 
         return result;
     }
