@@ -89,6 +89,8 @@ void BanknotePositionFiltered::draw() const
             }
             Vector2f direction = position.translation + Vector2f(100,0).rotate(position.rotation);
             ARROW("representation:BanknotePositionFiltered",position.translation.x(),position.translation.y(),direction.x(),direction.y(),3,Drawings::ps_solid,ColorRGBA::black);
+
+            CIRCLE("representation:BanknotePositionFiltered", grabPos.x(), grabPos.y(), 60, 3, Drawings::ps_solid, ColorRGBA::blue, Drawings::ps_null, ColorRGBA::blue);
         }
     });
 }

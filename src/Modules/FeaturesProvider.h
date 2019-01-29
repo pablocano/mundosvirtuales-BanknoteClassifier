@@ -17,6 +17,7 @@
 MODULE(FeaturesProvider,
 {,
     REQUIRES(BestBlob),
+    REQUIRES(Blobs),
     REQUIRES(GrayScaleImageEq),
     REQUIRES(PreviousBanknotePosition),
     PROVIDES(Features),
@@ -36,4 +37,6 @@ public:
     cv::Mat mask;
 
     void update(Features & features);
+
+    void setMask(const Blobs::Blob& blob);
 };

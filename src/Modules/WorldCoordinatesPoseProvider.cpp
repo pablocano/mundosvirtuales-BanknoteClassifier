@@ -84,8 +84,8 @@ void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinates
 
         // Calculate the offset for the gripper
         // Reinitialice the test point with the mass center
-        uvPoint.at<float>(0,0) = theBanknotePositionFiltered.massCenter.x();
-        uvPoint.at<float>(1,0) = theBanknotePositionFiltered.massCenter.y();
+        uvPoint.at<float>(0,0) = theBanknotePositionFiltered.grabPos.x();
+        uvPoint.at<float>(1,0) = theBanknotePositionFiltered.grabPos.y();
 
         // Calculate the intersection of the ray with the ground plane
         tempMat = rInv * kInv * uvPoint;
@@ -99,15 +99,16 @@ void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinates
 
         worldCoordinatesPose.dropOffset = Eigen::Rotation2D<float>(-worldCoordinatesPose.rotation) * worldCoordinatesPose.pickOffset;
 
-        if(std::abs(worldCoordinatesPose.dropOffset.x()) > 65 || std::abs(worldCoordinatesPose.dropOffset.y()) > 25)
+        if(std::abs(worldCoordinatesPose.dropOffset.x()) > 30 || std::abs(worldCoordinatesPose.dropOffset.y()) > 15)
         {
+            OUTPUT_TEXT("Offset to far");
             worldCoordinatesPose.valid = false;
             return;
         }
 
         std::stringstream ss;
 
-        ss << "Banknote" << (Classification::Banknote)theBanknotePositionFiltered.banknote <<  " \nPos:\n\t x: " << worldCoordinatesPose.translation.x() << "\n\t y: " << worldCoordinatesPose.translation.y() << "\n\t rot: " << worldCoordinatesPose.rotation.toDegrees() << "\nOfsset:\n\tx: " << worldCoordinatesPose.pickOffset.x() << "\n\ty: " << worldCoordinatesPose.pickOffset.y() << "\n";
+        ss << "Banknote " << Classification::getName((Classification::Banknote)theBanknotePositionFiltered.banknote) <<  " \nPos:\n\t x: " << worldCoordinatesPose.translation.x() << "\n\t y: " << worldCoordinatesPose.translation.y() << "\n\t rot: " << worldCoordinatesPose.rotation.toDegrees() << "\nOffset:\n\tx: " << worldCoordinatesPose.pickOffset.x() << "\n\ty: " << worldCoordinatesPose.pickOffset.y() << "\nDropOffset:\n\tx: " << worldCoordinatesPose.dropOffset.x() << "\n\ty: " << worldCoordinatesPose.dropOffset.y() << "\n";
         OUTPUT_TEXT(ss.str());
 
     }

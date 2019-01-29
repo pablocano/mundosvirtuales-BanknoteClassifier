@@ -27,7 +27,7 @@ public:
 
     cv::Mat homography;
 
-    Vector2f massCenter;
+    Vector2f grabPos;
 
 
 };

@@ -16,11 +16,20 @@ MODULE(BanknoteClassifierProvider,
 class BanknoteClassifierProvider : public BanknoteClassifierProviderBase
 {
 
+    static BanknoteClassifierProvider* theInstance;
+
 public:
+
+    /**
+     * @brief BanknoteClassifierProvider Constructor
+     */
+    BanknoteClassifierProvider();
 
     /**
      * @brief update the classification representation
      * @param classification the result of this module
      */
     void update(Classification& classification);
+
+    static Classification::Banknote getClassification(const Blobs::Blob& blob);
 };

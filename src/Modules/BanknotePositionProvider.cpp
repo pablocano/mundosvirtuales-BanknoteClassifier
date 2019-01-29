@@ -6,6 +6,7 @@
 #include <algorithm>
 #include "Tools/SystemCall.h"
 #include "Tools/Math/Geometry.h"
+#include "Modules/BanknoteClassifierProvider.h"
 
 
 MAKE_MODULE(BanknotePositionProvider, BanknoteClassifier)
@@ -42,8 +43,8 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(20000),max
 #else
         cv::cuda::GpuMat imageGpu;
         imageGpu.upload(image);
-        surf(imageGpu,cv::cuda::GpuMat(),f.keypointsGpu,f.descriptors);
-        surf.downloadKeypoints(f.keypointsGpu,f.keypoints);
+        surf(imageGpu,cv::cuda::GpuMat(),f.keypointsGpu[0],f.descriptors[0]);
+        surf.downloadKeypoints(f.keypointsGpu[0],f.keypoints[0]);
 #endif
 
         //cv::Mat canny;
@@ -100,7 +101,7 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
 
     if(thePreviousBanknotePosition.banknote != Classification::NONE && thePreviousBanknotePosition.banknote != Classification::STOP)
     {
-        OUTPUT_TEXT("using prev pos");
+        //OUTPUT_TEXT("using prev pos");
         banknotePosition.corners = thePreviousBanknotePosition.corners;
         banknotePosition.homography = thePreviousBanknotePosition.homography;
         banknotePosition.position = thePreviousBanknotePosition.position;
@@ -108,7 +109,7 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
         return;
     }
 
-    if (!theFeatures.descriptors.empty() && theClassification.result != Classification::NONE)
+    if (!theFeatures.descriptors.empty() /*&& theClassification.result != Classification::NONE*/)
     {
         //Matching
         cv::Mat H;
@@ -132,9 +133,9 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
                 banknotePosition.homography = H;
                 banknotePosition.corners = scene_corners;
                 banknotePosition.position = pose;
-                banknotePosition.massCenter = massCenter;
-                OUTPUT_TEXT("Found bancknote ");
-                OUTPUT_TEXT(Classification::getName((Classification::Banknote)banknotePosition.banknote));
+                banknotePosition.grabPos = massCenter;
+                //OUTPUT_TEXT("Found bancknote ");
+                //OUTPUT_TEXT(Classification::getName((Classification::Banknote)banknotePosition.banknote));
             }
             else{
                 //OUTPUT_TEXT("No ransac");
@@ -178,54 +179,60 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
 
         int result = Classification::NONE;
 
-        for(int i = first; i <= last; i++){
+        for(int images = 0; images < 3 /*&& images < theInstance->theBlobs.blobs.size()*/; images++)
+        {
+            //first = BanknoteClassifierProvider::getClassification(theInstance->theBlobs.blobs[images]);
+            //last = first+1;
 
-            aux_matches.clear();
+            for(int i = first; i <= last; i++){
+
+                aux_matches.clear();
 #ifndef BC_WITH_CUDA
-            theInstance->matcher.knnMatch(theInstance->modelsFeatures[i].descriptors, features.descriptors, aux_matches, 2);
+                theInstance->matcher.knnMatch(theInstance->modelsFeatures[i].descriptors, features.descriptors, aux_matches, 2);
 #else
-            theInstance->matcher->knnMatch(theInstance->modelsFeatures[i].descriptors, features.descriptors, aux_matches, 2);
+                theInstance->matcher->knnMatch(theInstance->modelsFeatures[i].descriptors[0], features.descriptors[images], aux_matches, 2);
 #endif
 
-            good_matches.clear();
-            for(auto& match : aux_matches)
-            {
-                if(match[0].distance < 0.9f * match[1].distance)
+                good_matches.clear();
+                for(auto& match : aux_matches)
                 {
-                    good_matches.push_back(match[0]);
-                }
-            }
-
-            if(good_matches.size() > 10)
-            {
-                // Localize the object
-                std::vector<cv::Point2f> obj;
-                std::vector<cv::Point2f> scene;
-
-                obj.reserve(good_matches.size());
-                scene.reserve(good_matches.size());
-
-                for( int j = 0; j < good_matches.size(); j++ )
-                {
-                  // Get the keypoints from the matches
-                  obj.push_back(theInstance->modelsFeatures[i].keypoints[good_matches[j].queryIdx].pt);
-                  scene.push_back(features.keypoints[ good_matches[j].trainIdx].pt);
+                    if(match[0].distance < 0.8f * match[1].distance)
+                    {
+                        good_matches.push_back(match[0]);
+                    }
                 }
 
-                // Get the homography
-                cv::Mat mask;
-                cv::Mat H = cv::findHomography( obj, scene, cv::RANSAC, 10, mask );
-
-                // Obtain the num of inliers
-                int numGoodMatches = cv::countNonZero(mask);
-
-                if(numGoodMatches > max_good_matches)
+                if(good_matches.size() > 10)
                 {
-                    max_good_matches = numGoodMatches;
-                    result = i;
-                    resultHomography = H;
-                    result_mask = mask;
-                    result_inliers = scene;
+                    // Localize the object
+                    std::vector<cv::Point2f> obj;
+                    std::vector<cv::Point2f> scene;
+
+                    obj.reserve(good_matches.size());
+                    scene.reserve(good_matches.size());
+
+                    for( int j = 0; j < good_matches.size(); j++ )
+                    {
+                      // Get the keypoints from the matches
+                      obj.push_back(theInstance->modelsFeatures[i].keypoints[0][good_matches[j].queryIdx].pt);
+                      scene.push_back(features.keypoints[images][ good_matches[j].trainIdx].pt);
+                    }
+
+                    // Get the homography
+                    cv::Mat mask;
+                    cv::Mat H = cv::findHomography( obj, scene, cv::RANSAC, 5, mask );
+
+                    // Obtain the num of inliers
+                    int numGoodMatches = cv::countNonZero(mask);
+
+                    if(numGoodMatches > max_good_matches)
+                    {
+                        max_good_matches = numGoodMatches;
+                        result = i;
+                        resultHomography = H;
+                        result_mask = mask;
+                        result_inliers = scene;
+                    }
                 }
             }
         }

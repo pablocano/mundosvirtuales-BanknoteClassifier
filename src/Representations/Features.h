@@ -17,6 +17,11 @@ class Features : public Streamable
 public:
 
     /**
+     * @brief Features Constructor
+     */
+    Features();
+
+    /**
      * @brief draw the representation
      */
     void draw() const;
@@ -34,13 +39,13 @@ public:
      */
     void read(const cv::FileNode& node);
 
-    std::vector<cv::KeyPoint> keypoints;
+    std::vector<std::vector<cv::KeyPoint> > keypoints;
 
 #ifndef BC_WITH_CUDA
     cv::Mat descriptors;
 #else
-    cv::cuda::GpuMat keypointsGpu;
-    cv::cuda::GpuMat descriptors;
+    std::vector<cv::cuda::GpuMat> keypointsGpu;
+    std::vector<cv::cuda::GpuMat> descriptors;
 #endif
 };
 

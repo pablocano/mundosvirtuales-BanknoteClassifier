@@ -20,7 +20,7 @@ class Regionizer : public RegionizerBase
 {
 public:
   
-  Regionizer() : step(2) {}
+  Regionizer() : step(5) {}
   
   void update(Regions& regions);
   

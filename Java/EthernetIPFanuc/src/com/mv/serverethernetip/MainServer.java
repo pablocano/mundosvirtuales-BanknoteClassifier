@@ -77,7 +77,7 @@ public class MainServer {
 
 			if (interfaceServer != null) {
 				
-				interfaceServer.setLogDebug(true);
+				interfaceServer.setLogDebug(false);
 				interfaceServer.setLogInfo(true);
 				interfaceServer.setLogError(true);
 
