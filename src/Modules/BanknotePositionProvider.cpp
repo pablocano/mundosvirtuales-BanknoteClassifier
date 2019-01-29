@@ -85,6 +85,7 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
     DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:inliers","drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:mass_center","drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:median","drawingOnImage");
+    DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:analized_area", "drawingOnImage");
 
     /*for(int i = 0; i < Classification::numOfBanknotes - 1; i++)
     {
@@ -222,6 +223,11 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
                     cv::Mat mask;
                     cv::Mat H = cv::findHomography( obj, scene, cv::RANSAC, 5, mask );
 
+                    Pose2D pose;
+                    std::vector<Vector2f> scene_corners;
+                    if(H.empty() || !analyzeArea(H, scene_corners, pose, i))
+                        continue;
+
                     // Obtain the num of inliers
                     int numGoodMatches = cv::countNonZero(mask);
 
@@ -287,6 +293,12 @@ bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vect
 
         Vector2f center = corners.back();
         corners.pop_back();
+
+        for(int i = 0; i < corners.size() - 1; i++)
+        {
+            LINE("module:BanknotePositionProvider:analized_area", corners[i].x(), corners[i].y() , corners[i + 1].x(), corners[i + 1].y(), 3, Drawings::dot, ColorRGBA::white);
+        }
+        LINE("module:BanknotePositionProvider:analized_area", corners.front().x(), corners.front().y() , corners.back().x(), corners.back().y(), 3, Drawings::dot, ColorRGBA::white);
 
         pose = Pose2D((direction - center).angle(),center);
 

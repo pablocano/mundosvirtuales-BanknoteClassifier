@@ -99,9 +99,11 @@ void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinates
 
         worldCoordinatesPose.dropOffset = Eigen::Rotation2D<float>(-worldCoordinatesPose.rotation) * worldCoordinatesPose.pickOffset;
 
-        if(std::abs(worldCoordinatesPose.dropOffset.x()) > 30 || std::abs(worldCoordinatesPose.dropOffset.y()) > 15)
+        if(std::abs(worldCoordinatesPose.dropOffset.x()) > 45 || std::abs(worldCoordinatesPose.dropOffset.y()) > 18)
         {
-            OUTPUT_TEXT("Offset to far");
+            std::stringstream ssf;
+            ssf << "Offset to far\n\tx: " << worldCoordinatesPose.dropOffset.x() << "\n\ty: " << worldCoordinatesPose.dropOffset.y() << "\n";
+            OUTPUT_TEXT(ssf.str());
             worldCoordinatesPose.valid = false;
             return;
         }
