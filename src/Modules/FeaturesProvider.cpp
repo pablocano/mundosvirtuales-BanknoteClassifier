@@ -83,7 +83,7 @@ void FeaturesProvider::update(Features &features)
     }
     */
 
-    mask(cv::Rect(200,200,1700,1700)) = 1;
+    mask(cv::Rect(200,100,1500,1800)) = 1;
 
 
 #ifndef BC_WITH_CUDA

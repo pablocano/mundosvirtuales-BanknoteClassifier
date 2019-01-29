@@ -27,6 +27,12 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
         OUTPUT_TEXT("start prev pos");
         previousBanknotePosition.banknote = Classification::NONE;
 
+        if(theBanknotePositionFiltered.valid && !theWorldCoordinatesPose.valid)
+        {
+            newSearch = 1;
+            return;
+        }
+
         if(theBanknotePosition.banknote != Classification::NONE && !newSearch)
         {
             OUTPUT_TEXT("trying prev pos");

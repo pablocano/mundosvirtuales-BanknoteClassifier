@@ -12,7 +12,7 @@ MAKE_MODULE(BanknotePositionProvider, BanknoteClassifier)
 
 BanknotePositionProvider* BanknotePositionProvider::theInstance = 0;
 
-BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(20000),maxAreaPolygon(200000), trainBanknoteHeight(200)
+BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(20000),maxAreaPolygon(200000), trainBanknoteHeight(220)
 {
     theInstance = this;
     error = 0;
@@ -32,7 +32,7 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(20000),max
     for(unsigned i = 0; i < Classification::numOfBanknotes - 2; i++)
     {
         // Read the image and resize it
-        cv::Mat image = cv::imread(std::string(File::getGTDir()) + "/Data/img_scan/" + Classification::getName((Classification::Banknote)i) + ".jpg", cv::IMREAD_GRAYSCALE);
+        cv::Mat image = cv::imread(std::string(File::getGTDir()) + "/Data/img_basler/" + Classification::getName((Classification::Banknote)i) + ".jpg", cv::IMREAD_GRAYSCALE);
         resizeImage(image);
 
         // Calculate the features of the image
@@ -84,6 +84,7 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
     DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:inliers","drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:mass_center","drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:median","drawingOnImage");
+    DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:analizedArea", "drawingOnImage");
 
     /*for(int i = 0; i < Classification::numOfBanknotes - 1; i++)
     {
@@ -187,7 +188,6 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
             theInstance->matcher->knnMatch(theInstance->modelsFeatures[i].descriptors, features.descriptors, aux_matches, 2);
 #endif
 
-            good_matches.clear();
             for(auto& match : aux_matches)
             {
                 if(match[0].distance < 0.9f * match[1].distance)
@@ -196,7 +196,7 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
                 }
             }
 
-            if(good_matches.size() > 10)
+            if(good_matches.size() > 20)
             {
                 // Localize the object
                 std::vector<cv::Point2f> obj;
@@ -218,6 +218,11 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
 
                 // Obtain the num of inliers
                 int numGoodMatches = cv::countNonZero(mask);
+
+                Pose2D pose;
+                std::vector<Vector2f> scene_corners;
+                if(H.empty() || !analyzeArea(H, scene_corners, pose, i))
+                    continue;
 
                 if(numGoodMatches > max_good_matches)
                 {
@@ -281,6 +286,12 @@ bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vect
         Vector2f center = corners.back();
         corners.pop_back();
 
+        for(int i = 0; i < corners.size() - 1; i++)
+        {
+            LINE("module:BanknotePositionProvider:analizedArea", corners[i].x(), corners[i].y() , corners[i + 1].x(), corners[i + 1].y(), 3, Drawings::ps_dot, ColorRGBA::white);
+
+        }
+
         pose = Pose2D((direction - center).angle(),center);
 
         // Get the size of the array
@@ -317,7 +328,7 @@ bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vect
 
         // Final calculation of the area
         area *= 0.5;
-        return std::abs(area) > theInstance->minAreaPolygon && std::abs(area) < theInstance->maxAreaPolygon  &&(positive || negative);
+        return std::abs(area) > theInstance->minAreaPolygon && std::abs(area) < theInstance->maxAreaPolygon  && (positive || negative);
     }
 
     return false;

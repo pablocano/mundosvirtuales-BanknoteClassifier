@@ -72,12 +72,16 @@ void EstimatePosition::update(BanknotePositionFiltered& banknotePositionFiltered
             }
             else if (previous != theBanknotePosition.banknote)
             {
+                previous = theBanknotePosition.banknote;
                 kf.init(corners);
                 valid = 0;
             }
-            valid++;
-            kf.update(corners);
-            previous = theBanknotePosition.banknote;
+            else
+            {
+                valid++;
+                kf.update(corners);
+            }
+
         }
 
         if (valid > 5)

@@ -99,7 +99,7 @@ void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinates
 
         worldCoordinatesPose.dropOffset = Eigen::Rotation2D<float>(-worldCoordinatesPose.rotation) * worldCoordinatesPose.pickOffset;
 
-        if(std::abs(worldCoordinatesPose.dropOffset.x()) > 65 || std::abs(worldCoordinatesPose.dropOffset.y()) > 25)
+        if(std::abs(worldCoordinatesPose.dropOffset.x()) > 35 || std::abs(worldCoordinatesPose.dropOffset.y()) > 14)
         {
             worldCoordinatesPose.valid = false;
             return;
@@ -107,7 +107,7 @@ void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinates
 
         std::stringstream ss;
 
-        ss << "Banknote" << (Classification::Banknote)theBanknotePositionFiltered.banknote <<  " \nPos:\n\t x: " << worldCoordinatesPose.translation.x() << "\n\t y: " << worldCoordinatesPose.translation.y() << "\n\t rot: " << worldCoordinatesPose.rotation.toDegrees() << "\nOfsset:\n\tx: " << worldCoordinatesPose.pickOffset.x() << "\n\ty: " << worldCoordinatesPose.pickOffset.y() << "\n";
+        ss << "Banknote" << (Classification::Banknote)theBanknotePositionFiltered.banknote <<  " \nPos:\n\t x: " << worldCoordinatesPose.translation.x() << "\n\t y: " << worldCoordinatesPose.translation.y() << "\n\t rot: " << worldCoordinatesPose.rotation.toDegrees() << "\nOffset:\n\tx: " << worldCoordinatesPose.pickOffset.x() << "\n\ty: " << worldCoordinatesPose.pickOffset.y() << "\n\DropOffset:\n\tx: " << worldCoordinatesPose.dropOffset.x() << "\n\ty: " << worldCoordinatesPose.dropOffset.y() << "\n";
         OUTPUT_TEXT(ss.str());
 
     }
