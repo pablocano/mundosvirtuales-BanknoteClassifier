@@ -16,6 +16,13 @@ RobotFanucDataProvider::RobotFanucDataProvider() : robotModel()
 void RobotFanucDataProvider::update(RobotFanuc& robotFanuc)
 {
     robotFanuc.setRobotModel(this->robotModel);
+
+    robotFanuc.timeStamp = theFrameInfo.time;
+
+    DEBUG_RESPONSE("status:robotRegisters",
+    {
+        OUTPUT(idRobotRegisterStatus,robotFanuc);
+    });
 }
 
 void RobotFanucDataProvider::processPacket(PacketEthernetIPFanuc & packet)

@@ -92,6 +92,12 @@ void RobotFanucComm::update(DummyComm &dummyComm)
 
     PacketEthernetIPFanuc packetReadRegPoseStatus(READ_REG, idPacket, REG_STATUS_POSE);
     SEND_MESSAGE(idEthernetIPFanuc, packetReadRegPoseStatus);
+
+    for(int i = 0; i < 4; i++)
+    {
+        PacketEthernetIPFanuc packetReadRegCount(READ_REG, idPacket, i + 10);
+        SEND_MESSAGE(idEthernetIPFanuc, packetReadRegCount);
+    }
 }
 
 int RobotFanucComm::checkSide(int banknote)

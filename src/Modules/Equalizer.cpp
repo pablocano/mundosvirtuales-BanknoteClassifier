@@ -11,5 +11,5 @@ Equalizer::Equalizer()
 void Equalizer::update(GrayScaleImageEq& grayscaleimageEq)
 {
     clahe_->apply(theGrayScaleImage,grayscaleimageEq);
-    DRAW_IMAGE("equalizer", (cv::Mat) grayscaleimageEq, theFrameInfo.time);
+    //DRAW_IMAGE("equalizer", (cv::Mat) grayscaleimageEq, theFrameInfo.time);
 }

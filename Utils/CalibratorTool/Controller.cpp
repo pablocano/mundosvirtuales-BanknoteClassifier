@@ -9,6 +9,7 @@
 #include "Controller.h"
 #include "Views/ImageView.h"
 #include "Views/ColorCalibrationView/ColorCalibrationView.h"
+#include "Views/StatusView.h"
 #include "Tools/SystemCall.h"
 #include "MainWindow.h"
 
@@ -37,8 +38,8 @@ Controller::Controller(CalibratorTool::Application& application)
   poll(idColorCalibration);
   
   SYNC;
-  debugOut << DebugRequest("representation:ImageBGR");
-  debugOut.finishMessage(idDebugRequest);
+  //debugOut << DebugRequest("representation:ImageBGR");
+  //debugOut.finishMessage(idDebugRequest);
   
   banknoteClassifierWrapper->start();
 }
@@ -57,6 +58,7 @@ void Controller::compile()
   addView(new ImageView("GroundTruth.Images.EastCam", *this, "LeftCam", false, true),"GroundTruth.Images");
   addView(new ImageView("GroundTruth.Images.EastCamSegmented", *this, "RightCam", true, true),"GroundTruth.Images");
   addView(new ColorCalibrationView("GroundTruth.Calibrations.ColorCalibration",*this),"GroundTruth.Calibrations");
+  addView(new StatusView("GroundTruth.Status.Status",*this,"RobotStatus"),"GroundTruth.Status");
 }
 
 void Controller::addView(CalibratorTool::Object* object, const CalibratorTool::Object* parent, int flags)
@@ -223,7 +225,7 @@ bool Controller::handleMessage(MessageQueue& message)
       bool enable;
       message >> description >> enable;
       if(description != "pollingFinished")
-        debugRequestTable.addRequest(DebugRequest(description, enable), true);
+        debugRequestTable.addRequest(DebugRequest(description, enable), false);
       return true;
     }
     case idColorCalibration:
@@ -310,6 +312,16 @@ bool Controller::handleMessage(MessageQueue& message)
 
       return true;
     }
+    case idWorldPoseStatus:
+    {
+      message >> banknotePose;
+      return true;
+    }
+    case idRobotRegisterStatus:
+    {
+      message >> robot;
+      return true;
+    }
     default:
       return false;
   }
@@ -326,6 +338,7 @@ void Controller::drDebugDrawing(const std::string &request)
 {
   SYNC;
   std::string debugRequest = std::string("debug drawing:") + request;
+
   for(int i = 0; i < debugRequestTable.currentNumberOfDebugRequests; ++i)
   {
     if(debugRequestTable.debugRequests[i].description == debugRequest)
@@ -343,4 +356,8 @@ void Controller::drDebugDrawing(const std::string &request)
       return;
     }
   }
+
+  debugOut << DebugRequest(debugRequest);
+  debugOut.finishMessage(idDebugRequest);
+  return;
 }

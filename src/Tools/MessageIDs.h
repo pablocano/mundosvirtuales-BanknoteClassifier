@@ -167,8 +167,8 @@ ENUM(MessageID,
   idJointCalibration,
   idUSRequest,
   idWalkingEngineKick,
-  idGroundTruthMessageRobot,
-  idGroundTruthMessageBall,
+  idWorldPoseStatus,
+  idRobotRegisterStatus,
   idEthernetIPFanuc
 );
 

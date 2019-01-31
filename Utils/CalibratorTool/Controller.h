@@ -12,6 +12,8 @@
 #include "CalibratorTool.h"
 #include "Visualization/DebugDrawing.h"
 #include "Representations/Image.h"
+#include "Representations/RobotFanuc.h"
+#include "Representations/Modeling/WorldCoordinatesPose.h"
 #include "Representations/ColorModel/ColorModel.h"
 #include "Tools/Debugging/DebugDrawings.h"
 #include "Tools/Debugging/DebugRequest.h"
@@ -99,6 +101,9 @@ public:
   std::unordered_map<std::string,ImageBGR> customImages;
 
   std::unordered_map<std::string,bool> customImagesViews;
+
+  RobotFanuc robot;
+  WorldCoordinatesPose banknotePose;
 
   char processIdentifier;
 };

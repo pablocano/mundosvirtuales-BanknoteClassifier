@@ -108,10 +108,19 @@ void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinates
             return;
         }
 
+        worldCoordinatesPose.banknote = theBanknotePositionFiltered.banknote;
+
         std::stringstream ss;
 
         ss << "Banknote " << Classification::getName((Classification::Banknote)theBanknotePositionFiltered.banknote) <<  " \nPos:\n\t x: " << worldCoordinatesPose.translation.x() << "\n\t y: " << worldCoordinatesPose.translation.y() << "\n\t rot: " << worldCoordinatesPose.rotation.toDegrees() << "\nOffset:\n\tx: " << worldCoordinatesPose.pickOffset.x() << "\n\ty: " << worldCoordinatesPose.pickOffset.y() << "\nDropOffset:\n\tx: " << worldCoordinatesPose.dropOffset.x() << "\n\ty: " << worldCoordinatesPose.dropOffset.y() << "\n";
         OUTPUT_TEXT(ss.str());
+
+        worldCoordinatesPose.timeStamp = theFrameInfo.time;
+
+        DEBUG_RESPONSE("status:worldPose",
+        {
+            OUTPUT(idWorldPoseStatus,worldCoordinatesPose);
+        });
 
     }
 
