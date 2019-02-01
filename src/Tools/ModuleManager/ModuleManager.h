@@ -98,6 +98,10 @@ public:
       std::string provider;
     };
 
+    void save(std::string filename);
+
+    bool load(std::string filename);
+
     std::vector<RepresentationProvider> representationProviders;
   };
 
@@ -120,7 +124,7 @@ private:
    * The method brings the providers in the correct sequence.
    * @return Is the set of providers consistent?
    */
-  bool sortProviders();
+  bool sortProviders(std::list<std::string> providedByDefault);
 
   /**
    * The method restores a previous module configuration.
