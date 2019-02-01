@@ -209,7 +209,8 @@ void ModuleManager::Configuration::save(std::string filename)
 
 bool ModuleManager::Configuration::load(std::string filename)
 {
-    cv::FileStorage fs(std::string(File::getGTDir()) + "/Config/" + filename, cv::FileStorage::READ);
+    std::string asdf = std::string(File::getGTDir()) + "/Config/" + filename;
+    cv::FileStorage fs(asdf, cv::FileStorage::READ);
 
 
     cv::FileNode rpProv = fs["representationProviders"];

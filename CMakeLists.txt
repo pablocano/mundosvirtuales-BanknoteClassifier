@@ -43,6 +43,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/CameraPoseProvider.h
   src/Modules/CustomCommunication.cpp
   src/Modules/CustomCommunication.h
+  src/Modules/DummyImages.cpp
+  src/Modules/DummyImages.h
   src/Modules/Equalizer.cpp
   src/Modules/Equalizer.h
   src/Modules/FeaturesProvider.cpp

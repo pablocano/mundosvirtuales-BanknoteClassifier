@@ -79,6 +79,14 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(20000),max
     }
 }
 
+BanknotePositionProvider::~BanknotePositionProvider()
+{
+#ifdef BC_WITH_CUDA
+    matcher.release();
+    clahe.release();
+#endif
+}
+
 void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
 {
     DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:ransac_result","drawingOnImage");
