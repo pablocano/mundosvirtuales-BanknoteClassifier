@@ -5,7 +5,7 @@ class RegState : public Streamable
 {
 public:
 
-    RegState():getbanknote(0){};
+    RegState() : getbanknote(1){};
 
     int getbanknote;
 };
