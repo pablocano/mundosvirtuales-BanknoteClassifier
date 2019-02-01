@@ -16,15 +16,25 @@ RobotFanucDataProvider::RobotFanucDataProvider() : robotModel()
 void RobotFanucDataProvider::update(RobotFanuc& robotFanuc)
 {
     robotFanuc.setRobotModel(this->robotModel);
+
+    robotFanuc.timeStamp = theFrameInfo.time;
+
+    DEBUG_RESPONSE("status:robotRegisters",
+    {
+        OUTPUT(idRobotRegisterStatus,robotFanuc);
+    });
 }
 
 void RobotFanucDataProvider::processPacket(PacketEthernetIPFanuc & packet)
 {
+
+    // OUTPUT_TEXT("Receive packet: " + packet.getStrCommand());
+
 	switch (packet.command)
 	{
 
 	case READ_REG_OK:
-		robotModel.reg[packet.reg] = ((int *) packet.payload)[0];
+        robotModel.reg[packet.reg] = (reinterpret_cast<int *>(packet.payload))[0];
 		break;
 
     case READ_POS_OK:
@@ -38,6 +48,9 @@ void RobotFanucDataProvider::processPacket(PacketEthernetIPFanuc & packet)
     case WRITE_POS_OK:
         break;
 
+    case WRITE_REG_OK:
+        break;
+
 	case WRITE_REG_ERROR:
 	case WRITE_POS_ERROR:
 	case WRITE_JPOS_ERROR:
@@ -47,11 +60,11 @@ void RobotFanucDataProvider::processPacket(PacketEthernetIPFanuc & packet)
 	case READ_CURR_POS_ERROR:
 	case READ_CURR_JPOS_ERROR:
 
-        OUTPUT_TEXT("Error: " + std::string((char *)packet.payload));
+        OUTPUT_TEXT("Error: " + std::string(reinterpret_cast<char *>(packet.payload)));
 		break;
 
 	default:
-        OUTPUT_TEXT("Error: Unknow packet");
+        OUTPUT_TEXT("Packet not caught");
 	}
 }
 

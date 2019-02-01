@@ -1,12 +1,24 @@
 #include "Features.h"
 #include "Tools/Debugging/DebugDrawings.h"
 
+
+Features::Features() : keypointsGpu(9), descriptors(9)
+{
+    for(int i = 0; i < 9; i++)
+    {
+        keypoints.push_back(std::vector<cv::KeyPoint>());
+    }
+}
+
 void Features::draw() const
 {
     DECLARE_DEBUG_DRAWING("representation:Features", "drawingOnImage");
-    for(auto keypoint : keypoints)
+    for(auto kpts : keypoints)
     {
-        DOT("representation:Features",keypoint.pt.x, keypoint.pt.y, ColorRGBA::blue, ColorRGBA::blue);
+        for(auto keypoint : kpts)
+        {
+            DOT("representation:Features",keypoint.pt.x, keypoint.pt.y, ColorRGBA::blue, ColorRGBA::blue);
+        }
     }
 }
 

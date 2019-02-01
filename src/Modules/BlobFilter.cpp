@@ -25,8 +25,6 @@ void BlobFilter::update(BestBlob &bestblob){
             for (int j=i; j< theBlobs.blobs.size(); j++){
                 if (!theBlobs.blobs[j].color.is(BlobFilter::getColor(theErrorInfo.lastbanknote))){
                     bestblob.bestblob = theBlobs.blobs[j];
-                    OUTPUT_TEXT("numero de blob");
-                    OUTPUT_TEXT(j);
                     i = j;
                     bestblob.exists = true;
                     bestblob.newblob = true;

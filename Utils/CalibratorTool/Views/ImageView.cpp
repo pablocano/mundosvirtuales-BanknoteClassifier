@@ -30,7 +30,9 @@ custom(custom)
 
 CalibratorTool::Widget* ImageView::createWidget()
 {
-  return new ImageWidget(*this);
+    controller.debugOut << DebugRequest("representation:ImageBGR");
+    controller.debugOut.finishMessage(idDebugRequest);
+    return new ImageWidget(*this);
 }
 
 ImageWidget::ImageWidget(ImageView& imageView)
@@ -49,8 +51,13 @@ ImageWidget::ImageWidget(ImageView& imageView)
 
 ImageWidget::~ImageWidget()
 {
-  if(imageData)
-    delete imageData;
+    if(!imageView.segmented)
+    {
+        imageView.controller.debugOut << DebugRequest("representation:ImageBGR",false);
+        imageView.controller.debugOut.finishMessage(idDebugRequest);
+    }
+    if(imageData)
+        delete imageData;
 }
 
 void ImageWidget::paintEvent(QPaintEvent* event)

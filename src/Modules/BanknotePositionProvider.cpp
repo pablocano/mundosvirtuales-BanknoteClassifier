@@ -5,13 +5,15 @@
 #include "Tools/Debugging/DebugDrawings.h"
 #include <algorithm>
 #include "Tools/SystemCall.h"
+#include "Tools/Math/Geometry.h"
+#include "Modules/BanknoteClassifierProvider.h"
 
 
 MAKE_MODULE(BanknotePositionProvider, BanknoteClassifier)
 
 BanknotePositionProvider* BanknotePositionProvider::theInstance = 0;
 
-BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),maxAreaPolygon(80000000000), trainBanknoteWidth(400), trainBanknoteHeight(200)
+BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(20000),maxAreaPolygon(200000), trainBanknoteHeight(200)
 {
     theInstance = this;
     error = 0;
@@ -24,7 +26,7 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),max
     surf = cv::xfeatures2d::SURF::create(400,4,3,true,false);
 #else
     matcher = cv::cuda::DescriptorMatcher::createBFMatcher();
-    surf = cv::cuda::SURF_CUDA(400);
+    surf = cv::cuda::SURF_CUDA(400,4,4,true);
 #endif
 
     // Import and analize each template image
@@ -41,8 +43,8 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),max
 #else
         cv::cuda::GpuMat imageGpu;
         imageGpu.upload(image);
-        surf(imageGpu,cv::cuda::GpuMat(),f.keypointsGpu,f.descriptors);
-        surf.downloadKeypoints(f.keypointsGpu,f.keypoints);
+        surf(imageGpu,cv::cuda::GpuMat(),f.keypointsGpu[0],f.descriptors[0]);
+        surf.downloadKeypoints(f.keypointsGpu[0],f.keypoints[0]);
 #endif
 
         //cv::Mat canny;
@@ -58,22 +60,32 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(10000),max
 #else
         modelsImage.push_back(imageGpu);
 #endif
+
+        // Save keypoints images
+        //cv::drawKeypoints(image,f.keypoints,image);
+        //cv::imwrite(std::string(File::getGTDir()) + "/Data/img_scan/" + Classification::getName((Classification::Banknote)i) + "_keypoints.jpg",image);
+
+        // Create the corners of the model
+        std::vector<Vector3d> aux_corners;
+        aux_corners.push_back(Vector3d(0,0,1));
+        aux_corners.push_back(Vector3d(image.cols,0,1));
+        aux_corners.push_back(Vector3d(image.cols,trainBanknoteHeight,1));
+        aux_corners.push_back(Vector3d(0,trainBanknoteHeight,1));
+        aux_corners.push_back(Vector3d(image.cols/2,trainBanknoteHeight/2.0,1));
+        aux_corners.push_back(Vector3d(image.cols,trainBanknoteHeight/2.0,1));
+
+        modelsCorners.push_back(aux_corners);
+
     }
-
-    // Create the corners of the model
-    modelsCorners.push_back(Vector3d(0,0,1));
-    modelsCorners.push_back(Vector3d(trainBanknoteWidth,0,1));
-    modelsCorners.push_back(Vector3d(trainBanknoteWidth,trainBanknoteHeight,1));
-    modelsCorners.push_back(Vector3d(0,trainBanknoteHeight,1));
-    modelsCorners.push_back(Vector3d(trainBanknoteHeight,trainBanknoteHeight/2.0,1));
-    modelsCorners.push_back(Vector3d(trainBanknoteWidth,trainBanknoteHeight/2.0,1));
-
 }
 
 void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
 {
     DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:ransac_result","drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:inliers","drawingOnImage");
+    DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:mass_center","drawingOnImage");
+    DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:median","drawingOnImage");
+    DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:analized_area", "drawingOnImage");
 
     /*for(int i = 0; i < Classification::numOfBanknotes - 1; i++)
     {
@@ -90,7 +102,7 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
 
     if(thePreviousBanknotePosition.banknote != Classification::NONE && thePreviousBanknotePosition.banknote != Classification::STOP)
     {
-        OUTPUT_TEXT("using prev pos");
+        //OUTPUT_TEXT("using prev pos");
         banknotePosition.corners = thePreviousBanknotePosition.corners;
         banknotePosition.homography = thePreviousBanknotePosition.homography;
         banknotePosition.position = thePreviousBanknotePosition.position;
@@ -98,17 +110,22 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
         return;
     }
 
-    if (!theFeatures.descriptors.empty() && theClassification.result != Classification::NONE){
+    if (!theFeatures.descriptors.empty() /*&& theClassification.result != Classification::NONE*/)
+    {
         //Matching
         cv::Mat H;
-        int banknote = compare(theFeatures, H, theClassification.result, theClassification.result + 1);
+        Vector2f massCenter;
+
+        //int banknote = compare(theFeatures, H, theClassification.result, theClassification.result + 1);
+        int banknote = compare(theFeatures, H, 0, 9, massCenter);
 
         banknotePosition.banknote = Classification::NONE;
 
-        if (!H.empty() && banknote != Classification::NONE){
+        if (!H.empty() && banknote != Classification::NONE)
+        {
             Pose2D pose;
             std::vector<Vector2f> scene_corners;
-            if(analyzeArea(H, scene_corners, pose))
+            if(analyzeArea(H, scene_corners, pose, banknote))
             {
                 //OUTPUT_TEXT("ransac");
                 error = 0;
@@ -117,21 +134,23 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
                 banknotePosition.homography = H;
                 banknotePosition.corners = scene_corners;
                 banknotePosition.position = pose;
+                banknotePosition.grabPos = massCenter;
+                //OUTPUT_TEXT("Found bancknote ");
+                //OUTPUT_TEXT(Classification::getName((Classification::Banknote)banknotePosition.banknote));
             }
             else{
                 //OUTPUT_TEXT("No ransac");
-                error = 1;
+                error++;
                 lastbanknote = theClassification.result;
-                OUTPUT_TEXT(lastbanknote);
-            }
-
 
             }
-        else{
+        }
+        else
+        {
             error++;
             lastbanknote = theClassification.result;
         }
-        }
+    }
         
 
 }
@@ -147,81 +166,107 @@ void BanknotePositionProvider::update(ErrorInfo& errorinfo){
 
 }
 
-int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultHomography, int first, int last){
+int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultHomography, int first, int last, Vector2f& massCenter){
 
     if(theInstance)
     {
         std::vector<std::vector<cv::DMatch> > aux_matches;
         std::vector<cv::DMatch> good_matches;
         std::vector<cv::Point2f> result_inliers;
+        std::vector<Vector2f> inliers;
         cv::Mat result_mask;
 
         int max_good_matches = 0;
 
         int result = Classification::NONE;
 
-        for(int i = first; i <= last; i++){
+        for(int images = 0; images < 3 /*&& images < theInstance->theBlobs.blobs.size()*/; images++)
+        {
+            //first = BanknoteClassifierProvider::getClassification(theInstance->theBlobs.blobs[images]);
+            //last = first+1;
 
-            aux_matches.clear();
+            for(int i = first; i <= last; i++){
+
+                aux_matches.clear();
 #ifndef BC_WITH_CUDA
-            theInstance->matcher.knnMatch(theInstance->modelsFeatures[i].descriptors, features.descriptors, aux_matches, 2);
+                theInstance->matcher.knnMatch(theInstance->modelsFeatures[i].descriptors, features.descriptors, aux_matches, 2);
 #else
-            theInstance->matcher->knnMatch(theInstance->modelsFeatures[i].descriptors, features.descriptors, aux_matches, 2);
+                theInstance->matcher->knnMatch(theInstance->modelsFeatures[i].descriptors[0], features.descriptors[images], aux_matches, 2);
 #endif
 
-            good_matches.clear();
-            for(auto& match : aux_matches)
-            {
-                if(match[0].distance < 0.9f * match[1].distance)
+                good_matches.clear();
+                for(auto& match : aux_matches)
                 {
-                    good_matches.push_back(match[0]);
-                }
-            }
-
-            if(good_matches.size() > 10)
-            {
-
-                // Localize the object
-                std::vector<cv::Point2f> obj;
-                std::vector<cv::Point2f> scene;
-
-                obj.reserve(good_matches.size());
-                scene.reserve(good_matches.size());
-
-                for( int j = 0; j < good_matches.size(); j++ )
-                {
-                  // Get the keypoints from the matches
-                  obj.push_back(theInstance->modelsFeatures[i].keypoints[good_matches[j].queryIdx].pt);
-                  scene.push_back(features.keypoints[ good_matches[j].trainIdx].pt);
-                }
-
-                // Get the homography
-                cv::Mat mask;
-                cv::Mat H = cv::findHomography( obj, scene, cv::RANSAC, 3, mask );
-
-                // Obtain the num of inliers
-                int numGoodMatches = cv::countNonZero(mask);
-
-                if(numGoodMatches > max_good_matches)
-                {
-                    max_good_matches = numGoodMatches;
-                    result = i;
-                    resultHomography = H;
-                    COMPLEX_DRAWING("module:BanknotePositionProvider:inliers",
+                    if(match[0].distance < 0.8f * match[1].distance)
                     {
+                        good_matches.push_back(match[0]);
+                    }
+                }
+
+                if(good_matches.size() > 10)
+                {
+                    // Localize the object
+                    std::vector<cv::Point2f> obj;
+                    std::vector<cv::Point2f> scene;
+
+                    obj.reserve(good_matches.size());
+                    scene.reserve(good_matches.size());
+
+                    for( int j = 0; j < good_matches.size(); j++ )
+                    {
+                      // Get the keypoints from the matches
+                      obj.push_back(theInstance->modelsFeatures[i].keypoints[0][good_matches[j].queryIdx].pt);
+                      scene.push_back(features.keypoints[images][ good_matches[j].trainIdx].pt);
+                    }
+
+                    // Get the homography
+                    cv::Mat mask;
+                    cv::Mat H = cv::findHomography( obj, scene, cv::RANSAC, 5, mask );
+
+                    Pose2D pose;
+                    std::vector<Vector2f> scene_corners;
+                    if(H.empty() || !analyzeArea(H, scene_corners, pose, i))
+                        continue;
+
+                    // Obtain the num of inliers
+                    int numGoodMatches = cv::countNonZero(mask);
+
+                    if(numGoodMatches > max_good_matches)
+                    {
+                        max_good_matches = numGoodMatches;
+                        result = i;
+                        resultHomography = H;
                         result_mask = mask;
                         result_inliers = scene;
-                    });
-
+                    }
                 }
             }
         }
+
+        massCenter = Vector2f();
+
+        inliers.reserve(cv::countNonZero(result_mask));
 
         for(int i = 0; i < result_mask.rows; i++)
         {
+
             if(result_mask.at<char>(i))
+            {
+                inliers.push_back(Vector2f(result_inliers[i].x,result_inliers[i].y));
+                massCenter += inliers.back();
                 DOT("module:BanknotePositionProvider:inliers", result_inliers[i].x, result_inliers[i].y, ColorRGBA::red, ColorRGBA::red);
+            }
         }
+
+        massCenter /= cv::countNonZero(result_mask);
+
+        CIRCLE("module:BanknotePositionProvider:mass_center",massCenter.x(), massCenter.y(), 20, 3, Drawings::ps_solid, ColorRGBA::blue, Drawings::ps_solid, ColorRGBA::blue);
+
+        Vector2f median = Geometry::geometricMedian(inliers);
+
+        CIRCLE("module:BanknotePositionProvider:median", median.x(), median.y(), 20, 3, Drawings::ps_solid,ColorRGBA::red, Drawings::ps_solid, ColorRGBA::red);
+
+        massCenter = median;
 
         return result;
     }
@@ -229,14 +274,14 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
     return Classification::NONE;
 }
 
-bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vector2f>& corners, Pose2D& pose)
+bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vector2f>& corners, Pose2D& pose, int banknote)
 {
     if(theInstance)
     {
         Eigen::Map<Eigen::Matrix<double,3,3,Eigen::RowMajor>> h(homography.ptr<double>());
         corners.clear();
 
-        for(const auto& corner : theInstance->modelsCorners)
+        for(const auto& corner : theInstance->modelsCorners[banknote])
         {
             Vector3d projectedCorner = h * corner;
             projectedCorner /= projectedCorner.z();
@@ -248,6 +293,12 @@ bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vect
 
         Vector2f center = corners.back();
         corners.pop_back();
+
+        for(int i = 0; i < corners.size() - 1; i++)
+        {
+            LINE("module:BanknotePositionProvider:analized_area", corners[i].x(), corners[i].y() , corners[i + 1].x(), corners[i + 1].y(), 3, Drawings::dot, ColorRGBA::white);
+        }
+        LINE("module:BanknotePositionProvider:analized_area", corners.front().x(), corners.front().y() , corners.back().x(), corners.back().y(), 3, Drawings::dot, ColorRGBA::white);
 
         pose = Pose2D((direction - center).angle(),center);
 
@@ -294,7 +345,9 @@ bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vect
 void BanknotePositionProvider::resizeImage(cv::Mat& image)
 {
     //resize
-    cv::resize(image, image, cv::Size(trainBanknoteWidth, trainBanknoteHeight), 0, 0, cv::INTER_AREA);
+    float scale = trainBanknoteHeight/(float)image.rows;
+    cv::resize(image,image,cv::Size(), scale, scale, cv::INTER_AREA);
+    //cv::resize(image, image, cv::Size(trainBanknoteWidth, trainBanknoteHeight), 0, 0, cv::INTER_AREA);
 
     //Equalize histogram
     clahe->apply(image,image);

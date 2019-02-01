@@ -16,7 +16,7 @@ ArucoPoseEstimator::ArucoPoseEstimator() : mMarkerSize(0.115f)
     //arucoDictionary = cv::aruco::generateCustomDictionary(1,10);
     arucoDictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50);
 
-    charucoBoard = cv::aruco::CharucoBoard::create(8, 6, 0.035, 0.0232, arucoDictionary);
+    charucoBoard = cv::aruco::CharucoBoard::create(8, 6, 0.0355, 0.0232, arucoDictionary);
 
 
     cv::Mat charucoImage;

@@ -41,6 +41,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/CameraPoseFilter.h
   src/Modules/CameraPoseProvider.cpp
   src/Modules/CameraPoseProvider.h
+  src/Modules/CustomCommunication.cpp
+  src/Modules/CustomCommunication.h
   src/Modules/Equalizer.cpp
   src/Modules/Equalizer.h
   src/Modules/FeaturesProvider.cpp
@@ -69,6 +71,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Platform/Memory.h
   src/Processes/BanknoteClassifier.cpp
   src/Processes/BanknoteClassifier.h
+  src/Processes/GripperCommunication.cpp
+  src/Processes/GripperCommunication.h
   src/Representations/Blobs.cpp
   src/Representations/Blobs.h
   src/Representations/BanknotePosition.cpp
@@ -170,7 +174,7 @@ set( FIELD_CALIBRATOR
 
 set( CALIBRATOR_SRC_DIR Utils/CalibratorTool)
 
-QT4_WRAP_CPP(CALIBRATION_TOOL_MOCSrcs ${CALIBRATOR_SRC_DIR}/ListViewsDockWidget.h ${CALIBRATOR_SRC_DIR}/MainWindow.h ${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.h ${CALIBRATOR_SRC_DIR}/Views/ImageView.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.h)
+QT4_WRAP_CPP(CALIBRATION_TOOL_MOCSrcs ${CALIBRATOR_SRC_DIR}/ListViewsDockWidget.h ${CALIBRATOR_SRC_DIR}/MainWindow.h ${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.h ${CALIBRATOR_SRC_DIR}/Views/ImageView.h ${CALIBRATOR_SRC_DIR}/Views/StatusView.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.h)
 
 QT4_ADD_RESOURCES(CALIBRATION_TOOL_RESOURCES_RCC ${CALIBRATOR_SRC_DIR}/CalibratorTool.qrc)
 
@@ -196,6 +200,8 @@ set( CALIBRATOR_TOOL_SRC
   ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.h
   ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.cpp
   ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.h
+  ${CALIBRATOR_SRC_DIR}/Views/StatusView.cpp
+  ${CALIBRATOR_SRC_DIR}/Views/StatusView.h
   ${CALIBRATOR_SRC_DIR}/Visualization/DebugDrawing.cpp
   ${CALIBRATOR_SRC_DIR}/Visualization/DebugDrawing.h
   ${CALIBRATOR_SRC_DIR}/Visualization/PaintMethods.cpp
@@ -354,6 +360,10 @@ generate_export_header(banknoteClassifier BASE_NAME banknoteClassifier EXPORT_MA
 generate_export_header(banknoteClassifier BASE_NAME Process EXPORT_MACRO_NAME PROCESS_EXPORT EXPORT_FILE_NAME Process_EXPORTS.h STATIC_DEFINE PROCESS_EXPORTS_BUILT_AS_STATIC)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(bc banknoteClassifier)
+
+
+add_executable(gripperComm src/Processes/mainGripperComm.cpp)
+target_link_libraries(gripperComm banknoteClassifier)
 
 include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/CalibratorTool  ${CMAKE_CURRENT_BINARY_DIR})
 

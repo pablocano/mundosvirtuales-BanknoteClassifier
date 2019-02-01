@@ -55,3 +55,36 @@ void Geometry::calculateRect(const std::vector<Vector2f> &points, Vector2i &left
         rightLower.y() = vertex.y() > rightLower.y() ? vertex.y() : rightLower.y();
     }
 }
+
+Vector2f Geometry::geometricMedian(const std::vector<Vector2f> &points)
+{
+    // Initialize point to return
+    Vector2f medianPoint;
+
+    // Initialize minimum distance with the maximum float
+    float minDistance = std::numeric_limits<float>::max();
+
+    // Calculate the distance of each point with every other point
+    for(auto& point : points)
+    {
+        // Initialize the accumulator
+        float currentDistance = 0.f;
+
+        // Iterate for every point
+        for(auto secondPoint : points)
+        {
+            // Add the distance
+            currentDistance += (point - secondPoint).lpNorm<2>();
+        }
+
+        // If the new distance is smaller, replace the minimum
+        if(currentDistance < minDistance)
+        {
+            minDistance = currentDistance;
+            medianPoint = point;
+        }
+    }
+
+    // Return the median point
+    return medianPoint;
+}

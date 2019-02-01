@@ -1,0 +1,21 @@
+[ "com.mv.serverethernetip.server.ServerTCP", {
+  "listDevices" : [ "com.mv.serverethernetip.devices.ListDevices", {
+    "name" : "List devices celda",
+    "devices" : [ "java.util.concurrent.ConcurrentLinkedQueue", [ [ "com.mv.serverethernetip.devices.fanuc.DeviceRobotFanuc", {
+      "name" : "Robot Fanuc M3iA6s",
+      "ip" : "192.168.1.72",
+      "id" : 72,
+      "delayTryReconnection" : 500,
+      "minDelay" : 3000,
+      "delayWatchDog" : 3000,
+      "limitErrorPerConnection" : 5,
+      "cip_unconnected" : false,
+      "connectionsSize" : 440,
+      "timeoutEIP" : 3000,
+      "timeoutReadFanuc" : 1000
+    } ] ] ]
+  } ],
+  "timeoutSocket" : 3000,
+  "name" : "Server Ethernet/IP",
+  "portServer" : 5789
+} ]

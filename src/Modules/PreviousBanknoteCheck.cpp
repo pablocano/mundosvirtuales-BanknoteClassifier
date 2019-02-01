@@ -9,7 +9,7 @@ PreviousBanknoteCheck::PreviousBanknoteCheck()
 #ifndef BC_WITH_CUDA
     surf_ = cv::xfeatures2d::SURF::create(500,4,3,true,false);
 #else
-    surf_ = cv::cuda::SURF_CUDA(500);
+    surf_ = cv::cuda::SURF_CUDA(500,4,4,true);
 #endif
 
     error = 0;
@@ -24,8 +24,14 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
 
     if (theRegState.getbanknote)
     {
-        OUTPUT_TEXT("start prev pos");
+        //OUTPUT_TEXT("start prev pos");
         previousBanknotePosition.banknote = Classification::NONE;
+
+        if(theBanknotePositionFiltered.valid && !theWorldCoordinatesPose.valid)
+        {
+            newSearch = 1;
+            return;
+        }
 
         if(theBanknotePosition.banknote != Classification::NONE && !newSearch)
         {
@@ -50,27 +56,29 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
 #else
             cv::cuda::GpuMat grayScaleImageGpu(theGrayScaleImageEq);
             cv::cuda::GpuMat maskGpu(mask);
-            surf_(grayScaleImageGpu,maskGpu,features.keypointsGpu,features.descriptors);
-            surf_.downloadKeypoints(features.keypointsGpu,features.keypoints);
+            surf_(grayScaleImageGpu,maskGpu,features.keypointsGpu[0],features.descriptors[0]);
+            surf_.downloadKeypoints(features.keypointsGpu[0],features.keypoints[0]);
 #endif
 
             cv::Mat H;
+            Vector2f massCenter;
 
-            int banknote = BanknotePositionProvider::compare(features, H, theBanknotePosition.banknote, theBanknotePosition.banknote);
+            int banknote = BanknotePositionProvider::compare(features, H, theBanknotePosition.banknote, theBanknotePosition.banknote, massCenter);
 
             if (!H.empty() && banknote == theBanknotePosition.banknote){
                 Pose2D pose;
                 std::vector<Vector2f> scene_corners;
-                OUTPUT_TEXT("previous banknote test");
-                OUTPUT_TEXT((Classification::Banknote)banknote);
-                if(BanknotePositionProvider::analyzeArea(H, scene_corners, pose))
+                if(BanknotePositionProvider::analyzeArea(H, scene_corners, pose, banknote))
                 {
+                    OUTPUT_TEXT("Previous banknote found");
+                    OUTPUT_TEXT(Classification::getName((Classification::Banknote)banknote));
                     error = 0;
                     previousBanknotePosition.banknote = (Classification::Banknote)banknote;
                     previousBanknotePosition.homography = H;
                     scene_corners.push_back(scene_corners.front());
                     previousBanknotePosition.corners = scene_corners;
                     previousBanknotePosition.position = pose;
+                    previousBanknotePosition.grabPos = massCenter;
                 }
                 else{
                     error = 1;
@@ -83,7 +91,6 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
     }
     else
     {
-        //OUTPUT_TEXT("no prev pos");
         newSearch = 1;
         previousBanknotePosition.banknote = Classification::STOP;
     }

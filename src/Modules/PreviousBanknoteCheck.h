@@ -8,6 +8,7 @@
 #include <opencv2/xfeatures2d.hpp>
 #include "Representations/RobotFanuc.h"
 #include "Representations/RegState.h"
+#include "Representations/Modeling/WorldCoordinatesPose.h"
 
 #ifdef BC_WITH_CUDA
 #include "opencv2/core/cuda.hpp"
@@ -22,6 +23,8 @@ MODULE(PreviousBanknoteCheck,
     REQUIRES(RegState),
     USES(ErrorInfo),
     USES(BanknotePosition),
+    USES(BanknotePositionFiltered),
+    USES(WorldCoordinatesPose),
     PROVIDES(PreviousBanknotePosition),
 });
 
