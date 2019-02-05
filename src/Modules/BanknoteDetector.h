@@ -40,14 +40,12 @@ public:
 
     void update(BanknoteDetections& detections);
 
-
-
 protected:
 
     void resizeImage(cv::Mat& image);
     cv::Mat getTransformAsMat(const cv::KeyPoint& src, const cv::KeyPoint& dst);
     inline void getTransform(const cv::KeyPoint& src, const cv::KeyPoint& dst, float& tx, float& ty, float& angleDegrees, float& e);
-    void hough4d(std::vector<cv::DMatch>& matches, std::vector<cv::KeyPoint>& imageKeypoints, std::vector<cv::KeyPoint>& modelKeypoints, std::vector<cv::DMatch>& accepted);
+    void hough4d(std::vector<cv::DMatch>& matches, std::vector<cv::KeyPoint>& imageKeypoints, std::vector<cv::KeyPoint>& modelKeypoints, const cv::Mat& mask, std::vector<cv::DMatch>& accepted);
 
     cv::Ptr<cv::cuda::DescriptorMatcher> matcher;
     cv::cuda::SURF_CUDA surf;
@@ -68,7 +66,11 @@ protected:
     std::vector<std::vector<cv::DMatch>> houghFilteredMatches;
 
     /** Hardcoded parameters */
-    int trainBanknoteHeight;
+
+
+    /** Module Parameters */
+    bool resizeModels;
+    int trainBanknoteHeight; /* hardcoded parameter in order to resize*/
 
     /** Model Buffers */
     std::vector<cv::cuda::GpuMat> modelGpuImages;

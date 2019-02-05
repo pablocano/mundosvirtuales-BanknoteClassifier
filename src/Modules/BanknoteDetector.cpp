@@ -16,7 +16,8 @@
 MAKE_MODULE(BanknoteDetector, BanknoteClassifier)
 
 BanknoteDetector::BanknoteDetector():
-    trainBanknoteHeight(200)
+    trainBanknoteHeight(200),
+    resizeModels(false)
 {
     OUTPUT_TEXT("wololo init");
 
@@ -28,6 +29,7 @@ BanknoteDetector::BanknoteDetector():
     modelImages.resize(Classification::numOfBanknotes - 2);
     modelGpuImages.resize(Classification::numOfBanknotes - 2);
     modelFeatures.resize(Classification::numOfBanknotes - 2);
+    modelMasks.resize(Classification::numOfBanknotes - 2);
     imageKeypoints.resize(10000);
 
     matches.resize(Classification::numOfBanknotes - 2);
@@ -44,8 +46,14 @@ BanknoteDetector::BanknoteDetector():
     for(unsigned i = 0; i < Classification::numOfBanknotes - 2; i++)
     {
         // Read the image and resize it
-        cv::Mat image = cv::imread(std::string(File::getGTDir()) + "/Data/img_scan/" + Classification::getName((Classification::Banknote)i) + ".jpg", cv::IMREAD_GRAYSCALE);
-        resizeImage(image);
+        cv::Mat image = cv::imread(std::string(File::getGTDir()) + "/Data/img_real/" + Classification::getName((Classification::Banknote)i) + ".jpg", cv::IMREAD_GRAYSCALE);
+        cv::Mat maskGrayscale = cv::imread(std::string(File::getGTDir()) + "/Data/img_real/" + Classification::getName((Classification::Banknote)i) + "_mask.jpg", cv::IMREAD_GRAYSCALE);
+
+        cv::Mat binaryMask(maskGrayscale.size(), CV_8U);
+        cv::threshold(maskGrayscale, binaryMask, 127, 255, cv::THRESH_BINARY);
+
+        if(resizeModels)
+            resizeImage(image);
 
         // Calculate the features of the image
         Features f;
@@ -58,12 +66,13 @@ BanknoteDetector::BanknoteDetector():
         modelFeatures[i] = f;
         modelGpuImages[i] = imageGpu;
         modelImages[i] = image;
+        modelMasks[i] = binaryMask;
 
         std::vector<Eigen::Vector3f> aux_corners;
         aux_corners.push_back(Eigen::Vector3f(0,0,1));
         aux_corners.push_back(Eigen::Vector3f(image.cols,0,1));
-        aux_corners.push_back(Eigen::Vector3f(image.cols,trainBanknoteHeight,1));
-        aux_corners.push_back(Eigen::Vector3f(0,trainBanknoteHeight,1));
+        aux_corners.push_back(Eigen::Vector3f(image.cols, image.rows,1));
+        aux_corners.push_back(Eigen::Vector3f(0, image.rows,1));
         //aux_corners.push_back(Eigen::Vector3f(image.cols/2,trainBanknoteHeight/2.0,1));
         //aux_corners.push_back(Eigen::Vector3f(image.cols,trainBanknoteHeight/2.0,1));
 
@@ -210,7 +219,7 @@ void BanknoteDetector::update(BanknoteDetections& detections)
     for(unsigned c = 0; c < Classification::numOfBanknotes - 2; c++)
     {
         houghFilteredMatches[c].clear();
-        hough4d(filteredMatches[c], imageKeypoints, modelFeatures[c].keypoints[0], houghFilteredMatches[c]);
+        hough4d(filteredMatches[c], imageKeypoints, modelFeatures[c].keypoints[0], modelMasks[c], houghFilteredMatches[c]);
         numberOfMatches += houghFilteredMatches[c].size();
     }
 
@@ -314,6 +323,7 @@ void BanknoteDetector::hough4d(
   std::vector<cv::DMatch>& matches,
   std::vector<cv::KeyPoint>& imageKeypoints,
   std::vector<cv::KeyPoint>& modelKeypoints,
+  const cv::Mat& mask,
   std::vector<cv::DMatch>& accepted)
 {
   int hsize[] = {1000, 1000, 1000, 1000};
@@ -323,7 +333,7 @@ void BanknoteDetector::hough4d(
   // Hough Parameters
   double dxBin   = 30; // 60 pixels
   double dangBin = 30; // 30 degrees
-  int votesTresh = 5;
+  int votesTresh = 10;
 
   for (int index = 0; index < matches.size(); index++)
   {
@@ -335,6 +345,12 @@ void BanknoteDetector::hough4d(
     getTransform(modelKeypoint, imageKeypoint, tx, ty, theta, e);
 
     if(e < 0.5 || e > 2.0)
+        continue;
+
+    int ptx = (int) modelKeypoint.pt.x;
+    int pty = (int) modelKeypoint.pt.y;
+
+    if(mask.at<unsigned char>(pty,ptx) == 0)
         continue;
 
     int i = floor(tx / dxBin + 0.5);
