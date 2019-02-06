@@ -79,6 +79,14 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(20000),max
     }
 }
 
+BanknotePositionProvider::~BanknotePositionProvider()
+{
+#ifdef BC_WITH_CUDA
+    matcher.release();
+    clahe.release();
+#endif
+}
+
 void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
 {
     DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:ransac_result","drawingOnImage");
@@ -191,13 +199,13 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
 #ifndef BC_WITH_CUDA
                 theInstance->matcher.knnMatch(theInstance->modelsFeatures[i].descriptors, features.descriptors, aux_matches, 2);
 #else
-                theInstance->matcher->knnMatch(theInstance->modelsFeatures[i].descriptors[0], features.descriptors[images], aux_matches, 2);
+                theInstance->matcher->knnMatch(features.descriptors[images], theInstance->modelsFeatures[i].descriptors[0], aux_matches, 2);
 #endif
 
                 good_matches.clear();
                 for(auto& match : aux_matches)
                 {
-                    if(match[0].distance < 0.8f * match[1].distance)
+                    if(match[0].distance < 0.6f * match[1].distance)
                     {
                         good_matches.push_back(match[0]);
                     }
@@ -215,8 +223,8 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
                     for( int j = 0; j < good_matches.size(); j++ )
                     {
                       // Get the keypoints from the matches
-                      obj.push_back(theInstance->modelsFeatures[i].keypoints[0][good_matches[j].queryIdx].pt);
-                      scene.push_back(features.keypoints[images][ good_matches[j].trainIdx].pt);
+                      obj.push_back(theInstance->modelsFeatures[i].keypoints[0][good_matches[j].trainIdx].pt);
+                      scene.push_back(features.keypoints[images][ good_matches[j].queryIdx].pt);
                     }
 
                     // Get the homography

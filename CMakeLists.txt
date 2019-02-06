@@ -29,6 +29,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/BlobProvider.h
   src/Modules/BlobFilter.cpp
   src/Modules/BlobFilter.h
+  src/Modules/BanknoteDetector.cpp
+  src/Modules/BanknoteDetector.h
   src/Modules/BanknoteClassifierConfiguration.cpp
   src/Modules/BanknoteClassifierConfiguration.h
   src/Modules/BanknotePositionProvider.cpp
@@ -43,6 +45,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/CameraPoseProvider.h
   src/Modules/CustomCommunication.cpp
   src/Modules/CustomCommunication.h
+  src/Modules/DummyImages.cpp
+  src/Modules/DummyImages.h
   src/Modules/Equalizer.cpp
   src/Modules/Equalizer.h
   src/Modules/FeaturesProvider.cpp
@@ -75,6 +79,7 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Processes/GripperCommunication.h
   src/Representations/Blobs.cpp
   src/Representations/Blobs.h
+  src/Representations/BanknoteDetections.h
   src/Representations/BanknotePosition.cpp
   src/Representations/BanknotePosition.h
   src/Representations/CameraInfo.cpp

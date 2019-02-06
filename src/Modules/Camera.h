@@ -92,5 +92,7 @@ public:
 
     CameraInfo info;
 
+    bool cameraLoaded;
+
     static CameraInfo& getCameraInfo();
 };

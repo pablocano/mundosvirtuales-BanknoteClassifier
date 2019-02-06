@@ -46,6 +46,11 @@ public:
     BanknotePositionProvider();
 
     /**
+     * @brief Default destructor
+     */
+    ~BanknotePositionProvider();
+
+    /**
      * @brief update
      * @param banknotePosition
      */

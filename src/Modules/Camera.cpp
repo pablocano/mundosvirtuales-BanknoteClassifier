@@ -15,10 +15,15 @@ MAKE_MODULE(Camera, BaslerCamera)
 
 Camera* Camera::theInstance = 0;
 
-Camera::Camera()
+Camera::Camera() : cameraLoaded(false)
 {
 
     theInstance = this;
+
+    cv::FileStorage cameraCalibrationFile(std::string(File::getGTDir()) + "/Config/cameracalibration.xml", cv::FileStorage::READ);
+
+    cameraCalibrationFile["camera_matrix"] >> info.K;
+    cameraCalibrationFile["distortion_coefficients"] >> info.d;
 
     //Needed for the basler camera to work
     Pylon::PylonInitialize();
@@ -59,16 +64,14 @@ Camera::Camera()
 
         // Start the adquisition of images
         camera->StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
+
+        cameraLoaded = true;
     }
     catch (GenICam::GenericException &e)
     {
+        cameraLoaded = false;
         std::cerr << "An exception occurred." << std::endl << e.GetDescription() << std::endl;
     }
-
-	cv::FileStorage cameraCalibrationFile(std::string(File::getGTDir()) + "/Config/cameracalibration.xml", cv::FileStorage::READ);
-
-	cameraCalibrationFile["camera_matrix"] >> info.K;
-	cameraCalibrationFile["distortion_coefficients"] >> info.d;
 }
 Camera::~Camera()
 {
@@ -82,11 +85,14 @@ Camera::~Camera()
 
 void Camera::update(CameraInfo& cameraInfo)
 {
-  cameraInfo = info;
+    cameraInfo = info;
 }
 
 void Camera::update(Image& image)
 {
+    if(!cameraLoaded)
+        return;
+
     Pylon::CGrabResultPtr ptrGrabResult;
     while(!camera->IsGrabbing())
         cv::waitKey(1);

@@ -7,6 +7,8 @@
 #include "ModuleManager.h"
 #include <algorithm>
 #include <iostream>
+#include <opencv2/opencv.hpp>
+#include "Tools/File.h"
 
 ModuleManager::Configuration::RepresentationProvider::RepresentationProvider(const std::string& representation,
                                                                              const std::string& provider)
@@ -58,11 +60,11 @@ const ModuleBase::Info* ModuleManager::find(const ModuleBase* module, const std:
   return 0;
 }
 
-bool ModuleManager::sortProviders()
+bool ModuleManager::sortProviders(std::list<std::string> providedByDefault)
 {
   // The representations already provided. These are all that are received from the other process
   // and the ones that are provided by default.
-  std::list<std::string> provided;
+  std::list<std::string> provided = providedByDefault;
 
   int remaining = (int) providers.size(), // The number of entries not correct sequence so far.
       pushBackCount = remaining; // The number of push_backs still allowed. If zero, no valid sequence is possible.
@@ -137,20 +139,32 @@ void ModuleManager::load()
     m.requiredBackup = m.required;
     m.required = false;
   }
-  
-  for(auto& m : modules)
+
+  config.load("modules.cfg");
+
+
+  std::list<std::string> providedByDefault;
+
+  for(const auto& rp : config.representationProviders)
   {
-    for(const ModuleBase::Info* i = m.module->info; i->representation; ++i)
-    {
-      if(i->update)
-      {
-        providers.push_back(Provider(i->representation, &m, i->update));
-      }
-    }
-    m.required = true;
+      if(rp.provider == "default")
+          providedByDefault.push_back(rp.representation);
+      else
+          for(auto& m : modules)
+              if(rp.provider == m.module->name)
+              {
+                  for(const ModuleBase::Info* i = m.module->info; i->representation; ++i)
+                      if(i->update && rp.representation == i->representation)
+                      {
+                          providers.push_back(Provider(i->representation, &m, i->update));
+                          break;
+                      }
+                  m.required = true;
+                  break;
+              }
   }
   
-  if(!sortProviders())
+  if(!sortProviders(providedByDefault))
   {
     return;
   }
@@ -176,4 +190,41 @@ void ModuleManager::execute()
         p.update(*p.moduleState->instance);
 
     }
+}
+
+void ModuleManager::Configuration::save(std::string filename)
+{
+    cv::FileStorage fs(std::string(File::getGTDir()) + "/Config/" + filename, cv::FileStorage::WRITE);
+
+    fs << "representationProviders" << "[";
+
+    for(const auto& rp: representationProviders)
+    {
+        fs << "{:" << "representation" << rp.representation << "provider" << rp.provider << "}";
+    }
+
+    fs << "]";
+    fs.release();
+}
+
+bool ModuleManager::Configuration::load(std::string filename)
+{
+    std::string asdf = std::string(File::getGTDir()) + "/Config/" + filename;
+    cv::FileStorage fs(asdf, cv::FileStorage::READ);
+
+
+    cv::FileNode rpProv = fs["representationProviders"];
+    cv::FileNodeIterator it = rpProv.begin(), it_end = rpProv.end();
+
+    representationProviders.clear();
+
+    for(; it != it_end; ++it)
+    {
+        representationProviders.push_back(RepresentationProvider((std::string)(*it)["representation"],(std::string)(*it)["provider"]));
+    }
+
+    fs.release();
+
+    return true;
+
 }
