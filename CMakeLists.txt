@@ -142,6 +142,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/Math/Kalman.h
   src/Tools/Math/Kalman.cpp
   src/Tools/Math/Pose2D.h
+  src/Tools/Math/Random.h
+  src/Tools/Math/Random.cpp
   src/Tools/Math/Range.h
   src/Tools/Math/Transformation.cpp
   src/Tools/Math/Transformation.h

@@ -48,12 +48,15 @@ class Hypothesys
 {
 public:
 
+    Hypothesys();
+
     std::vector<cv::DMatch> matches;
     Eigen::Matrix3f transform; /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
     Eigen::Matrix3f pose;
     Eigen::Matrix3f graspPose;
-    float houghVotes;
-
+    int ransacVotes;
+    bool validTransform;
+    bool validPolygon;
 };
 
 class ClassDetections
@@ -79,12 +82,23 @@ public:
 
 protected:
 
-    void resizeImage(cv::Mat& image);
-    cv::Mat getTransformAsMat(const cv::KeyPoint& src, const cv::KeyPoint& dst);
-    inline void getTransform(const cv::KeyPoint& src, const cv::KeyPoint& dst, float& tx, float& ty, float& angleDegrees, float& e);
+    /* Main Filters */
     void hough4d(const Model& model, ClassDetections& detections);
+    void ransac(const Model& model, ClassDetections& detections);
+    void estimateTransforms(const Model& model, ClassDetections& detections);
+
+    /* Math Related */
+    void resizeImage(cv::Mat& image);
+
+    Eigen::Matrix3f getTransformAsMatrix(const cv::KeyPoint& src, const cv::KeyPoint& dst);
+    inline void getTransform(const cv::KeyPoint& src, const cv::KeyPoint& dst, float& tx, float& ty, float& angleDegrees, float& e);
+
+    int getRansacConsensus(const Eigen::Matrix3f& transform, const std::vector<cv::DMatch>& matches, const std::vector<cv::KeyPoint>& trainKeypoints, const std::vector<cv::KeyPoint>& queryKeypoints, float maxError);
+    void getRansacInliers(const Eigen::Matrix3f& transform, const std::vector<cv::DMatch>& matches, std::vector<cv::DMatch>& acceptedMatchesfloat, const std::vector<cv::KeyPoint>& trainKeypoints, const std::vector<cv::KeyPoint>& queryKeypoints, float maxError, Eigen::VectorXi& acceptedStatus);
 
     void drawAcceptedHough();
+    void drawAcceptedRansac();
+    void drawAcceptedHypotheses();
 
     cv::Ptr<cv::cuda::DescriptorMatcher> matcher;
     cv::cuda::SURF_CUDA surf;
