@@ -139,6 +139,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/Math/Line.h
   src/Tools/Math/Geometry.cpp
   src/Tools/Math/Geometry.h
+  src/Tools/Math/iou.cpp
+  src/Tools/Math/iou.h
   src/Tools/Math/Kalman.h
   src/Tools/Math/Kalman.cpp
   src/Tools/Math/Pose2D.h

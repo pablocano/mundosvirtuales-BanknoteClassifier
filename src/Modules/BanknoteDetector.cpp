@@ -9,8 +9,6 @@
 
 #include "BanknoteDetector.h"
 
-#include "Tools/Math/Random.h"
-
 #include <opencv2/calib3d.hpp>
 #include <opencv2/video/tracking.hpp>
 #include <chrono>
@@ -31,8 +29,14 @@ Hypothesys::Hypothesys() :
     graspPose(Eigen::Matrix3f::Identity()),
     ransacVotes(0),
     validTransform(true),
-    validPolygon(true)
+    validPolygon(true),
+    validNms(true)
 {
+}
+
+bool Hypothesys::isValid() const
+{
+    return validNms && validPolygon && validTransform;
 }
 
 BanknoteDetector::BanknoteDetector():
@@ -76,6 +80,13 @@ BanknoteDetector::BanknoteDetector():
         model.mask = binaryMask;
 
         model.corners.clear();
+
+        /* Mayne this needs to be clockwise, so do not mess up with this */
+        //model.corners.push_back(Eigen::Vector3f(0, image.rows,1));
+        //model.corners.push_back(Eigen::Vector3f(image.cols, image.rows,1));
+        //model.corners.push_back(Eigen::Vector3f(image.cols,0,1));
+        //model.corners.push_back(Eigen::Vector3f(0,0,1));
+
         model.corners.push_back(Eigen::Vector3f(0,0,1));
         model.corners.push_back(Eigen::Vector3f(image.cols,0,1));
         model.corners.push_back(Eigen::Vector3f(image.cols, image.rows,1));
@@ -197,9 +208,22 @@ void BanknoteDetector::update(BanknoteDetections& detections)
     end = std::chrono::system_clock::now();
     std::cout << "Estimate transform time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypothesis << ")" << std::endl;
 
-    //drawAcceptedHough();
-    //drawAcceptedRansac();
-    //drawAcceptedHypotheses();
+    start = end;
+
+    for(unsigned c = 0; c < Classification::numOfBanknotes - 2; c++)
+    {
+        Model& model = models[c];
+        ClassDetections& detections = classDetections[c];
+
+        nonMaximumSupression(model, detections);
+    }
+
+    end = std::chrono::system_clock::now();
+    std::cout << "NMS time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypothesis << ")" << std::endl;
+
+    drawAcceptedHough();
+    drawAcceptedRansac();
+    drawAcceptedHypotheses();
 }
 
 
@@ -261,7 +285,7 @@ void BanknoteDetector::hough4d(const Model& model, ClassDetections& detections)
     // Hough Parameters
     double dxBin   = 30; // 60 pixels
     double dangBin = 30; // 30 degrees
-    int votesTresh = 7;
+    int votesTresh = 9;
 
     int hsize[] = {1000, 1000, 1000, 1000};
     cv::SparseMat sm(4, hsize, CV_32F);
@@ -522,6 +546,75 @@ void BanknoteDetector::estimateTransforms(const Model& model, ClassDetections& d
     }
 }
 
+void BanknoteDetector::nonMaximumSupression(const Model& model, ClassDetections& detections)
+{
+    const std::vector<Eigen::Vector3f>& corners = model.corners;
+    std::vector<Eigen::Vector3f> corners2 = model.corners;
+
+    IOU::Point p1[4];
+    IOU::Point p2[4];
+
+    for(int index1 = 0; index1 < detections.hypotheses.size(); index1++)
+    {
+        Hypothesys& h1 = detections.hypotheses[index1];
+
+        if(!h1.validNms)
+            continue;
+
+        assert(corners.size() == 4);
+
+        for(int i = 0; i < corners2.size(); i++)
+        {
+            corners2[i] = h1.transform * corners[i];
+            p1[i].x = corners2[i].x();
+            p1[i].y = corners2[i].y();
+        }
+
+        std::sort(std::begin(p1), std::end(p1), compareAngle);
+
+        IOU::Quad q1(p1);
+
+        for(int index2 = 0; index2 < detections.hypotheses.size(); index2++)
+        {
+            if(index2 == index1)
+                continue;
+
+            Hypothesys& h2 = detections.hypotheses[index2];
+
+            if(!h2.validNms)
+                continue;
+
+            for(int i = 0; i < corners2.size(); i++)
+            {
+                corners2[i] = h2.transform * corners[i];
+                p2[i].x = corners2[i].x();
+                p2[i].y = corners2[i].y();
+            }
+
+            std::sort(std::begin(p2), std::end(p2), compareAngle);
+
+            IOU::Quad q2(p2);
+
+            float iou = IOU::iou(q1, q2);
+
+            if(iou > 0.8f) /* Great overlap is probably just duplicated detections*/
+            {
+                if(h1.ransacVotes >= h2.ransacVotes)
+                {
+                    h2.validNms = false;
+                    continue;
+                }
+                else
+                {
+                    h1.validNms = false;
+                    break;
+                }
+            }
+        }
+
+    }
+}
+
 void BanknoteDetector::drawAcceptedHough()
 {
     /** Hough Filtered Drawings - Optional */
@@ -630,7 +723,7 @@ void BanknoteDetector::drawAcceptedHypotheses()
             ColorRGBA color2 = h.validTransform ? color : ColorRGBA::white;
             std::vector<Eigen::Vector3f> corners2 = corners;
 
-            if(!h.validTransform)
+            if(!h.isValid())
                 continue;
 
             for(int i = 0; i < corners2.size(); i++)

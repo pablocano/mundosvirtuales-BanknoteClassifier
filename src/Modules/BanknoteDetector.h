@@ -17,6 +17,8 @@
 #include "Representations/FrameInfo.h"
 #include "Tools/Debugging/DebugDrawings.h"
 #include "Tools/Debugging/Debugging.h"
+#include "Tools/Math/iou.h"
+#include "Tools/Math/Random.h"
 
 #include "opencv2/core/cuda.hpp"
 #include "opencv2/cudaarithm.hpp"
@@ -34,6 +36,8 @@ MODULE(BanknoteDetector,
     PROVIDES(BanknoteDetections),
 });
 
+bool compareAngle(IOU::Point p1, IOU::Point p2) { return (std::atan2(p1.y, p1.x) < std::atan2(p2.y, p2.x)); }
+
 class Model
 {
 public:
@@ -49,6 +53,7 @@ class Hypothesys
 public:
 
     Hypothesys();
+    bool isValid() const;
 
     std::vector<cv::DMatch> matches;
     Eigen::Matrix3f transform; /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
@@ -56,6 +61,7 @@ public:
     Eigen::Matrix3f graspPose;
     int ransacVotes;
     bool validTransform;
+    bool validNms;
     bool validPolygon;
 };
 
@@ -86,6 +92,7 @@ protected:
     void hough4d(const Model& model, ClassDetections& detections);
     void ransac(const Model& model, ClassDetections& detections);
     void estimateTransforms(const Model& model, ClassDetections& detections);
+    void nonMaximumSupression(const Model& model, ClassDetections& detections);
 
     /* Math Related */
     void resizeImage(cv::Mat& image);
