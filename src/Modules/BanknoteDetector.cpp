@@ -25,8 +25,8 @@ ClassDetections::ClassDetections()
 
 Hypothesys::Hypothesys() :
     transform(Eigen::Matrix3f::Identity()),
-    pose(Eigen::Matrix3f::Identity()),
-    graspPose(Eigen::Matrix3f::Identity()),
+    pose(),
+    graspPoint(Eigen::Vector3f::Identity()),
     ransacVotes(0),
     validTransform(true),
     validPolygon(true),
@@ -79,18 +79,12 @@ BanknoteDetector::BanknoteDetector():
         model.image = image;
         model.mask = binaryMask;
 
-        model.corners.clear();
-
-        /* Mayne this needs to be clockwise, so do not mess up with this */
-        //model.corners.push_back(Eigen::Vector3f(0, image.rows,1));
-        //model.corners.push_back(Eigen::Vector3f(image.cols, image.rows,1));
-        //model.corners.push_back(Eigen::Vector3f(image.cols,0,1));
-        //model.corners.push_back(Eigen::Vector3f(0,0,1));
-
-        model.corners.push_back(Eigen::Vector3f(0,0,1));
-        model.corners.push_back(Eigen::Vector3f(image.cols,0,1));
-        model.corners.push_back(Eigen::Vector3f(image.cols, image.rows,1));
-        model.corners.push_back(Eigen::Vector3f(0, image.rows,1));
+        model.corners[CornerID::TopLeft] = Eigen::Vector3f(0, 0, 1);
+        model.corners[CornerID::TopRight] = Eigen::Vector3f(image.cols, 0, 1);
+        model.corners[CornerID::BottomRight] = Eigen::Vector3f(image.cols, image.rows, 1);
+        model.corners[CornerID::BottomLeft] = Eigen::Vector3f(0, image.rows, 1);
+        model.corners[CornerID::MiddleMiddle] = Eigen::Vector3f(0.5f*image.cols, 0.5f*image.rows, 1);
+        model.corners[CornerID::MiddleRight] = Eigen::Vector3f(image.cols, 0.5f*image.rows, 1);
     }
 
     debugColors[Classification::UNO_C] = ColorRGBA::green;
@@ -510,6 +504,9 @@ void BanknoteDetector::estimateTransforms(const Model& model, ClassDetections& d
             cv::Point2f pt2 = imageKeypoints[match.queryIdx].pt;
             cv::Point2f pt1 = model.features.keypoints[0][match.trainIdx].pt;
 
+            queryPoints.push_back(pt2);
+            trainPoints.push_back(pt1);
+
             X(2*i + 0, 0) = pt1.x;
             X(2*i + 0, 1) = pt1.y;
 
@@ -543,13 +540,30 @@ void BanknoteDetector::estimateTransforms(const Model& model, ClassDetections& d
 
         /* We assume a target scale of 1. If it is not so, we could look between the scales to see if  they are coherent */
         h.validTransform = minCoeff > 0.8f && maxCoeff < 1.2f;
+
+        /*cv::Mat asd = cv::estimateAffinePartial2D(trainPoints, queryPoints, cv::noArray(),
+                                          cv::RANSAC, 3, 2000, 0.99, 10);
+
+        if(!asd.empty())
+        {
+            h.validTransform = true;
+
+            h.transform.setZero();
+            h.transform(0, 0) = (float) asd.at<double>(0, 0);
+            h.transform(0, 1) = (float) asd.at<double>(0, 1);
+            h.transform(1, 0) = (float) asd.at<double>(1, 0);
+            h.transform(1, 1) = (float) asd.at<double>(1, 1);
+            h.transform(0, 2) = (float) asd.at<double>(0, 2);
+            h.transform(1, 2) = (float) asd.at<double>(1, 2);
+
+        }*/
     }
 }
 
 void BanknoteDetector::nonMaximumSupression(const Model& model, ClassDetections& detections)
 {
-    const std::vector<Eigen::Vector3f>& corners = model.corners;
-    std::vector<Eigen::Vector3f> corners2 = model.corners;
+    const Eigen::Vector3f (&corners)[CornerID::numOfCornerIDs] = model.corners;
+    Eigen::Vector3f corners2[CornerID::numOfRealCorners];
 
     IOU::Point p1[4];
     IOU::Point p2[4];
@@ -561,9 +575,7 @@ void BanknoteDetector::nonMaximumSupression(const Model& model, ClassDetections&
         if(!h1.validNms)
             continue;
 
-        assert(corners.size() == 4);
-
-        for(int i = 0; i < corners2.size(); i++)
+        for(int i = 0; i < CornerID::numOfRealCorners; i++)
         {
             corners2[i] = h1.transform * corners[i];
             p1[i].x = corners2[i].x();
@@ -584,7 +596,7 @@ void BanknoteDetector::nonMaximumSupression(const Model& model, ClassDetections&
             if(!h2.validNms)
                 continue;
 
-            for(int i = 0; i < corners2.size(); i++)
+            for(int i = 0; i < CornerID::numOfRealCorners; i++)
             {
                 corners2[i] = h2.transform * corners[i];
                 p2[i].x = corners2[i].x();
@@ -627,7 +639,7 @@ void BanknoteDetector::drawAcceptedHough()
         cv::drawMatches(theGrayScaleImageEq, imageKeypoints, model.image, model.features.keypoints[0], detections.houghFilteredMatches, img_accepted);
 
         ColorRGBA color = debugColors[c];
-        const std::vector<Eigen::Vector3f>& corners = model.corners;
+        const Eigen::Vector3f (&corners)[CornerID::numOfCornerIDs] = model.corners;
 
         for(const cv::DMatch& match : detections.houghFilteredMatches)
         {
@@ -635,21 +647,21 @@ void BanknoteDetector::drawAcceptedHough()
             const cv::KeyPoint& trainKeypoint = model.features.keypoints[0][match.trainIdx];
 
             Eigen::Matrix3f transform = getTransformAsMatrix(trainKeypoint, queryKeypoint);
-            std::vector<Eigen::Vector3f> corners2 = corners;
+            Eigen::Vector3f corners2[CornerID::numOfRealCorners];
 
-            for(int i = 0; i < corners2.size(); i++)
+            for(int i = 0; i < CornerID::numOfRealCorners; i++)
             {
                 corners2[i] = transform * corners[i];
             }
 
-            for(int i = 0; i < corners2.size() - 1; i++)
+            for(int i = 0; i < CornerID::numOfRealCorners - 1; i++)
             {
                 LINE("module:BanknoteDetections:hough_detections", corners2[i].x(), corners2[i].y() , corners2[i + 1].x(), corners2[i + 1].y(), 3, Drawings::dot, color);
                 cv::line (img_accepted, cv::Point(corners2[i].x(), corners2[i].y()), cv::Point(corners2[i + 1].x(), corners2[i + 1].y()), 255);
             }
 
-            LINE("module:BanknoteDetections:hough_detections", corners2.front().x(), corners2.front().y() , corners2.back().x(), corners2.back().y(), 3, Drawings::dot, color);
-            cv::line (img_accepted, cv::Point(corners2.front().x(), corners2.front().y()), cv::Point(corners2.back().x(), corners2.back().y()), 255);
+            LINE("module:BanknoteDetections:hough_detections", corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y() , corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y(), 3, Drawings::dot, color);
+            cv::line (img_accepted, cv::Point(corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y()), cv::Point(corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y()), 255);
 
             CIRCLE("module:BanknoteDetections:hough_keypoints", queryKeypoint.pt.x, queryKeypoint.pt.y, 8, 1, Drawings::ps_solid, ColorRGBA::white, Drawings::ps_solid, ColorRGBA::white);
             CIRCLE("module:BanknoteDetections:hough_keypoints", queryKeypoint.pt.x, queryKeypoint.pt.y, 5, 1, Drawings::ps_solid, color, Drawings::ps_solid, color);
@@ -670,7 +682,7 @@ void BanknoteDetector::drawAcceptedRansac()
         cv::Mat img_accepted = theGrayScaleImageEq.clone();
 
         ColorRGBA color = debugColors[c];
-        const std::vector<Eigen::Vector3f>& corners = model.corners;
+        const Eigen::Vector3f (&corners)[CornerID::numOfCornerIDs] = model.corners;
 
         for(Hypothesys& h : detections.hypotheses)
         {
@@ -681,21 +693,21 @@ void BanknoteDetector::drawAcceptedRansac()
 
                 Eigen::Matrix3f transform = getTransformAsMatrix(trainKeypoint, queryKeypoint);
 
-                std::vector<Eigen::Vector3f> corners2 = corners;
+                Eigen::Vector3f corners2[CornerID::numOfRealCorners];
 
-                for(int i = 0; i < corners2.size(); i++)
+                for(int i = 0; i < CornerID::numOfRealCorners; i++)
                 {
                     corners2[i] = transform * corners[i];
                 }
 
-                for(int i = 0; i < corners2.size() - 1; i++)
+                for(int i = 0; i < CornerID::numOfRealCorners - 1; i++)
                 {
                     LINE("module:BanknoteDetections:ransac_detections", corners2[i].x(), corners2[i].y() , corners2[i + 1].x(), corners2[i + 1].y(), 3, Drawings::dot, color);
                     cv::line (img_accepted, cv::Point(corners2[i].x(), corners2[i].y()), cv::Point(corners2[i + 1].x(), corners2[i + 1].y()), 255);
                 }
 
-                LINE("module:BanknoteDetections:ransac_detections", corners2.front().x(), corners2.front().y() , corners2.back().x(), corners2.back().y(), 3, Drawings::dot, color);
-                cv::line (img_accepted, cv::Point(corners2.front().x(), corners2.front().y()), cv::Point(corners2.back().x(), corners2.back().y()), 255);
+                LINE("module:BanknoteDetections:ransac_detections", corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y() , corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y(), 3, Drawings::dot, color);
+                cv::line (img_accepted, cv::Point(corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y()), cv::Point(corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y()), 255);
 
 
             }
@@ -716,30 +728,30 @@ void BanknoteDetector::drawAcceptedHypotheses()
         cv::Mat img_accepted = theGrayScaleImageEq.clone();
 
         ColorRGBA color = debugColors[c];
-        const std::vector<Eigen::Vector3f>& corners = model.corners;
+        const Eigen::Vector3f (&corners)[CornerID::numOfCornerIDs] = model.corners;
 
         for(Hypothesys& h : detections.hypotheses)
         {
             ColorRGBA color2 = h.validTransform ? color : ColorRGBA::white;
-            std::vector<Eigen::Vector3f> corners2 = corners;
+            Eigen::Vector3f corners2[CornerID::numOfRealCorners];
 
             if(!h.isValid())
                 continue;
 
-            for(int i = 0; i < corners2.size(); i++)
+            for(int i = 0; i < CornerID::numOfRealCorners; i++)
             {
                 corners2[i] = h.transform * corners[i];
             }
 
-            for(int i = 0; i < corners2.size() - 1; i++)
+            for(int i = 0; i < CornerID::numOfRealCorners - 1; i++)
             {
                 LINE("module:BanknoteDetections:transform_detections", corners2[i].x(), corners2[i].y() , corners2[i + 1].x(), corners2[i + 1].y(), 10, Drawings::dot, ColorRGBA(255,255,255,128));
                 LINE("module:BanknoteDetections:transform_detections", corners2[i].x(), corners2[i].y() , corners2[i + 1].x(), corners2[i + 1].y(), 4, Drawings::dot, color2);
                 cv::line (img_accepted, cv::Point(corners2[i].x(), corners2[i].y()), cv::Point(corners2[i + 1].x(), corners2[i + 1].y()), 255);
             }
 
-            LINE("module:BanknoteDetections:transform_detections", corners2.front().x(), corners2.front().y() , corners2.back().x(), corners2.back().y(), 10, Drawings::dot, ColorRGBA(255,255,255,128));
-            LINE("module:BanknoteDetections:transform_detections", corners2.front().x(), corners2.front().y() , corners2.back().x(), corners2.back().y(), 4, Drawings::dot, color2);
+            LINE("module:BanknoteDetections:transform_detections", corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y() , corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y(), 10, Drawings::dot, ColorRGBA(255,255,255,128));
+            LINE("module:BanknoteDetections:transform_detections", corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y() , corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y(), 4, Drawings::dot, color2);
 
 
             std::string text = std::to_string(h.ransacVotes);
@@ -748,7 +760,7 @@ void BanknoteDetector::drawAcceptedHypotheses()
 
             //DRAWTEXT("module:BanknoteDetections:transform_detections", middle.x(), middle.y(), 10, ColorRGBA::white, text);
 
-            cv::line (img_accepted, cv::Point(corners2.front().x(), corners2.front().y()), cv::Point(corners2.back().x(), corners2.back().y()), 255);
+            cv::line (img_accepted, cv::Point(corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y()), cv::Point(corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y()), 255);
 
         }
 

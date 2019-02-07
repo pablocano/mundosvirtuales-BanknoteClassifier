@@ -18,6 +18,7 @@
 #include "Tools/Debugging/DebugDrawings.h"
 #include "Tools/Debugging/Debugging.h"
 #include "Tools/Math/iou.h"
+#include "Tools/Math/Pose2D.h"
 #include "Tools/Math/Random.h"
 
 #include "opencv2/core/cuda.hpp"
@@ -36,6 +37,16 @@ MODULE(BanknoteDetector,
     PROVIDES(BanknoteDetections),
 });
 
+ENUM(CornerID,
+    TopLeft,
+    TopRight,
+    BottomRight,
+    BottomLeft,
+    numOfRealCorners,
+    MiddleMiddle = numOfRealCorners,
+    MiddleRight
+);
+
 bool compareAngle(IOU::Point p1, IOU::Point p2) { return (std::atan2(p1.y, p1.x) < std::atan2(p2.y, p2.x)); }
 
 class Model
@@ -45,7 +56,7 @@ public:
     cv::Mat image;
     cv::Mat mask;
     Features features;
-    std::vector<Eigen::Vector3f> corners;
+    Eigen::Vector3f corners[CornerID::numOfCornerIDs];
 };
 
 class Hypothesys
@@ -57,8 +68,8 @@ public:
 
     std::vector<cv::DMatch> matches;
     Eigen::Matrix3f transform; /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
-    Eigen::Matrix3f pose;
-    Eigen::Matrix3f graspPose;
+    Pose2D pose;
+    Eigen::Vector3f graspPoint;
     int ransacVotes;
     bool validTransform;
     bool validNms;
