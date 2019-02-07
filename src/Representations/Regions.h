@@ -4,7 +4,7 @@
 #include "Representations/ColorModel/ColorModel.h"
 #include "Tools/Math/Range.h"
 #include "Tools/Math/Eigen.h"
-#include "Tools/Streamable.h"
+#include "Tools/Streams/Streamable.h"
 #include <opencv2/core/core.hpp>
 
 class Regions : public Streamable

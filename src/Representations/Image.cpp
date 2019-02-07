@@ -9,7 +9,7 @@
 #include "Image.h"
 #include "Tools/Debugging/DebugDrawings.h"
 
-MessageQueue& operator>>(MessageQueue& stream, ImageBGR& image)
+/*MessageQueue& operator>>(MessageQueue& stream, ImageBGR& image)
 {
   int size, width, height, type;
   unsigned timeStamp;
@@ -75,7 +75,7 @@ MessageQueue& operator<<(MessageQueue& stream, cv::Mat& image)
   stream << size << image.cols << image.rows << type;
   stream.write(image.data, size);
   return stream;
-}
+}*/
 
 void MovementImage::draw() const
 {

@@ -5,7 +5,7 @@
  */
 
 #include "Blackboard.h"
-#include "Tools/Streamable.h"
+#include "Tools/Streams/Streamable.h"
 #include "Tools/SystemCall.h"
 #include <unordered_map>
 #include <string>

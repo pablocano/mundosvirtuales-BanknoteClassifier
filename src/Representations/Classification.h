@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Tools/Streamable.h"
-#include "Tools/Enum.h"
+#include "Tools/Streams/Streamable.h"
+#include "Tools/Streams/Enum.h"
 
 class Classification : public Streamable
 {

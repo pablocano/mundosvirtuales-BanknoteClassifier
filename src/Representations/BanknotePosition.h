@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Tools/Streamable.h"
+#include "Tools/Streams/Streamable.h"
 #include "Representations/Classification.h"
 #include "Tools/Math/Vector2.h"
 #include "Tools/Debugging/DebugDrawings.h"

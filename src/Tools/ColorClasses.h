@@ -1,8 +1,19 @@
 #pragma once
 #include <opencv2/imgproc/imgproc.hpp>
-#include "Tools/Debugging/DebugDrawings.h"
+#include "Tools/Debugging/ColorRGBA.h"
+#include "Tools/Streams/Enum.h"
 
-enum Color {none, white, green, blue, red, orange, yellow, black, numOfColors};
+ENUM(Color,
+{,
+     none,
+     white,
+     green,
+     blue,
+     red,
+     orange,
+     yellow,
+     black,
+});
 
 class DrawingColors {
   

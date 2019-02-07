@@ -8,8 +8,9 @@
 
 #include "Global.h"
 
-MessageQueue* Global::theDebugOut = 0;
-MessageQueue* Global::theCommunicationOut = 0;
-Settings* Global::theSettings = 0;
-DebugRequestTable* Global::theDebugRequestTable = 0;
-DrawingManager* Global::theDrawingManager = 0;
+thread_local OutMessage* Global::theDebugOut = nullptr;
+thread_local Settings* Global::theSettings = nullptr;
+thread_local DebugRequestTable* Global::theDebugRequestTable = nullptr;
+thread_local DebugDataTable* Global::theDebugDataTable = nullptr;
+thread_local DrawingManager* Global::theDrawingManager = nullptr;
+thread_local TimingManager* Global::theTimingManager = nullptr;

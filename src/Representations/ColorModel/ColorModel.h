@@ -2,9 +2,9 @@
 #pragma once
 
 #include "ColorCalibration.h"
-#include "Tools/ColorClasses.h"
+#include "Tools/Debugging/ColorRGBA.h"
 #include "Tools/Math/Range.h"
-#include "Tools/Streamable.h"
+#include "Tools/Streams/Streamable.h"
 #include <opencv2/core/core.hpp>
 
 class ColorModel : public Streamable

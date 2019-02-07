@@ -1,7 +1,7 @@
 #pragma once
 #include "Representations/Image.h"
 #include "Tools/Math/Eigen.h"
-#include "Tools/Streamable.h"
+#include "Tools/Streams/Streamable.h"
 #include "Representations/ColorModel/ColorModel.h"
 
 class Blobs : public Streamable

@@ -7,7 +7,7 @@
 #pragma once
 
 #include "Tools/Enum.h"
-#include "Tools/Streamable.h"
+#include "Tools/Streams/Streamable.h"
 
 /**
  * @class Settings

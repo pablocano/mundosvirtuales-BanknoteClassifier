@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Tools/Streamable.h"
+#include "Tools/Streams/Streamable.h"
 #include <opencv2/features2d.hpp>
 
 #ifdef BC_WITH_CUDA

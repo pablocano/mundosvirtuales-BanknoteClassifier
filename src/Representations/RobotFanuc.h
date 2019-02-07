@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "Tools/Streamable.h"
+#include "Tools/Streams/Streamable.h"
 #include "Tools/Enum.h"
 #include "Tools/Fanuc/PositionRegisterCartesian.h"
 #include "Tools/Messages/MessageQueue.h"
