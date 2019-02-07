@@ -426,14 +426,14 @@ MessageQueue& operator<<(MessageQueue& stream, DrawingManager&);
 #define POSE_2D_SAMPLE(id, p, color) \
   COMPLEX_DRAWING( id, \
   { \
-    Pose2D current = p; current += Pose2D(-100,0); \
-    LINE(id, int(current.translation.x),int(current.translation.y), int(p.translation.x), int(p.translation.y), \
+    Pose2D current = p; current += Pose2D(Vector2f(-100,0)); \
+    LINE(id, int(current.translation.x()),int(current.translation.y()), int(p.translation.x()), int(p.translation.y()), \
          1, Drawings::ps_solid, color); \
-    current = p; current += Pose2D(-40,-40); \
-    LINE(id, int(current.translation.x), int(current.translation.y), int(p.translation.x), int(p.translation.y), \
+    current = p; current += Pose2D(Vector2f(-40,-40)); \
+    LINE(id, int(current.translation.x()), int(current.translation.y()), int(p.translation.x()), int(p.translation.y()), \
          1, Drawings::ps_solid, color); \
-    current = p; current += Pose2D(-40,40); \
-    LINE(id, int(current.translation.x),int(current.translation.y),int(p.translation.x), int(p.translation.y), \
+    current = p; current += Pose2D(Vector2f(-40,40)); \
+    LINE(id, int(current.translation.x()),int(current.translation.y()),int(p.translation.x()), int(p.translation.y()), \
          1, Drawings::ps_solid, color); \
   })
 

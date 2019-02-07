@@ -28,21 +28,22 @@ Hypothesys::Hypothesys() :
     pose(),
     graspPoint(Eigen::Vector3f::Identity()),
     ransacVotes(0),
+    graspScore(0),
     validTransform(true),
-    validPolygon(true),
+    validGrasp(true),
     validNms(true)
 {
 }
 
 bool Hypothesys::isValid() const
 {
-    return validNms && validPolygon && validTransform;
+    return validNms && /*validGrasp && */validTransform;
 }
 
 BanknoteDetector::BanknoteDetector():
     resizeModels(false),
-    trainBanknoteHeight(200)
-
+    trainBanknoteHeight(200),
+    graspRadius(60)
 {
     OUTPUT_TEXT("wololo init");
 
@@ -84,7 +85,7 @@ BanknoteDetector::BanknoteDetector():
         model.corners[CornerID::BottomRight] = Eigen::Vector3f(image.cols, image.rows, 1);
         model.corners[CornerID::BottomLeft] = Eigen::Vector3f(0, image.rows, 1);
         model.corners[CornerID::MiddleMiddle] = Eigen::Vector3f(0.5f*image.cols, 0.5f*image.rows, 1);
-        model.corners[CornerID::MiddleRight] = Eigen::Vector3f(image.cols, 0.5f*image.rows, 1);
+        model.corners[CornerID::MiddleRight] = Eigen::Vector3f(0.75f*image.cols, 0.5f*image.rows, 1);
     }
 
     debugColors[Classification::UNO_C] = ColorRGBA::green;
@@ -214,6 +215,19 @@ void BanknoteDetector::update(BanknoteDetections& detections)
 
     end = std::chrono::system_clock::now();
     std::cout << "NMS time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypothesis << ")" << std::endl;
+
+    start = end;
+
+    for(unsigned c = 0; c < Classification::numOfBanknotes - 2; c++)
+    {
+        Model& model = models[c];
+        ClassDetections& detections = classDetections[c];
+
+        evaluateGraspingScore(model, detections);
+    }
+
+    end = std::chrono::system_clock::now();
+    std::cout << "Grasping Score time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypothesis << ")" << std::endl;
 
     drawAcceptedHough();
     drawAcceptedRansac();
@@ -359,9 +373,10 @@ void BanknoteDetector::ransac(const Model& model, ClassDetections& detections)
     detections.hypotheses.clear();
 
     /* Parameters should depend on the model dimensions */
-    float maxError = 25.f;
-    int minConsensus = 10;
-    float numberOfTrials = 20;
+    float maxError = 20.f;
+    float maxError2 = 35.f;
+    int minConsensus = 20;
+    float numberOfTrials = 100;
 
     float numberOfAcceptedMatches = 0;
 
@@ -393,7 +408,7 @@ void BanknoteDetector::ransac(const Model& model, ClassDetections& detections)
         if(consensus > minConsensus)
         {
             detections.hypotheses.push_back(Hypothesys());
-            getRansacInliers(transform, detections.houghFilteredMatches, detections.hypotheses.back().matches, model.features.keypoints[0], imageKeypoints, maxError, acceptedStatus);
+            getRansacInliers(transform, detections.houghFilteredMatches, detections.hypotheses.back().matches, model.features.keypoints[0], imageKeypoints, maxError, maxError2, acceptedStatus);
             detections.hypotheses.back().ransacVotes = consensus;
         }
     }
@@ -441,6 +456,7 @@ void BanknoteDetector::getRansacInliers(
         const std::vector<cv::KeyPoint>& trainKeypoints,
         const std::vector<cv::KeyPoint>& queryKeypoints,
         float maxError,
+        float maxError2,
         Eigen::VectorXi& acceptedStatus)
 {
 
@@ -472,6 +488,10 @@ void BanknoteDetector::getRansacInliers(
         if(error <= maxError)
         {
             acceptedMatches.push_back(match);
+            acceptedStatus(index) = 1;
+        }
+        else if(error <= maxError2)
+        {
             acceptedStatus(index) = 1;
         }
     }
@@ -541,14 +561,15 @@ void BanknoteDetector::estimateTransforms(const Model& model, ClassDetections& d
         /* We assume a target scale of 1. If it is not so, we could look between the scales to see if  they are coherent */
         h.validTransform = minCoeff > 0.8f && maxCoeff < 1.2f;
 
-        /*cv::Mat asd = cv::estimateAffinePartial2D(trainPoints, queryPoints, cv::noArray(),
+
+
+        cv::Mat asd = cv::estimateAffinePartial2D(trainPoints, queryPoints, cv::noArray(),
                                           cv::RANSAC, 3, 2000, 0.99, 10);
+        h.validTransform = !asd.empty();
 
         if(!asd.empty())
         {
-            h.validTransform = true;
-
-            h.transform.setZero();
+            h.transform.setIdentity();
             h.transform(0, 0) = (float) asd.at<double>(0, 0);
             h.transform(0, 1) = (float) asd.at<double>(0, 1);
             h.transform(1, 0) = (float) asd.at<double>(1, 0);
@@ -556,7 +577,27 @@ void BanknoteDetector::estimateTransforms(const Model& model, ClassDetections& d
             h.transform(0, 2) = (float) asd.at<double>(0, 2);
             h.transform(1, 2) = (float) asd.at<double>(1, 2);
 
-        }*/
+            float scale = h.transform(0, 0)*h.transform(0, 0) + h.transform(0, 1)*h.transform(0, 1);
+
+            if(scale < 0.8f || scale >= 1.2f)
+                h.validTransform = false;
+        }
+
+        Vector3f start = h.transform * model.corners[CornerID::MiddleMiddle];
+        Vector3f end = h.transform * model.corners[CornerID::MiddleRight];
+        Vector2f start2d = Vector2f(start.x(), start.y());
+        Vector2f end2d = Vector2f(end.x(), end.y());
+
+        h.pose = Pose2D((end2d - start2d).angle(), start2d);
+
+        std::vector<Vector2f> inliers(queryPoints.size());
+
+        for(int i = 0; i < queryPoints.size(); i++)
+            inliers[i] = Vector2f(queryPoints[i].x, queryPoints[i].y);
+
+        Vector2f median = Geometry::geometricMedian(inliers);
+
+        h.graspPoint = Vector3f(median.x(), median.y(), 1.f);
     }
 }
 
@@ -625,6 +666,26 @@ void BanknoteDetector::nonMaximumSupression(const Model& model, ClassDetections&
         }
 
     }
+}
+
+void BanknoteDetector::evaluateGraspingScore(const Model& model, ClassDetections& detections)
+{
+    for(Hypothesys& h : detections.hypotheses)
+    {
+        Vector3f reprojection = h.transform.inverse()*h.graspPoint;
+
+        float score = 0.5f*std::sqrt(model.image.cols*model.image.cols + model.image.rows*model.image.rows);
+        float score1 = reprojection.x() < 0.f ? 0.f : reprojection.x();
+        float score2 = reprojection.x() > model.image.cols ? 0.f : model.image.cols - reprojection.x();
+        float score3 = reprojection.y() < 0.f ? 0.f : reprojection.y();
+        float score4 = reprojection.y() > model.image.rows ? 0.f : model.image.rows - reprojection.y();
+
+        score = std::min(score, std::min(score1, std::min(score2, std::min(score3, score4)))) - graspRadius;
+
+        h.validGrasp = score > 0.f;
+        h.graspScore = score;
+    }
+
 }
 
 void BanknoteDetector::drawAcceptedHough()
@@ -738,6 +799,14 @@ void BanknoteDetector::drawAcceptedHypotheses()
             if(!h.isValid())
                 continue;
 
+            for(const cv::DMatch& match : h.matches)
+            {
+                const cv::Point& pt = imageKeypoints[match.queryIdx].pt;
+
+                CIRCLE("module:BanknoteDetections:transform_detections", pt.x, pt.y, 8, 1, Drawings::ps_solid, ColorRGBA::white, Drawings::ps_solid, ColorRGBA::white);
+                CIRCLE("module:BanknoteDetections:transform_detections", pt.x, pt.y, 5, 1, Drawings::ps_solid, color, Drawings::ps_solid, color);
+            }
+
             for(int i = 0; i < CornerID::numOfRealCorners; i++)
             {
                 corners2[i] = h.transform * corners[i];
@@ -753,6 +822,19 @@ void BanknoteDetector::drawAcceptedHypotheses()
             LINE("module:BanknoteDetections:transform_detections", corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y() , corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y(), 10, Drawings::dot, ColorRGBA(255,255,255,128));
             LINE("module:BanknoteDetections:transform_detections", corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y() , corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y(), 4, Drawings::dot, color2);
 
+
+            Vector3f start = model.corners[CornerID::MiddleMiddle];
+            Vector3f end = model.corners[CornerID::MiddleRight];
+
+            start = h.transform * start;
+            end = h.transform * end;
+
+            ARROW("module:BanknoteDetections:transform_detections", start.x(), start.y(), end.x(), end.y(), 8, Drawings::ps_solid, ColorRGBA::white);
+            ARROW("module:BanknoteDetections:transform_detections", start.x(), start.y(), end.x(), end.y(), 5, Drawings::ps_solid, color);
+
+            ColorRGBA colorGrasp = h.validGrasp ? color : ColorRGBA::white;
+            CIRCLE("module:BanknoteDetections:transform_detections", h.graspPoint.x(), h.graspPoint.y(), graspRadius, 8, Drawings::ps_solid, ColorRGBA::white, Drawings::ps_null, ColorRGBA::white);
+            CIRCLE("module:BanknoteDetections:transform_detections", h.graspPoint.x(), h.graspPoint.y(), graspRadius, 5, Drawings::ps_solid, colorGrasp, Drawings::ps_null, color);
 
             std::string text = std::to_string(h.ransacVotes);
             Eigen::Vector3f middle(model.image.rows, model.image.cols, 1.f);
