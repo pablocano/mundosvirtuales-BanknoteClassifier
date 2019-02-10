@@ -3,29 +3,28 @@
 
 #include "ColorCalibration.h"
 #include "Tools/Debugging/ColorRGBA.h"
-#include "Tools/Math/Range.h"
+#include "Tools/Range.h"
 #include "Tools/Streams/Streamable.h"
 #include <opencv2/core/core.hpp>
+
 
 class ColorModel : public Streamable
 {
 public:
 	
-	struct Colors
-	{
-		unsigned char colors;
+    STREAMABLE(Colors,
+    {
+        Colors() = default;
+        Colors(unsigned char colors);
+        Colors(ColorClasses::Color color);
 		
-		Colors() : colors(0) {}
-		Colors(unsigned char colors) : colors(colors) {}
-		Colors(Color color)
-		: colors(color == none ? 0 : (unsigned char) (1 << (color - 1))) {}
-		
-		bool is(Color color) const
+        bool is(ColorClasses::Color color) const
 		{
-			return (color == none && !colors) ||
+            return (color == ColorClasses::none && !colors) ||
 			(1 << (color - 1) & colors) != 0;
-		}
-	};
+        },
+        (unsigned char) colors,
+    });
 
   Colors cubo[32][256][256];
 	
@@ -36,4 +35,7 @@ public:
   void fromColorCalibration(const ColorCalibration& colorCalibration, ColorCalibration& prevCalibration);
 
   Colors getColor(const cv::Vec3b &point) const;
+
+  virtual void serialize(In* in, Out* out);
 };
+

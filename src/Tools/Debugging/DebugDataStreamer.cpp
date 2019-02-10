@@ -6,7 +6,7 @@
  */
 
 #include "DebugDataStreamer.h"
-#include "Platform/BHAssert.h"
+#include "Platform/BCAssert.h"
 #include "Tools/Debugging/Debugging.h"
 #include "Tools/Math/Angle.h"
 #include "Tools/Streams/InStreams.h"

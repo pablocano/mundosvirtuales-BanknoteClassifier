@@ -4,37 +4,36 @@
 #include "Tools/Streams/Streamable.h"
 #include "Representations/ColorModel/ColorModel.h"
 
-class Blobs : public Streamable
-{
-public:
-  
-  struct Blob
-  {
-    Blob() = default;
-    Blob(const Vector2i& center, const std::vector<Vector2i> &borders,const float& area, const ColorModel::Colors& color) : center(center), borders(borders), area(area), color(color) {}
-    Vector2i center;
-    std::vector<Vector2i > borders;
-    float area;
-    ColorModel::Colors color;
 
-    bool operator<(const Blob& other) const
+STREAMABLE(Blobs,
+{
+    STREAMABLE(Blob,
     {
-        return area > other.area;
-    }
+        using Color = ColorModel::Colors;
+        Blob() = default;
+        Blob(const Vector2i& center, const std::vector<Vector2i> &borders,const float& area, const Color& color);
 
-  };
-  
-  void draw() const;
-  
-  std::vector<Blob> blobs;
+        bool operator<(const Blob& other) const
+        {
+           return area > other.area;
+        },
 
-};
+        (Vector2i) center,
+        (std::vector<Vector2i>) borders,
+        (float)(0) area,
+        (Color) color,
+    });
 
-class BestBlob : public Streamable
-{
-public:
-    Blobs::Blob bestblob;
+    void draw() const;
+    ,
+    (std::vector<Blob>) blobs,
 
-    bool exists;
-    bool newblob;
-};
+});
+
+
+STREAMABLE(BestBlob,
+{,
+   (Blobs::Blob) bestblob,
+   (bool)(false) exists,
+   (bool)(false) newblob,
+});

@@ -6,14 +6,14 @@
 
 #pragma once
 
-#include "Tools/Enum.h"
-#include "Tools/Streams/Streamable.h"
+#include "Tools/Streams/Enum.h"
+#include "Tools/Streams/AutoStreamable.h"
 
 /**
  * @class Settings
  * The class provides access to settings-specific configuration directories.
  */
-class Settings : public Streamable
+STREAMABLE(Settings,
 {
 private:
   static Settings settings; /**< The master settings instance. */
@@ -57,8 +57,9 @@ public:
   }
   
   static bool recover; /**< Start directly without the pre-initial state. */
+  ,
   
-  int teamNumber; /**< The number of our team in the game controller. Use theOwnTeamInfo.teamNumber instead. */
-  int playerNumber; /**< The number of the robot in the team. Use theRobotInfo.playerNumber instead. */
-  int teamPort; /**< The UDP port our team uses for team communication. */
-};
+  (int) teamNumber, /**< The number of our team in the game controller. Use theOwnTeamInfo.teamNumber instead. */
+  (int) playerNumber, /**< The number of the robot in the team. Use theRobotInfo.playerNumber instead. */
+  (int) teamPort, /**< The UDP port our team uses for team communication. */
+});

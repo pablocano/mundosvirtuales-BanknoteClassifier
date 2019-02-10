@@ -56,8 +56,8 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
 #else
             cv::cuda::GpuMat grayScaleImageGpu(theGrayScaleImageEq);
             cv::cuda::GpuMat maskGpu(mask);
-            surf_(grayScaleImageGpu,maskGpu,features.keypointsGpu[0],features.descriptors[0]);
-            surf_.downloadKeypoints(features.keypointsGpu[0],features.keypoints[0]);
+            surf_(grayScaleImageGpu,maskGpu,features.keypointsGpu,features.descriptors);
+            surf_.downloadKeypoints(features.keypointsGpu,*reinterpret_cast<std::vector<cv::KeyPoint>*>(&features.keypoints));
 #endif
 
             cv::Mat H;
@@ -66,12 +66,12 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
             int banknote = BanknotePositionProvider::compare(features, H, theBanknotePosition.banknote, theBanknotePosition.banknote, massCenter);
 
             if (!H.empty() && banknote == theBanknotePosition.banknote){
-                Pose2D pose;
+                Pose2f pose;
                 std::vector<Vector2f> scene_corners;
                 if(BanknotePositionProvider::analyzeArea(H, scene_corners, pose, banknote))
                 {
                     OUTPUT_TEXT("Previous banknote found");
-                    OUTPUT_TEXT(Classification::getName((Classification::Banknote)banknote));
+                    OUTPUT_TEXT(TypeRegistry::getEnumName((Classification::Banknote)banknote));
                     error = 0;
                     previousBanknotePosition.banknote = (Classification::Banknote)banknote;
                     previousBanknotePosition.homography = H;

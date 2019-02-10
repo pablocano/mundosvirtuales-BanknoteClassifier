@@ -30,8 +30,8 @@ custom(custom)
 
 CalibratorTool::Widget* ImageView::createWidget()
 {
-    controller.debugOut << DebugRequest("representation:ImageBGR");
-    controller.debugOut.finishMessage(idDebugRequest);
+    controller.debugOut.out.bin << DebugRequest("representation:ImageBGR");
+    controller.debugOut.out.finishMessage(idDebugRequest);
     return new ImageWidget(*this);
 }
 
@@ -43,7 +43,7 @@ ImageWidget::ImageWidget(ImageView& imageView)
   lastImageTimeStamp(0),
   lastDrawingsTimeStamp(0),
   lastColorTableTimeStamp(0),
-  drawnColor(none)
+  drawnColor(ColorClasses::none)
 {
   setFocusPolicy(Qt::StrongFocus);
   setMouseTracking(true);
@@ -53,8 +53,8 @@ ImageWidget::~ImageWidget()
 {
     if(!imageView.segmented)
     {
-        imageView.controller.debugOut << DebugRequest("representation:ImageBGR",false);
-        imageView.controller.debugOut.finishMessage(idDebugRequest);
+        imageView.controller.debugOut.out.bin << DebugRequest("representation:ImageBGR",false);
+        imageView.controller.debugOut.out.finishMessage(idDebugRequest);
     }
     if(imageData)
         delete imageData;
@@ -213,7 +213,7 @@ QMenu* ImageWidget::createUserMenu() const
 {
   QMenu* menu = new QMenu(tr("&Image"));
   
-  QAction* colorButtons[numOfColors] =
+  QAction* colorButtons[ColorClasses::numOfColors] =
   {
     new QAction(QIcon(":/Icons/allColors.png"), tr("Show &All Colors"), menu),
     new QAction(QIcon(":/Icons/white.png"), tr("Show Only &White"), menu),
@@ -230,7 +230,7 @@ QMenu* ImageWidget::createUserMenu() const
   QActionGroup* colorGroup = new QActionGroup(menu);
   QSignalMapper* signalMapper = new QSignalMapper(const_cast<ImageWidget*>(this));
   connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(colorAct(int)));
-  for(int i = 0; i < numOfColors; ++i)
+  for(int i = 0; i < ColorClasses::numOfColors; ++i)
   {
     signalMapper->setMapping(colorButtons[i], i);
     connect(colorButtons[i], SIGNAL(triggered()), signalMapper, SLOT(map()));
@@ -403,7 +403,7 @@ void ImageWidget::copyImageSegmented(const ImageBGR &srcImage)
     0xff000000  //black
   };
   
-  static unsigned displayColors[1 << (numOfColors - 1)];
+  static unsigned displayColors[1 << (ColorClasses::numOfColors - 1)];
   if(!displayColors[0])
   {
     union
@@ -413,14 +413,14 @@ void ImageWidget::copyImageSegmented(const ImageBGR &srcImage)
     } baseColor;
     
     displayColors[0] = 0xff7f7f7f; //grey
-    for(int colors = 1; colors < 1 << (numOfColors - 1); ++colors)
+    for(int colors = 1; colors < 1 << (ColorClasses::numOfColors - 1); ++colors)
     {
       int count = 0;
-      for(int i = 0; i < numOfColors - 1; ++i)
+      for(int i = 0; i < ColorClasses::numOfColors - 1; ++i)
         if(colors & 1 << i)
           ++count;
       unsigned mixed = 0;
-      for(int i = 0; i < numOfColors - 1; ++i)
+      for(int i = 0; i < ColorClasses::numOfColors - 1; ++i)
         if(colors & 1 << i)
         {
           baseColor.color = baseColors[i];
@@ -432,7 +432,7 @@ void ImageWidget::copyImageSegmented(const ImageBGR &srcImage)
     }
   }
   unsigned* p = (unsigned*) imageData->bits();
-  const unsigned char drawnColors = (unsigned char) (drawnColor == none ? ~0 : 1 << (drawnColor - 1));
+  const unsigned char drawnColors = (unsigned char) (drawnColor == ColorClasses::none ? ~0 : 1 << (drawnColor - 1));
   const unsigned char* rgb = srcImage.data;
   for(int i = 0; i < srcImage.rows*srcImage.cols; i++)
   {

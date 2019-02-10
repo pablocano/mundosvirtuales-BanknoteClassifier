@@ -9,7 +9,7 @@
 #include <cstring>
 
 #include "MessageQueue.h"
-#include "Platform/BHAssert.h"
+#include "Platform/BCAssert.h"
 #include "Tools/Debugging/Debugging.h"
 
 void MessageQueue::handleAllMessages(MessageHandler& handler)

@@ -7,6 +7,7 @@
 #include "Tools/SystemCall.h"
 #include "Tools/Math/Geometry.h"
 #include "Modules/BanknoteClassifierProvider.h"
+#include "Platform/File.h"
 
 
 MAKE_MODULE(BanknotePositionProvider, BanknoteClassifier)
@@ -33,7 +34,7 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(20000),max
     for(unsigned i = 0; i < Classification::numOfBanknotes - 2; i++)
     {
         // Read the image and resize it
-        cv::Mat image = cv::imread(std::string(File::getGTDir()) + "/Data/img_scan/" + Classification::getName((Classification::Banknote)i) + ".jpg", cv::IMREAD_GRAYSCALE);
+        cv::Mat image = cv::imread(std::string(File::getBCDir()) + "/Data/img_scan/" + TypeRegistry::getEnumName((Classification::Banknote)i) + ".jpg", cv::IMREAD_GRAYSCALE);
         resizeImage(image);
 
         // Calculate the features of the image
@@ -43,8 +44,8 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(20000),max
 #else
         cv::cuda::GpuMat imageGpu;
         imageGpu.upload(image);
-        surf(imageGpu,cv::cuda::GpuMat(),f.keypointsGpu[0],f.descriptors[0]);
-        surf.downloadKeypoints(f.keypointsGpu[0],f.keypoints[0]);
+        surf(imageGpu,cv::cuda::GpuMat(),f.keypointsGpu,f.descriptors);
+        surf.downloadKeypoints(f.keypointsGpu,*reinterpret_cast<std::vector<cv::KeyPoint>*>(&f.keypoints));
 #endif
 
         //cv::Mat canny;
@@ -131,7 +132,7 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
 
         if (!H.empty() && banknote != Classification::NONE)
         {
-            Pose2D pose;
+            Pose2f pose;
             std::vector<Vector2f> scene_corners;
             if(analyzeArea(H, scene_corners, pose, banknote))
             {
@@ -188,65 +189,61 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
 
         int result = Classification::NONE;
 
-        for(int images = 0; images < 3 /*&& images < theInstance->theBlobs.blobs.size()*/; images++)
-        {
-            //first = BanknoteClassifierProvider::getClassification(theInstance->theBlobs.blobs[images]);
-            //last = first+1;
 
-            for(int i = first; i <= last; i++){
 
-                aux_matches.clear();
+        for(int i = first; i <= last; i++){
+
+            aux_matches.clear();
 #ifndef BC_WITH_CUDA
-                theInstance->matcher.knnMatch(theInstance->modelsFeatures[i].descriptors, features.descriptors, aux_matches, 2);
+            theInstance->matcher.knnMatch(theInstance->modelsFeatures[i].descriptors, features.descriptors, aux_matches, 2);
 #else
-                theInstance->matcher->knnMatch(features.descriptors[images], theInstance->modelsFeatures[i].descriptors[0], aux_matches, 2);
+            theInstance->matcher->knnMatch(features.descriptors, theInstance->modelsFeatures[i].descriptors, aux_matches, 2);
 #endif
 
-                good_matches.clear();
-                for(auto& match : aux_matches)
+            good_matches.clear();
+            for(auto& match : aux_matches)
+            {
+                if(match[0].distance < 0.6f * match[1].distance)
                 {
-                    if(match[0].distance < 0.6f * match[1].distance)
-                    {
-                        good_matches.push_back(match[0]);
-                    }
+                    good_matches.push_back(match[0]);
+                }
+            }
+
+            if(good_matches.size() > 10)
+            {
+                // Localize the object
+                std::vector<cv::Point2f> obj;
+                std::vector<cv::Point2f> scene;
+
+                obj.reserve(good_matches.size());
+                scene.reserve(good_matches.size());
+
+                for( int j = 0; j < good_matches.size(); j++ )
+                {
+                  // Get the keypoints from the matches
+                  obj.push_back(theInstance->modelsFeatures[i].keypoints[good_matches[j].trainIdx].pt);
+                  scene.push_back(features.keypoints[ good_matches[j].queryIdx].pt);
                 }
 
-                if(good_matches.size() > 10)
+                // Get the homography
+                cv::Mat mask;
+                cv::Mat H = cv::findHomography( obj, scene, cv::RANSAC, 5, mask );
+
+                Pose2f pose;
+                std::vector<Vector2f> scene_corners;
+                if(H.empty() || !analyzeArea(H, scene_corners, pose, i))
+                    continue;
+
+                // Obtain the num of inliers
+                int numGoodMatches = cv::countNonZero(mask);
+
+                if(numGoodMatches > max_good_matches)
                 {
-                    // Localize the object
-                    std::vector<cv::Point2f> obj;
-                    std::vector<cv::Point2f> scene;
-
-                    obj.reserve(good_matches.size());
-                    scene.reserve(good_matches.size());
-
-                    for( int j = 0; j < good_matches.size(); j++ )
-                    {
-                      // Get the keypoints from the matches
-                      obj.push_back(theInstance->modelsFeatures[i].keypoints[0][good_matches[j].trainIdx].pt);
-                      scene.push_back(features.keypoints[images][ good_matches[j].queryIdx].pt);
-                    }
-
-                    // Get the homography
-                    cv::Mat mask;
-                    cv::Mat H = cv::findHomography( obj, scene, cv::RANSAC, 5, mask );
-
-                    Pose2D pose;
-                    std::vector<Vector2f> scene_corners;
-                    if(H.empty() || !analyzeArea(H, scene_corners, pose, i))
-                        continue;
-
-                    // Obtain the num of inliers
-                    int numGoodMatches = cv::countNonZero(mask);
-
-                    if(numGoodMatches > max_good_matches)
-                    {
-                        max_good_matches = numGoodMatches;
-                        result = i;
-                        resultHomography = H;
-                        result_mask = mask;
-                        result_inliers = scene;
-                    }
+                    max_good_matches = numGoodMatches;
+                    result = i;
+                    resultHomography = H;
+                    result_mask = mask;
+                    result_inliers = scene;
                 }
             }
         }
@@ -268,11 +265,11 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
 
         massCenter /= cv::countNonZero(result_mask);
 
-        CIRCLE("module:BanknotePositionProvider:mass_center",massCenter.x(), massCenter.y(), 20, 3, Drawings::ps_solid, ColorRGBA::blue, Drawings::ps_solid, ColorRGBA::blue);
+        CIRCLE("module:BanknotePositionProvider:mass_center",massCenter.x(), massCenter.y(), 20, 3, Drawings::solidPen, ColorRGBA::blue, Drawings::solidBrush, ColorRGBA::blue);
 
         Vector2f median = Geometry::geometricMedian(inliers);
 
-        CIRCLE("module:BanknotePositionProvider:median", median.x(), median.y(), 20, 3, Drawings::ps_solid,ColorRGBA::red, Drawings::ps_solid, ColorRGBA::red);
+        CIRCLE("module:BanknotePositionProvider:median", median.x(), median.y(), 20, 3, Drawings::solidPen, ColorRGBA::red, Drawings::solidBrush, ColorRGBA::red);
 
         massCenter = median;
 
@@ -282,7 +279,7 @@ int BanknotePositionProvider::compare(const Features& features, cv::Mat& resultH
     return Classification::NONE;
 }
 
-bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vector2f>& corners, Pose2D& pose, int banknote)
+bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vector2f>& corners, Pose2f& pose, int banknote)
 {
     if(theInstance)
     {
@@ -308,7 +305,7 @@ bool BanknotePositionProvider::analyzeArea(cv::Mat& homography, std::vector<Vect
         }
         LINE("module:BanknotePositionProvider:analized_area", corners.front().x(), corners.front().y() , corners.back().x(), corners.back().y(), 3, Drawings::dot, ColorRGBA::white);
 
-        pose = Pose2D((direction - center).angle(),center);
+        pose = Pose2f((direction - center).angle(),center);
 
         // Get the size of the array
         int size = (int) corners.size();

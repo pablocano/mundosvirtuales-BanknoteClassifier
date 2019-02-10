@@ -67,8 +67,6 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/RobotStatus.h
   src/Modules/Segmentator.cpp
   src/Modules/Segmentator.h
-  src/Modules/TemplateInspection.cpp
-  src/Modules/TemplateInspection.h
   src/Modules/WorldCoordinatesPoseProvider.cpp
   src/Modules/WorldCoordinatesPoseProvider.h
   src/Platform/BCAssert.cpp
@@ -77,6 +75,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Platform/File.h
   src/Platform/Memory.cpp
   src/Platform/Memory.h
+  src/Platform/Time.cpp
+  src/Platform/Time.h
   src/Processes/BanknoteClassifier.cpp
   src/Processes/BanknoteClassifier.h
   src/Processes/GripperCommunication.cpp
@@ -141,8 +141,6 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/Debugging/Stopwatch.h
   src/Tools/Debugging/TimingManager.cpp
   src/Tools/Debugging/TimingManager.h
-  src/Tools/Enum.cpp
-  src/Tools/Enum.h
   src/Tools/File.cpp
   src/Tools/File.h
   src/Tools/Function.h
@@ -152,7 +150,7 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/Global.h
   src/Tools/Math/Angle.h
   src/Tools/Math/Constants.h
-  src/Tools/Math/CvMat.h
+  src/Tools/Math/OpenCv.h
   src/Tools/Math/Eigen.h
   src/Tools/Math/EigenArrayExtensions.h
   src/Tools/Math/EigenMatrixBaseExtensions.h
@@ -162,8 +160,9 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/Math/Geometry.h
   src/Tools/Math/Kalman.h
   src/Tools/Math/Kalman.cpp
-  src/Tools/Math/Pose2D.h
-  src/Tools/Math/Range.h
+  src/Tools/Math/Pose2f.h
+  src/Tools/Math/Random.cpp
+  src/Tools/Math/Random.h
   src/Tools/Math/Transformation.cpp
   src/Tools/Math/Transformation.h
   src/Tools/Math/Vector2.h
@@ -182,6 +181,7 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/ModuleManager/Module.h
   src/Tools/ModuleManager/ModuleManager.cpp
   src/Tools/ModuleManager/ModuleManager.h
+  src/Tools/Range.h
   src/Tools/Streams/AutoStreamable.h
   src/Tools/Streams/Eigen.h
   src/Tools/Streams/Enum.h
@@ -277,13 +277,12 @@ set( VISION_TOOL_SRC
   src/Tools/AlignedMemory.h
   src/Tools/Comm/BanknoteClassifierMessageHandler.cpp
   src/Tools/Comm/BanknoteClassifierMessageHandler.h
-  src/Tools/Enum.cpp
-  src/Tools/Enum.h
+  src/Tools/Streams/Enum.h
   src/Tools/File.cpp
   src/Tools/File.h
   src/Tools/Global.cpp
   src/Tools/Global.h
-  src/Tools/Math/Pose2D.h
+  src/Tools/Math/Pose2f.h
   src/Tools/Math/Vector2.h
   src/Tools/MessageQueue/MessageQueue.cpp
   src/Tools/MessageQueue/MessageQueue.h
@@ -340,7 +339,7 @@ source_group(Utils\\VisionTool REGULAR_EXPRESSION "Utils/VisionTool/*")
 if(WIN32)
 	set(CMAKE_CXX_STANDARD 11)
 else()
-	set(CMAKE_CXX_FLAGS "-std=c++11")
+        set(CMAKE_CXX_FLAGS "-std=c++14")
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

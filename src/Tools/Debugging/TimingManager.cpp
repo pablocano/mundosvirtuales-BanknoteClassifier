@@ -8,7 +8,7 @@
 #include "TimingManager.h"
 #include <unordered_map>
 #include <vector>
-#include "Platform/BHAssert.h"
+#include "Platform/BCAssert.h"
 #include "Platform/Time.h"
 #include "Debugging.h"
 #include "Tools/MessageQueue/MessageQueue.h"

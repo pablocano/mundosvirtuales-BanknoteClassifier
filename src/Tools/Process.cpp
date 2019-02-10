@@ -20,7 +20,7 @@ Process::Process(MessageQueue& in,MessageQueue& out)
 
 void Process::setGlobals()
 {
-  Global::theDebugOut = &debugOut;
+  Global::theDebugOut = &debugOut.out;
   Global::theSettings = &settings;
   Global::theDrawingManager = &drawingManager;
   Global::theDebugRequestTable = &debugRequestTable;
@@ -35,35 +35,32 @@ int Process::procesMain()
     initialized = true;
   }
   
-#ifndef RELEASE
-  debugIn.handleAllMessages(*this);
+  handleAllMessages(debugIn);
   debugIn.clear();
-#endif
-  
+
   int result = main();
   
 #ifndef RELEASE
-  if(Global::getDebugRequestTable().poll)
-  {
-    if(Global::getDebugRequestTable().pollCounter++ > 10)
-    {
-      Global::getDebugRequestTable().poll = false;
-      OUTPUT(idDebugResponse, "pollingFinished");
-    }
-  }
+  if(Global::getDebugRequestTable().pollCounter > 0 && --Global::getDebugRequestTable().pollCounter == 0)
+      OUTPUT(idDebugResponse, text, "pollingFinished");
 #endif
   
   return result;
 }
 
-bool Process::handleMessage(MessageQueue& message)
+void Process::handleAllMessages(MessageQueue& messageQueue)
+{
+  debugIn.handleAllMessages(*this);
+}
+
+bool Process::handleMessage(InMessage& message)
 {
   switch(message.getMessageID())
   {
     case idDebugRequest:
     {
       DebugRequest debugRequest;
-      message >> debugRequest;
+      message.bin >> debugRequest;
       Global::getDebugRequestTable().addRequest(debugRequest);
       return true;
     }

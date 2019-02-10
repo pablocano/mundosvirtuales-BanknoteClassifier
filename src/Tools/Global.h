@@ -23,6 +23,7 @@ class Global
 {
 private:
   static thread_local OutMessage* theDebugOut;
+  static thread_local OutMessage* theCommunicationOut;
   static thread_local Settings* theSettings;
   static thread_local DebugRequestTable* theDebugRequestTable;
   static thread_local DebugDataTable* theDebugDataTable;
@@ -35,6 +36,12 @@ public:
    * @return The instance of the outgoing debug message queue in this process.
    */
   static OutMessage& getDebugOut() {return *theDebugOut;}
+
+  /**
+   * The method returns a reference to the process wide instance.
+   * @return The instance of the outgoing team message queue in this process.
+   */
+  static OutMessage& geCommunicationOut() {return *theCommunicationOut;}
 
   /**
    * The method returns whether the outgoing message queue was already instantiated.

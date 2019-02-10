@@ -1,4 +1,5 @@
 #include "Camera.h"
+#include "Platform/File.h"
 #include "Tools/Debugging/Debugging.h"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <sstream>
@@ -20,7 +21,7 @@ Camera::Camera() : cameraLoaded(false)
 
     theInstance = this;
 
-    cv::FileStorage cameraCalibrationFile(std::string(File::getGTDir()) + "/Config/cameracalibration.xml", cv::FileStorage::READ);
+    cv::FileStorage cameraCalibrationFile(std::string(File::getBCDir()) + "/Config/cameracalibration.xml", cv::FileStorage::READ);
 
     cameraCalibrationFile["camera_matrix"] >> info.K;
     cameraCalibrationFile["distortion_coefficients"] >> info.d;
@@ -52,7 +53,7 @@ Camera::Camera() : cameraLoaded(false)
         // Load the persistent configuration
         //std::string nodeFile = std::string(File::getGTDir()) + "/Config/acA2040-90uc_22313646.pfs";
         //std::string nodeFile = std::string(File::getGTDir()) + "/Config/ubuntu_config.pfs";
-        std::string nodeFile = std::string(File::getGTDir()) + "/Config/prosegur_test.pfs";
+        std::string nodeFile = std::string(File::getBCDir()) + "/Config/prosegur_test.pfs";
         Pylon::CFeaturePersistence::Load(nodeFile.c_str(), &camera->GetNodeMap(), true );
 
         // Initialice the pixel converter
@@ -122,10 +123,10 @@ void Camera::update(Image& image)
 
     cv::cvtColor(currentImage, image, cv::COLOR_BGR2YCrCb);
 
-    DEBUG_RESPONSE("representation:ImageBGR",
+    DEBUG_RESPONSE("representation:ImageBGR")
     {
-        OUTPUT(idImage,currentImage);
-    });
+        OUTPUT(idImage,bin,currentImage);
+    };
   
 }
 

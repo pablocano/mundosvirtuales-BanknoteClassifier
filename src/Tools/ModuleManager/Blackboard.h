@@ -8,25 +8,34 @@
 
 #pragma once
 
+#include <memory>
+#include <functional>
+
 class Streamable;
+
+/**
+ * Helper class to check whether a type has an accessible serialize method.
+ */
+struct HasSerialize
+{
+  template<typename T> static auto test(T* t) -> decltype(t->serialize(nullptr, nullptr), bool()) {return true;}
+  static bool test(void*) {return false;}
+};
 
 class Blackboard
 {
 private:
   /** A single entry of the blackboard. */
-  class Entry
+  struct Entry
   {
-  public:
-    Streamable* data; /**< The representation. */
-    int counter; /**< How many modules requested its existance? */
-
-    /** The default constructor zeros both values. */
-    Entry() : data(0), counter(0) {}
+    std::unique_ptr<Streamable> data; /**< The representation. */
+    int counter = 0; /**< How many modules requested its existance? */
+    std::function<void(Streamable*)> reset;
   };
 
   class Entries; /**< Type of the map for all entries. */
-  Entries& entries; /**< All entries of the blackboard. */
-  int version; /**< A version that is increased with each configuration change. */
+  std::unique_ptr<Entries> entries; /**< All entries of the blackboard. */
+  int version = 0; /**< A version that is increased with each configuration change. */
 
   /**
    * Set the blackboard instance of a process.
@@ -39,7 +48,7 @@ private:
   /**
    * Retrieve the blackboard entry for the name of a representation.
    * @param representation The name of the representation.
-   * @return The blackboard entry. If it does not exist, the it will
+   * @return The blackboard entry. If it does not exist, it will
    * be created, but not the representation.
    */
   Entry& get(const char* representation);
@@ -78,10 +87,18 @@ public:
     Entry& entry = get(representation);
     if(entry.counter++ == 0)
     {
-      entry.data = new T;
+      entry.data = std::make_unique<T>();
+      if(HasSerialize::test(dynamic_cast<T*>(&*entry.data)))
+        entry.reset = [](Streamable* data)
+        {
+          dynamic_cast<T*>(data)->~T();
+          new (dynamic_cast<T*>(data)) T();
+        };
+      else
+        entry.reset = [](Streamable* data) {};
       ++version;
     }
-    return *dynamic_cast<T*>(entry.data);
+    return dynamic_cast<T&>(*entry.data);
   }
 
   /**
@@ -91,6 +108,13 @@ public:
    * @param representation The name of the representation.
    */
   void free(const char* representation);
+
+  /**
+   * Reset the blackboard entry for a representation of a certain
+   * name to its default state.
+   * @param representation The name of the representation.
+   */
+  void reset(const char* representation);
 
   /**
    * Access a representation of a certain name. The representation

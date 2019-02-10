@@ -11,7 +11,7 @@
 #include <cstdio>
 
 #include "DebugRequest.h"
-#include "Platform/BHAssert.h"
+#include "Platform/BCAssert.h"
 
 DebugRequestTable::DebugRequestTable()
 {

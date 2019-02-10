@@ -111,7 +111,7 @@ void EstimatePosition::sendPositionFiltered(BanknotePositionFiltered& banknotePo
 
     banknotePositionFiltered.corners.push_back(banknotePositionFiltered.corners.front());
 
-    banknotePositionFiltered.position = Pose2D(state[10],Vector2f(state[8], state[9]));
+    banknotePositionFiltered.position = Pose2f(state[10],Vector2f(state[8], state[9]));
 
     banknotePositionFiltered.grabPos = Vector2f(state[11],state[12]);
 

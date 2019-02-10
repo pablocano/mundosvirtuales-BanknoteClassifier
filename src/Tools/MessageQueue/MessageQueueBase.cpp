@@ -11,7 +11,7 @@
 #include <limits>
 
 #include "MessageQueueBase.h"
-#include "Platform/BHAssert.h"
+#include "Platform/BCAssert.h"
 #include "Tools/Streams/InOut.h"
 
 MessageQueueBase::MessageQueueBase()
@@ -197,10 +197,6 @@ bool MessageQueueBase::finishMessage(MessageID id)
         case idLogResponse:
         case idDrawingManager:
         case idDrawingManager3D:
-        case idConsole:
-        case idRobotname:
-        case idFieldColors:
-        case idAudioData: // continuous data stream required
           break; // accept
         default:
           success = false; // reject
@@ -269,9 +265,6 @@ void MessageQueueBase::removeRepetitions()
       case idDebugResponse:
       case idDebugDataResponse:
       case idPlot:
-      case idConsole:
-      case idAudioData:
-      case idAnnotation:
       case idLogResponse:
         copy = true;
         break;
@@ -303,7 +296,7 @@ void MessageQueueBase::removeRepetitions()
         break;
 
       default:
-        if(getMessageID() < numOfDataMessageIDs && getMessageID() != idFieldColors) // data only from latest frame
+        if(getMessageID() < numOfDataMessageIDs) // data only from latest frame
           copy = messagesPerType[currentProcess][idProcessFinished] == 1;
         else // only the latest other messages
           copy = --messagesPerType[currentProcess][getMessageID()] == 0;

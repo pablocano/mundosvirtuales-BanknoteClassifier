@@ -183,6 +183,8 @@ protected:
 
   friend In& operator>>(In& stream, MessageQueue& messageQueue); /**< Gives the streaming operator access to append(). */
   friend Out& operator<<(Out& stream, const MessageQueue& messageQueue); /**< Gives the streaming operator access to write(). */
+
+  friend class BanknoteClassifierMessageHandler;
 };
 
 /**

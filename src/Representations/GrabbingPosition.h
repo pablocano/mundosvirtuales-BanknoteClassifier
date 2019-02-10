@@ -1,14 +1,11 @@
 #pragma once
 
-#include "Tools/Streams/Streamable.h"
+#include "Tools/Streams/AutoStreamable.h"
 #include "Tools/Math/Eigen.h"
 
-class GrabbingPosition : public Streamable
+STREAMABLE(GrabbingPosition,
 {
-public:
-
-    Vector2f point;
-
     void draw() const;
-
-};
+    ,
+    (Vector2f) pos,
+});

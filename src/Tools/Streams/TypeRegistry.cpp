@@ -23,7 +23,7 @@
 #include <vector>
 #include "TypeRegistry.h"
 #include "TypeInfo.h"
-#include "Platform/BHAssert.h"
+#include "Platform/BCAssert.h"
 #include "Tools/Math/Angle.h"
 
 /** The constants of an enumeration. */

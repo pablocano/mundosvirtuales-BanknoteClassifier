@@ -36,5 +36,5 @@ public:
    * @param message the message to handle.
    * @return Has the message been handled?
    */
-  virtual bool handleMessage(MessageQueue& message);
+  virtual bool handleMessage(InMessage &message);
 };

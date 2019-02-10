@@ -8,7 +8,7 @@
 
 #include "ColorClasses.h"
 
-cv::Scalar DrawingColors::getDrawingColor(unsigned int color)
+cv::Scalar ColorClasses::DrawingColors::getDrawingColor(unsigned int color)
 {
   static const unsigned baseColors[] =
   {

@@ -129,7 +129,7 @@ void ArucoPoseEstimator::draw(CameraPose &cameraPose)
     LINE("module:ArucoPoseEstimator:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[3].x, imagePoints[3].y, 3, Drawings::solidPen,ColorRGBA::green);
 }
 
-bool ArucoPoseEstimator::handleMessage(MessageQueue &message)
+bool ArucoPoseEstimator::handleMessage(InMessage &message)
 {
     return false;
 }

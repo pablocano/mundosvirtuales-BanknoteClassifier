@@ -52,6 +52,8 @@ ENUM(MessageID,
  idReUseMe5, // to be removed
  idReUseMe6, // to be removed
 
+ idStopwatch,
+ idColorCalibration,
  idDebugRequest,
  idDebugResponse,
  idDebugDataResponse,

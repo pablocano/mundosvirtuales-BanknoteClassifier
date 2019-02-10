@@ -9,6 +9,7 @@
 #include "Global.h"
 
 thread_local OutMessage* Global::theDebugOut = nullptr;
+thread_local OutMessage* Global::theCommunicationOut = nullptr;
 thread_local Settings* Global::theSettings = nullptr;
 thread_local DebugRequestTable* Global::theDebugRequestTable = nullptr;
 thread_local DebugDataTable* Global::theDebugDataTable = nullptr;

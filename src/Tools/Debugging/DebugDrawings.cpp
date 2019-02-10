@@ -7,7 +7,7 @@
  */
 
 #include "DebugDrawings.h"
-#include "Platform/BHAssert.h"
+#include "Platform/BCAssert.h"
 
 void DrawingManager::addDrawingId(const char* name, const char* typeName)
 {

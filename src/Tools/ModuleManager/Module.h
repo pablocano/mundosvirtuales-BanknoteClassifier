@@ -46,100 +46,103 @@
 #include "Tools/Streams/AutoStreamable.h"
 #include "Blackboard.h"
 
+#include <vector>
+
 /**
  * The class is the abstract base of all template classes that create modules.
  */
 class ModuleBase
 {
 public:
-    ENUM(Category,
-    {,
-     BanknoteClassifier,
-     BaslerCamera,
-     OpenCVCamera,
-     Communication,
-     Common,
-     CameraPose,
-    });
+  ENUM(Category,
+  {,
+   BanknoteClassifier,
+   BaslerCamera,
+   OpenCVCamera,
+   Communication,
+   Common,
+   CameraPose,
+   CustomComm,
+   Segmentation,
+  });
 
+  static const unsigned char numOfCategories = numOfCategorys;
 
-    static const unsigned char numOfCategories = numOfCategorys;
+  class Info
+  {
+  public:
+    const char* representation;
+    void (*update)(Streamable&);
 
-    class Info
-    {
-    public:
-      const char* representation;
-      void (*update)(Streamable&);
+    Info(const char* representation, void (*update)(Streamable&)) :
+      representation(representation), update(update)
+    {}
+  };
 
-      Info(const char* representation, void (*update)(Streamable&))
-      : representation(representation), update(update) {}
-    };
+  /**
+   * Find message id for representation name.
+   * @param name The name of the representation.
+   * @return The corresponding id of undefined if it does not exist.
+   */
+  static MessageID getMessageID(const std::string& name)
+  {
+    FOREACH_ENUM(MessageID, i)
+      if(name == TypeRegistry::getEnumName(i) + 2)
+        return i;
+    return ::undefined;
+  }
 
-    /**
-       * Find message id for representation name.
-       * @param name The name of the representation.
-       * @return The corresponding id of undefined if it does not exist.
-       */
-      static MessageID getMessageID(const std::string& name)
-      {
-        FOREACH_ENUM(MessageID, i)
-          if(name == TypeRegistry::getEnumName(i) + 2)
-            return i;
-        return ::undefined;
-      }
+  /** Helpers to check whether a class defines a draw method that is not inherited. */
+  template<typename T, void (T::*)()> struct Draw {};
+  template<typename T, void (T::*)() const> struct ConstDraw {};
 
+  /**
+   * Calls a draw method if a representation has one that is not inherited.
+   * @param T The type of the representation.
+   * @param t The representation.
+   */
+  template<typename T> static auto draw(T* t) -> decltype(Draw<T, &T::draw>(), void()) {t->draw();}
+  template<typename T> static auto draw(const T* t) -> decltype(ConstDraw<T, &T::draw>(), void()) {t->draw();}
+  static void draw(void*) {}
+  static void draw(const void*) {}
 
-    /** Helpers to check whether a class defines a draw method that is not inherited. */
-    template<typename T, void (T::*)()> struct Draw {};
-    template<typename T, void (T::*)() const> struct ConstDraw {};
+  /**
+   * Calls a verify method if a representation has one.
+   * @param T The type of the representation.
+   * @param t The representation.
+   */
+  template<typename T> static auto verify(T* t) -> decltype(t->verify(), void()) {t->verify();}
+  template<typename T> static auto verify(const T* t) -> decltype(t->verify(), void()) {t->verify();}
+  static void verify(void*) {}
+  static void verify(const void*) {}
 
-    /**
-     * Calls a draw method if a representation has one that is not inherited.
-     * @param T The type of the representation.
-     * @param t The representation.
-     */
-    template<typename T> static auto draw(T* t) -> decltype(Draw<T, &T::draw>(), void()) {t->draw();}
-    template<typename T> static auto draw(const T* t) -> decltype(ConstDraw<T, &T::draw>(), void()) {t->draw();}
-    static void draw(void*) {}
-    static void draw(const void*) {}
-
-    /**
-       * Calls a verify method if a representation has one.
-       * @param T The type of the representation.
-       * @param t The representation.
-       */
-      template<typename T> static auto verify(T* t) -> decltype(t->verify(), void()) {t->verify();}
-      template<typename T> static auto verify(const T* t) -> decltype(t->verify(), void()) {t->verify();}
-      static void verify(void*) {}
-      static void verify(const void*) {}
-
-  
 private:
   static ModuleBase* first; /**< The head of the list of all modules available. */
   ModuleBase* next; /**< The next entry in the list of all modules. */
   const char* name; /**< The name of the module that can be created by this instance. */
-  Category category; /**< The name of the category of this module. */
+  Category category; /**< The category of this module. */
   std::vector<Info> (*getModuleInfo)(); /**< A function that returns information about the requirements and provisions of the module. */
-  
+
 protected:
   /**
    * Abstract method to create an instance of a module.
    * @return The address of the instance created.
    */
   virtual Streamable* createNew() = 0;
-  
+
 public:
   /**
    * Constructor.
    * @param name The name of the module that can be created by this instance.
-   * @param category The name of the category of this module.
+   * @param category The category of this module.
+   * @param getModuleInfo The function that returns the module info.
    */
-  ModuleBase(const char* name, Category category, std::vector<Info> (*getModuleInfo)())
-  : next(first), name(name), category(category), getModuleInfo(getModuleInfo)
+  ModuleBase(const char* name, Category category, std::vector<Info> (*getModuleInfo)()) :
+    next(first), name(name), category(category), getModuleInfo(getModuleInfo)
   {
     first = this;
   }
-  
+
   friend class ModuleManager; /**< The ModuleManager gathers all private data. */
 };
 
@@ -148,7 +151,6 @@ public:
  * The template class provides a method to create a certain module, and it
  * registers all requirements and representations provided by that class.
  * @param M The type of the module created.
- * @param B The base class of the module.
  */
 template<typename M> class Module : public ModuleBase
 {
@@ -161,7 +163,7 @@ private:
   {
     return (Streamable*) new M;
   }
-  
+
 public:
   /**
    * Constructor.
@@ -174,10 +176,11 @@ public:
    * cannot be constructed. To overcome this limitation, an assignment is faked,
    * and it is used to do the registration of the information required.
    * @param name The name of the module that can be created by this instance.
-   * @param category The name of the category of this module.
+   * @param category The category of this module.
+   * @param getModuleInfo The function that returns the module info.
    */
-  Module(const char* name, Category category, std::vector<ModuleBase::Info> (*getModuleInfo)())
-  : ModuleBase(name, category, getModuleInfo)
+  Module(const char* name, Category category, std::vector<ModuleBase::Info> (*getModuleInfo)()) :
+    ModuleBase(name, category, getModuleInfo)
   {}
 };
 
@@ -206,7 +209,7 @@ void saveModuleParameters(const Streamable& parameters, const char* moduleName, 
 /**
  * Determine the number of entries in a tuple.
  */
-#ifdef WINDOWS
+#ifdef _MSC_VER
 #define _MODULE_TUPLE_SIZE(...) _MODULE_JOIN(_MODULE_TUPLE_SIZE_II, (__VA_ARGS__, _MODULE_TUPLE_SIZE_III))
 #else
 #define _MODULE_TUPLE_SIZE(...) _MODULE_TUPLE_SIZE_I((__VA_ARGS__, _MODULE_TUPLE_SIZE_III))
@@ -336,7 +339,7 @@ void saveModuleParameters(const Streamable& parameters, const char* moduleName, 
 #define _MODULE_PARAMETERS_PROVIDES_WITHOUT_MODIFY(type)
 #define _MODULE_PARAMETERS_REQUIRES(type)
 #define _MODULE_PARAMETERS_USES(type)
-#ifdef WINDOWS
+#ifdef _MSC_VER
 #define _MODULE_PARAMETERS__MODULE_DEFINES_PARAMETERS(header, ...) _MODULE_STREAMABLE(Params, Streamable, , header, __VA_ARGS__); using NoParameters = Params;
 #define _MODULE_PARAMETERS__MODULE_LOADS_PARAMETERS(header, ...) _MODULE_STREAMABLE(Params, Streamable, , header, __VA_ARGS__); using NoParameters = Params;
 #define _MODULE_UNWRAP(...) __VA_ARGS__
@@ -362,13 +365,13 @@ void saveModuleParameters(const Streamable& parameters, const char* moduleName, 
 #define _MODULE_LOAD__MODULE_DEFINES_PARAMETERS(...)
 #define _MODULE_LOAD__MODULE_LOADS_PARAMETERS(...) loadModuleParameters(*this, moduleName, fileName);
 
-#ifdef RELEASE
+#if defined TARGET_ROBOT && defined NDEBUG
 #define _MODULE_DRAW(...)
 #else
 #define _MODULE_DRAW(r) ModuleBase::draw(&r);
 #endif
 
-#ifdef RELEASE
+#ifdef NDEBUG
 #define _MODULE_VERIFY(...)
 #else
 #define _MODULE_VERIFY(r) ModuleBase::verify(&r);
@@ -434,21 +437,22 @@ void saveModuleParameters(const Streamable& parameters, const char* moduleName, 
  * @param mod Additional code that is added to the handler.
  */
 #define _MODULE_PROVIDES(type, mod) \
-    protected: virtual void update(type&) = 0; \
-    \
-    private: type* _the##type = 0; \
-    MessageID _id##type = ::undefined; \
-    static void update##type(Streamable& module) \
-    { \
-        ((BaseType&) module).modifyParameters(); \
-        if(!((BaseType&) module)._the##type) \
-            ((BaseType&) module)._the##type = &Blackboard::getInstance().alloc<type>(#type); \
-        type& r(*((BaseType&) module)._the##type); \
-        ((BaseType&) module).update(r); \
-        mod \
-        if(((BaseType&) module)._id##type != ::undefined) \
-            DEBUG_RESPONSE("representation:" #type) OUTPUT(((BaseType&) module)._id##type, bin, r); \
-    }
+  protected: virtual void update(type&) = 0; \
+  \
+  private: type* _the##type = 0; \
+  MessageID _id##type = ::undefined; \
+  static void update##type(Streamable& module) \
+  { \
+    ((BaseType&) module).modifyParameters(); \
+    if(!((BaseType&) module)._the##type) \
+      ((BaseType&) module)._the##type = &Blackboard::getInstance().alloc<type>(#type); \
+    type& r(*((BaseType&) module)._the##type); \
+    BH_TRACE; \
+    STOPWATCH(#type) ((BaseType&) module).update(r); \
+    mod \
+    if(((BaseType&) module)._id##type != ::undefined) \
+      DEBUG_RESPONSE("representation:" #type) OUTPUT(((BaseType&) module)._id##type, bin, r); \
+  }
 
 /**
  * Helper for defining the module's base class.

@@ -16,10 +16,10 @@ void DummyImages::update(Image& image)
 
     currentImage.timeStamp = theFrameInfo.time;
 
-    DEBUG_RESPONSE("representation:ImageBGR",
+    DEBUG_RESPONSE("representation:ImageBGR")
     {
-        OUTPUT(idImage,currentImage);
-    });
+        OUTPUT(idImage,bin,currentImage);
+    };
 }
 
 void DummyImages::update(GrayScaleImage &grayScaleImage)

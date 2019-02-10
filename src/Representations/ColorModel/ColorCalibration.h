@@ -9,7 +9,7 @@
 
 #include "Tools/Streams/AutoStreamable.h"
 #include "Tools/ColorClasses.h"
-#include "Tools/Math/Range.h"
+#include "Tools/Range.h"
 
 STREAMABLE(ColorCalibration,
 {
@@ -59,6 +59,6 @@ STREAMABLE(ColorCalibration,
   }),
 
   // thresholds for color
-  (WhiteThresholds) white,
-  (HSIRanges[Color::numOfColors]) ranges,
+  (WhiteThresholds) whiteThreshold,
+  (HSIRanges[ColorClasses::Color::numOfColors]) ranges,
 });

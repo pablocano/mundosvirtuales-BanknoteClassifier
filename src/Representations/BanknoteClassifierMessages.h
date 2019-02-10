@@ -1,6 +1,6 @@
 #pragma once
-#include "Tools/Math/Pose2D.h"
-#include "Tools/Streams/Streamable.h"
+#include "Tools/Math/Pose2f.h"
+#include "Tools/Streams/AutoStreamable.h"
 
 /*struct GroundTruthRobot
 {
@@ -13,5 +13,6 @@ struct GroundTruthBall {
   Vector2<> ballPosition;
 };*/
 
-class BanknoteClassifierMessageOutput : public Streamable {
-};
+STREAMABLE(BanknoteClassifierMessageOutput,
+{,
+});

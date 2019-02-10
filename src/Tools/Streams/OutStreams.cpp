@@ -14,8 +14,7 @@
 
 #include "OutStreams.h"
 #include "Platform/File.h"
-#include "Platform/BHAssert.h"
-#include "Tools/Motion/SensorData.h"
+#include "Platform/BCAssert.h"
 #include "Tools/Debugging/Debugging.h"
 #include "Tools/Math/Angle.h"
 #include "Tools/Streams/TypeRegistry.h"
@@ -210,10 +209,7 @@ void OutTextRaw::writeDouble(double d, PhysicalOutStream& stream)
 
 void OutTextRaw::writeAngle(const Angle& d, PhysicalOutStream& stream)
 {
-  if(d == SensorData::off)
-    sprintf(buf, "%g", static_cast<float>(d));
-  else
-    sprintf(buf, "%gdeg", d.toDegrees());
+  sprintf(buf, "%gdeg", d.toDegrees());
   stream.writeToStream(buf, strlen(buf));
 }
 

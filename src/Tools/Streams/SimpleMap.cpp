@@ -18,7 +18,7 @@
 #include "SimpleMap.h"
 #include <stdexcept>
 #include "InStreams.h"
-#include "Platform/BHAssert.h"
+#include "Platform/BCAssert.h"
 #include "Tools/Debugging/Debugging.h"
 
 SimpleMap::Literal::operator In&() const

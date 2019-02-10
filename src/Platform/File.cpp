@@ -117,7 +117,7 @@ bool File::isAbsolute(const char* path)
 std::list<std::string> File::getConfigDirs()
 {
   std::list<std::string> dirs;
-  const std::string configDir = std::string(getBHDir()) + "/Config/";
+  const std::string configDir = std::string(getBCDir()) + "/Config/";
   dirs.push_back(configDir);
   return dirs;
 }
@@ -147,7 +147,7 @@ std::list<std::string> File::getFullNames(const std::string& rawName)
   return names;
 }
 
-const char* File::getBHDir()
+const char* File::getBCDir()
 {
   static char dir[FILENAME_MAX] = {0};
   if(!dir[0])
@@ -194,7 +194,7 @@ std::list<std::string> File::getFullNames(const std::string& name)
   return names;
 }
 
-const char* File::getBHDir()
+const char* File::getBCDir()
 {
   static char dir[MAX_PATH] = {0};
   if(!dir[0])

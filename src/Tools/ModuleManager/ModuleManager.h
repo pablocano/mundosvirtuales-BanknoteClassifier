@@ -8,7 +8,6 @@
 
 #include "Module.h"
 #include <list>
-#include <map>
 #include <set>
 #include <vector>
 
@@ -26,15 +25,16 @@ private:
   {
   public:
     ModuleBase* module; /**< A pointer to the module base that is able to create an instance of the module. */
-    Streamable* instance; /**< A pointer to the instance of the module if it was created. Otherwise the pointer is 0. */
-    bool required; /**< A flag that is required when determining whether a module is currently required or not. */
+    std::vector<ModuleBase::Info> info; /**< Information about the requirements and provisions of the module. */
+    Streamable* instance = nullptr; /**< A pointer to the instance of the module if it was created. Otherwise the pointer is 0. */
+    bool required = false; /**< A flag that is required when determining whether a module is currently required or not. */
     bool requiredBackup; /**< Temporary backup of "required" */
 
     /**
      * Constructor.
      * @param module A pointer to the module base that is able to create an instance of the module.
      */
-    ModuleState(ModuleBase* module) : module(module), instance(0), required(false) {}
+    ModuleState(ModuleBase* module) : module(module), info(module->getModuleInfo()) {}
 
     /**
      * Comparison operator. Only uses the name for comparison.
@@ -59,14 +59,10 @@ private:
      * @param representation The name of the representation provided.
      * @param moduleState The moduleState that will give access to the module that provides the information.
      * @param update The update handler within the module.
-     * @param create The create handler for the representation.
-     * @param free The free handler for the representation.
      */
-    Provider(const char* representation, ModuleState* moduleState,
-             void (*update)(Streamable&))
-    : representation(representation),
-      moduleState(moduleState),
-      update(update) {}
+    Provider(const char* representation, ModuleState* moduleState, void (*update)(Streamable&)) :
+      representation(representation), moduleState(moduleState), update(update)
+    {}
   };
 
 public:
@@ -75,12 +71,10 @@ public:
    *
    * This class is public since it is used for the ModuleInfo also.
    */
-  class Configuration
+  STREAMABLE(Configuration,
   {
-  public:
-    class RepresentationProvider
+    STREAMABLE(RepresentationProvider,
     {
-    public:
       RepresentationProvider() = default;
       RepresentationProvider(const std::string& representation, const std::string& provider);
 
@@ -92,48 +86,26 @@ public:
       bool operator<(const RepresentationProvider& other) const
       {
         return (representation < other.representation);
-      };
+      },
 
-      std::string representation;
-      std::string provider;
-    };
+      (std::string) representation,
+      (std::string) provider,
+    }),
 
-    void save(std::string filename);
-
-    bool load(std::string filename);
-
-    std::vector<RepresentationProvider> representationProviders;
-  };
+    (std::vector<RepresentationProvider>) representationProviders,
+  });
 
 private:
   Configuration config; /**< The last configuration set. It may not work. */
   std::list<Provider> providers; /**< The list of providers that will be executed. */
   std::list<ModuleState> modules; /**< The current state of all modules. */
   std::list<ModuleState> otherModules; /**< The modules in other processes. */
-  /**
-   * Find information about a representation provided or required by a certain module.
-   * @param module The module that is searched for the representation.
-   * @param representation The name of the representation that is searched for.
-   * @param all If false, it is only searched for representations that are provided by this module.
-   *            Otherwise, it is also searched for presentations that are required.
-   * @return Information found about the representation. 0 if it was not found.
-   */
-  static const ModuleBase::Info* find(const ModuleBase* module, const std::string& representation, bool all = false);
-  
-  /**
-   * The method brings the providers in the correct sequence.
-   * @return Is the set of providers consistent?
-   */
-  bool sortProviders(std::list<std::string> providedByDefault);
-
-  /**
-   * The method restores a previous module configuration.
-   * It is called after it was determined that the new configuration is invalid.
-   * @param providers The previous providers.
-   * @param sent The previous list of represenations to send to the other process.
-   * @param received The previous list of represenations to receive from the other process.
-   */
-  void rollBack(const std::list<Provider>& providers);
+  std::list<const char*> sent; /**< The list of all names of representations sent to the other process */
+  std::list<const char*> received; /**< The list of all names of representations received from the other process */
+  std::vector<Streamable*> toSend; /**< The list of all representations sent to the other process */
+  std::vector<Streamable*> toReceive; /**< The list of all representations received from the other process */
+  unsigned timeStamp = 0; /**< The timestamp of the last module request. Communication is only possible if both sides use the same timestamp. */
+  unsigned nextTimeStamp = 0; /**< The next timestamp used to verify communication. */
 
 public:
   /**
@@ -142,7 +114,7 @@ public:
    * same address space. Therefore, this constructor filters them based on their categories.
    * @param categories The categories of modules executed by this process.
    */
-  ModuleManager(const std::set<std::string>& categories);
+  ModuleManager(const std::set<ModuleBase::Category>& categories);
 
   /**
    * Destructor.
@@ -162,7 +134,77 @@ public:
   void destroy();
 
   /**
+   * The method updates the list of the currently created modules.
+   * @param stream The stream the new configuration is read from.
+   * @param timeStamp The timeStamp of the last module request.
+   */
+  void update(In& stream, unsigned timeStamp);
+
+  /**
    * The method executes all selected modules.
    */
   void execute();
+
+  /**
+   * The method reads a package from a stream.
+   * @param stream A stream containing representations received from another process.
+   */
+  void readPackage(In& stream);
+
+  /**
+   * The method writes a package to a stream.
+   * @param stream A stream that will be filled with representations that are sent
+   *               to another process.
+   */
+  void writePackage(Out& stream) const;
+
+private:
+  /**
+   * Find information about a representation provided or required by a certain module.
+   * @param module The module that is searched for the representation.
+   * @param representation The name of the representation that is searched for.
+   * @param all If false, it is only searched for representations that are provided by this module.
+   *            Otherwise, it is also searched for presentations that are required.
+   * @return Information found about the representation. End iterator if it was not found.
+   */
+  static std::vector<ModuleBase::Info>::const_iterator find(const ModuleState& module, const std::string& representation, bool all = false);
+
+  /**
+   * Adds all representations that need to be shared between processes to the
+   * attributes "sent" and "received".
+   * @param config The module configuration that currently set up.
+   * @return Everything ok? If not, the new configuration is invalid.
+   */
+  bool calcShared(const Configuration& config);
+
+  /**
+   * Adds all representations that need to be received by a process to the
+   * parameter "received". This version is called for each configuration entry.
+   * @param config The module configuration that currently set up.
+   * @param representation The representation that should be provided.
+   * @param module The module that should provide the representation.
+   * @param modules All modules in the same process as "module".
+   * @param received The list of representations to update.
+   * @param silent Suppress error output, because the other process will output them.
+   * @return Is the representation really provided by this module?
+   */
+  bool calcShared(const Configuration& config, const std::string& representation,
+                  const ModuleState& module, const std::list<ModuleState>& modules,
+                  std::list<const char*>& received, bool silent);
+
+  /**
+   * The method brings the providers in the correct sequence.
+   * @return Is the set of providers consistent?
+   */
+  bool sortProviders(const std::list<std::string>& providedByDefault);
+
+  /**
+   * The method restores a previous module configuration.
+   * It is called after it was determined that the new configuration is invalid.
+   * @param providers The previous providers.
+   * @param sent The previous list of represenations to send to the other process.
+   * @param received The previous list of represenations to receive from the other process.
+   */
+  void rollBack(const std::list<Provider>& providers, const std::list<const char*>& sent,
+                const std::list<const char*>& received);
 };

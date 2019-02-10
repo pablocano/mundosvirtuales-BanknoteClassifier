@@ -104,7 +104,7 @@ public:
    * e.g. /home/nao or <..>/B-Human
    * @return The current BHDir
    */
-  static const char* getBHDir();
+  static const char* getBCDir();
 
   /**
    * Checks if the delivered path is an absolute path.

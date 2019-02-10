@@ -8,9 +8,9 @@
  */
 
 #include "BanknoteDetector.h"
-
+#include "Platform/File.h"
 #include <chrono>
-
+#include <iostream>
 
 
 MAKE_MODULE(BanknoteDetector, BanknoteClassifier)
@@ -38,8 +38,8 @@ BanknoteDetector::BanknoteDetector():
     for(unsigned c = 0; c < Classification::numOfBanknotes - 2; c++)
     {
         // Load models
-        cv::Mat image = cv::imread(std::string(File::getGTDir()) + "/Data/img_real/" + Classification::getName((Classification::Banknote) c) + ".jpg", cv::IMREAD_GRAYSCALE);
-        cv::Mat maskGrayscale = cv::imread(std::string(File::getGTDir()) + "/Data/img_real/" + Classification::getName((Classification::Banknote) c) + "_mask.jpg", cv::IMREAD_GRAYSCALE);
+        cv::Mat image = cv::imread(std::string(File::getBCDir()) + "/Data/img_real/" + TypeRegistry::getEnumName((Classification::Banknote)c)  + ".jpg", cv::IMREAD_GRAYSCALE);
+        cv::Mat maskGrayscale = cv::imread(std::string(File::getBCDir()) + "/Data/img_real/" + TypeRegistry::getEnumName((Classification::Banknote) c) + "_mask.jpg", cv::IMREAD_GRAYSCALE);
 
         cv::Mat binaryMask(maskGrayscale.size(), CV_8U);
         cv::threshold(maskGrayscale, binaryMask, 127, 255, cv::THRESH_BINARY);
@@ -52,8 +52,8 @@ BanknoteDetector::BanknoteDetector():
 
         cv::cuda::GpuMat gpuImage;
         gpuImage.upload(image);
-        surf(gpuImage, cv::cuda::GpuMat(), f.keypointsGpu[0], f.descriptors[0]);
-        surf.downloadKeypoints(f.keypointsGpu[0], f.keypoints[0]);
+        surf(gpuImage, cv::cuda::GpuMat(), f.keypointsGpu, f.descriptors);
+        surf.downloadKeypoints(f.keypointsGpu, *reinterpret_cast<std::vector<cv::KeyPoint>* >(&f.keypoints));
 
         Model& model = models[c];
         model.features = f;
@@ -127,7 +127,7 @@ void BanknoteDetector::update(BanknoteDetections& detections)
         Model& model = models[c];
         ClassDetections& detections = classDetections[c];
 
-        matcher->match(gpuImageDescriptors, model.features.descriptors[0], detections.matches);
+        matcher->match(gpuImageDescriptors, model.features.descriptors, detections.matches);
         numberOfMatches += detections.matches.size();
     }
 
@@ -206,7 +206,7 @@ void BanknoteDetector::hough4d(const Model& model, ClassDetections& detections)
 {
     /* Handy references */
     const std::vector<cv::DMatch> matches = detections.matches;
-    const std::vector<cv::KeyPoint> modelKeypoints = model.features.keypoints[0];
+    const std::vector<cv::KeyPoint> modelKeypoints = *reinterpret_cast<const std::vector<cv::KeyPoint>* >(&model.features.keypoints[0]);
 
     int maxVotes = 0;
 
@@ -296,7 +296,7 @@ void BanknoteDetector::drawAcceptedHough()
         ClassDetections& detections = classDetections[c];
 
         cv::Mat img_accepted;
-        cv::drawMatches(theGrayScaleImageEq, imageKeypoints, model.image, model.features.keypoints[0], detections.houghFilteredMatches, img_accepted);
+        cv::drawMatches(theGrayScaleImageEq, imageKeypoints, model.image, *reinterpret_cast<std::vector<cv::KeyPoint>* >(&model.features.keypoints[0]), detections.houghFilteredMatches, img_accepted);
 
         ColorRGBA color = debugColors[c];
         const std::vector<Eigen::Vector3f>& corners = model.corners;
@@ -304,9 +304,9 @@ void BanknoteDetector::drawAcceptedHough()
         for(const cv::DMatch& match : detections.houghFilteredMatches)
         {
             const cv::KeyPoint& queryKeypoint = imageKeypoints[match.queryIdx];
-            const cv::KeyPoint& trainKeypoint = model.features.keypoints[0][match.trainIdx];
+            const cv::KeyPoint& trainKeypoint = model.features.keypoints[match.trainIdx];
 
-            CIRCLE("module:BanknoteDetections:hough_keypoints", queryKeypoint.pt.x, queryKeypoint.pt.y, 5, 1, Drawings::ps_solid, color, Drawings::ps_solid, color);
+            CIRCLE("module:BanknoteDetections:hough_keypoints", queryKeypoint.pt.x, queryKeypoint.pt.y, 5, 1, Drawings::solidPen, color, Drawings::solidBrush, color);
 
             cv::Mat transform = getTransformAsMat(trainKeypoint, queryKeypoint);
             Eigen::Map<Eigen::Matrix<float, 3, 3, Eigen::RowMajor>> transform2(transform.ptr<float>());
