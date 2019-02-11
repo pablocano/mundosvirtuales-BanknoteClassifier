@@ -2,6 +2,7 @@
 #include "Tools/Comm/BanknoteClassifierMessageHandler.h"
 #include "Tools/Debugging/Debugging.h"
 #include "Tools/SystemCall.h"
+#include "Platform/File.h"
 
 MAKE_MODULE(BanknoteClassifierConfiguration, Common)
 
@@ -25,25 +26,16 @@ void BanknoteClassifierConfiguration::update(ColorModel& colorModel)
     theColorCalibration = 0;
   }
   
-  DEBUG_RESPONSE_ONCE("representation:ColorCalibration",
+  DEBUG_RESPONSE_ONCE("representation:ColorCalibration")
   {
-    OUTPUT(idColorCalibration, colorCalibration);
-  });
+    OUTPUT(idColorCalibration, bin, colorCalibration);
+  };
   
-  DEBUG_RESPONSE_ONCE("module:GroundTruthConfiguration:saveColorCalibration",
+  DEBUG_RESPONSE_ONCE("module:GroundTruthConfiguration:saveColorCalibration")
   {
     saveColorCalibration();
-  });
+  };
   
-}
-
-void BanknoteClassifierConfiguration::update(RobotsIdentifiers &robotsIdentifiers)
-{
-  if (theRobotsIdentifiers) {
-    robotsIdentifiers = *theRobotsIdentifiers;
-    delete theRobotsIdentifiers;
-    theRobotsIdentifiers = 0;
-  }
 }
 
 void BanknoteClassifierConfiguration::update(FrameInfo& frameInfo)
@@ -54,20 +46,41 @@ void BanknoteClassifierConfiguration::update(FrameInfo& frameInfo)
 
 void BanknoteClassifierConfiguration::readColorCalibration()
 {
-  cv::FileStorage inputFile(std::string(File::getGTDir())+"/Config/cubo.xml", cv::FileStorage::READ);
+    std::string name = "colorCalibration.cfg";
+
+    for(std::string& fullName : File::getFullNames(name))
+    {
+        File path(fullName, "r", false);
+        if(path.exists())
+        {
+            name = std::move(fullName);
+            break;
+        }
+    }
+    InMapFile stream(name);
+
+    if(stream.exists())
+        stream >> *theColorCalibration;
   
-  if (!theColorCalibration) {
-    theColorCalibration = new ColorCalibration();
-  }
-  
-  inputFile["colorCalibration"] >> *theColorCalibration;
+    if (!theColorCalibration)
+        theColorCalibration = new ColorCalibration();
 }
 
 void BanknoteClassifierConfiguration::writeColorCalibration()
 {
-  cv::FileStorage outputFile(std::string(File::getGTDir())+"/Config/cubo.xml", cv::FileStorage::WRITE);
-  
-  outputFile << "colorCalibration" << colorCalibration;
+    std::string name = "colorCalibration.cfg";
+
+    for(std::string& fullName : File::getFullNames(name))
+    {
+        File path(fullName, "r", false);
+        if(path.exists())
+        {
+            name = std::move(fullName);
+            break;
+        }
+    }
+    OutMapFile stream(name);
+    stream << colorCalibration;
 }
 
 void BanknoteClassifierConfiguration::saveColorCalibration()
@@ -77,37 +90,13 @@ void BanknoteClassifierConfiguration::saveColorCalibration()
   }
 }
 
-void BanknoteClassifierConfiguration::readRobotsIdentifiers()
-{
-  cv::FileStorage file( std::string(File::getGTDir())+"/Config/robotsIdentifiers.xml", cv::FileStorage::READ);
-  
-  cv::FileStorage teamsFile( std::string(File::getGTDir())+"/Config/teams.xml", cv::FileStorage::READ);
-  
-  std::string teams[2] = {"teamBlue","teamRed"};
-  
-  theRobotsIdentifiers = new RobotsIdentifiers();
-  
-  theRobotsIdentifiers->identifiers.clear();
-  
-  for (int i = 0; i < 2; i++) {
-    for (int j = 0; j < 5; j++) {
-      std::string name = "robot";
-      name = name + std::to_string(j+1);
-      Color leftColor = (Color)((int)file[teams[i]][name]["leftShoulder"]);
-      Color rightColor = (Color)((int)file[teams[i]][name]["rightShoulder"]);
-      RobotsIdentifiers::Identifier robot = {leftColor,rightColor,(int)(teamsFile[teams[i]]["teamNumber"]),j + 1};
-      theRobotsIdentifiers->identifiers.push_back(robot);
-    }
-  }
-}
-
-bool BanknoteClassifierConfiguration::handleMessage(MessageQueue& message)
+bool BanknoteClassifierConfiguration::handleMessage(InMessage& message)
 {
   if(theInstance && message.getMessageID() == idColorCalibration)
   {
     if(!theInstance->theColorCalibration)
       theInstance->theColorCalibration = new ColorCalibration;
-    message >> *theInstance->theColorCalibration;
+    message.bin >> *theInstance->theColorCalibration;
     return true;
   }
   else

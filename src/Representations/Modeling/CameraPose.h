@@ -1,24 +1,24 @@
 #pragma once
-#include "Tools/Streamable.h"
+#include "Tools/Streams/AutoStreamable.h"
 #include "Tools/Math/Eigen.h"
-#include <opencv2/opencv.hpp>
-
-class CameraPose : public Streamable
+#include "Tools/Math/OpenCv.h"
+STREAMABLE(CameraPose,
 {
-public:
-
     void draw() const;
 
     void drawPose() const;
+    ,
+    (CvMat) rvec,
+    (CvMat) tvec,
 
-    cv::Mat rvec,tvec;
+    (CvMat) rotationMatrix,
+    (CvMat) rotationMatrixInv,
 
-    cv::Mat rotationMatrix, rotationMatrixInv;
+    (Vector3f) pos,
+    (Vector3f) rot,
+});
 
-	Eigen::Vector3f pos, rot;
-};
-
-class CameraPoseFiltered : public CameraPose
+STREAMABLE_WITH_BASE(CameraPoseFiltered, CameraPose,
 {
-    void draw() const;
-};
+    void draw() const,
+});

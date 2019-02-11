@@ -1,5 +1,6 @@
 #include "WorldCoordinatesPoseProvider.h"
 #include <opencv2/aruco.hpp>
+#include <opencv2/calib3d.hpp>
 
 MAKE_MODULE(WorldCoordinatesPoseProvider, BanknoteClassifier)
 
@@ -112,15 +113,15 @@ void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinates
 
         std::stringstream ss;
 
-        ss << "Banknote " << Classification::getName((Classification::Banknote)theBanknotePositionFiltered.banknote) <<  " \nPos:\n\t x: " << worldCoordinatesPose.translation.x() << "\n\t y: " << worldCoordinatesPose.translation.y() << "\n\t rot: " << worldCoordinatesPose.rotation.toDegrees() << "\nOffset:\n\tx: " << worldCoordinatesPose.pickOffset.x() << "\n\ty: " << worldCoordinatesPose.pickOffset.y() << "\nDropOffset:\n\tx: " << worldCoordinatesPose.dropOffset.x() << "\n\ty: " << worldCoordinatesPose.dropOffset.y() << "\n";
+        ss << "Banknote " << TypeRegistry::getEnumName((Classification::Banknote)theBanknotePositionFiltered.banknote) <<  " \nPos:\n\t x: " << worldCoordinatesPose.translation.x() << "\n\t y: " << worldCoordinatesPose.translation.y() << "\n\t rot: " << worldCoordinatesPose.rotation.toDegrees() << "\nOffset:\n\tx: " << worldCoordinatesPose.pickOffset.x() << "\n\ty: " << worldCoordinatesPose.pickOffset.y() << "\nDropOffset:\n\tx: " << worldCoordinatesPose.dropOffset.x() << "\n\ty: " << worldCoordinatesPose.dropOffset.y() << "\n";
         OUTPUT_TEXT(ss.str());
 
         worldCoordinatesPose.timeStamp = theFrameInfo.time;
 
-        DEBUG_RESPONSE("status:worldPose",
+        DEBUG_RESPONSE("status:worldPose")
         {
-            OUTPUT(idWorldPoseStatus,worldCoordinatesPose);
-        });
+            OUTPUT(idWorldPoseStatus,bin,worldCoordinatesPose);
+        };
 
     }
 

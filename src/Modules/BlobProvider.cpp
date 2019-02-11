@@ -48,7 +48,7 @@ void BlobProvider::createBlobs()
 
   // Iterate over all the segments found in the regionizer module, and leave only the color ones and the big ones
   for(auto const& segment: theRegions.regions)
-    if(segment.right.x() - segment.left.x() > minSegmentSize && !segment.color.is(none))
+    if(segment.right.x() - segment.left.x() > minSegmentSize && !segment.color.is(ColorClasses::none))
       segments.push_back(Segment(segment));
   
   // Remove old groups

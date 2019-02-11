@@ -9,7 +9,7 @@
 #include "Tools/ModuleManager/Module.h"
 #include "Tools/Fanuc/PacketEthernetIPFanuc.h"
 #include "Representations/RobotFanuc.h"
-#include "Tools/Messages/MessageQueue.h"
+#include "Tools/MessageQueue/MessageQueue.h"
 #include "Representations/FrameInfo.h"
 
 
@@ -44,7 +44,7 @@ private:
      * @param message the message to handle
      * @return if the message was handled or not
      */
-    bool handleMessage(MessageQueue &message);
+    bool handleMessage(InMessage &message);
 
 public:
 
@@ -53,9 +53,8 @@ public:
 	 */
     RobotFanucDataProvider();
 
-	/**
-	 * @brief Handler messages.
-	 */
+    /**
+     * @brief Handler messages.
+     */
     static void handleMessages(MessageQueue& messages);
-
 };

@@ -7,4 +7,3 @@ std::mt19937& Random::getGenerator()
 
   return generator;
 }
-

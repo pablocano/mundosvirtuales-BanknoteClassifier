@@ -25,6 +25,9 @@ bool handleKey(bool& pause)
 
 int main(int argc, char *argv[])
 {
+  // Acquire static data, e.g. about types
+  FunctionList::execute();
+
   BanknoteClassifier b;
   
   b.setGlobals();

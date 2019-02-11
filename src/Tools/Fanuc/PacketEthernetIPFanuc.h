@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Tools/Streams/AutoStreamable.h>
 #include <cstdint>
 #include <cstdlib>
 #include <string>
@@ -131,9 +132,9 @@
 #include <string.h>
 
 
-STRUCT_PACKET PacketEthernetIPFanuc{
-
-	int16_t magicNum;
+struct PacketEthernetIPFanuc : public Streamable{
+public:
+    int16_t magicNum;
 	int16_t command;
 	int32_t idPacket;
     int32_t reg;
@@ -426,6 +427,25 @@ STRUCT_PACKET PacketEthernetIPFanuc{
 		return strCom;
 
 	}
+
+protected:
+    void serialize(In* in,Out* out) override
+    {
+        STREAM(magicNum);
+        STREAM(command);
+        STREAM(idPacket);
+        STREAM(reg);
+        STREAM(idDevice);
+        STREAM(sizePayload);
+        if(in)
+        {
+            in->read(payload,MAX_SIZE_PAYLOAD);
+        }
+        if(out)
+        {
+            out->write(payload,MAX_SIZE_PAYLOAD);
+        }
+    }
 };
 
 #ifdef WINDOWS

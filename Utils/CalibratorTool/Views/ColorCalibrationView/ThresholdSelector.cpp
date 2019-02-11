@@ -34,7 +34,7 @@ ThresholdSelector::ThresholdSelector(const QString& name, ColorCalibrationWidget
 
 void ThresholdSelector::updateWidgets()
 {
-  if(parent->currentColor == white)
+  if(parent->currentColor == ColorClasses::white)
   {
     setEnabled(true);
     updateSlider(parent->colorCalibrationView.controller.colorCalibration.whiteThreshold);
@@ -51,7 +51,7 @@ void ThresholdSelector::setEnabled(bool value)
 
 void ThresholdSelector::updateColorCalibration(int value)
 {
-  if(parent->currentColor == white)
+  if(parent->currentColor == ColorClasses::white)
   {
     updateColorCalibration(value, parent->colorCalibrationView.controller.colorCalibration.whiteThreshold);
     parent->colorCalibrationView.controller.colorCalibrationChanged = true;

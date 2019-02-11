@@ -3,6 +3,7 @@
 #include "Tools/File.h"
 #include "Tools/Math/Eigen.h"
 #include "Tools/Math/Constants.h"
+#include <opencv2/opencv.hpp>
 
 MAKE_MODULE(ArucoPoseEstimator, CameraPose)
 
@@ -82,11 +83,17 @@ void ArucoPoseEstimator::update(CameraPose &cameraPose)
 
 			calculatePosAndRot(cameraPose);
 
-			COMPLEX_DRAWING("module:ArucoPoseEstimator:pose",{draw(cameraPose);});
+            COMPLEX_DRAWING("module:ArucoPoseEstimator:pose")
+            {
+                draw(cameraPose);
+            }
         }
 	}
 
-    DEBUG_RESPONSE_ONCE("module:ArucoPoseEstimator:saveCameraPose", saveCameraPose(cameraPose););
+    DEBUG_RESPONSE_ONCE("module:ArucoPoseEstimator:saveCameraPose")
+    {
+        saveCameraPose(cameraPose);
+    }
 }
 
 void ArucoPoseEstimator::saveCameraPose(CameraPose &cameraPose)
@@ -117,12 +124,12 @@ void ArucoPoseEstimator::draw(CameraPose &cameraPose)
     std::vector<cv::Point2f > imagePoints;
     cv::projectPoints(objectPoints, cameraPose.rvec, cameraPose.tvec, theCameraInfo.K, theCameraInfo.d, imagePoints);
 
-    LINE("module:ArucoPoseEstimator:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[1].x, imagePoints[1].y, 3, Drawings::ps_solid,ColorRGBA::blue);
-    LINE("module:ArucoPoseEstimator:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[2].x, imagePoints[2].y, 3, Drawings::ps_solid,ColorRGBA::red);
-    LINE("module:ArucoPoseEstimator:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[3].x, imagePoints[3].y, 3, Drawings::ps_solid,ColorRGBA::green);
+    LINE("module:ArucoPoseEstimator:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[1].x, imagePoints[1].y, 3, Drawings::solidPen,ColorRGBA::blue);
+    LINE("module:ArucoPoseEstimator:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[2].x, imagePoints[2].y, 3, Drawings::solidPen,ColorRGBA::red);
+    LINE("module:ArucoPoseEstimator:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[3].x, imagePoints[3].y, 3, Drawings::solidPen,ColorRGBA::green);
 }
 
-bool ArucoPoseEstimator::handleMessage(MessageQueue &message)
+bool ArucoPoseEstimator::handleMessage(InMessage &message)
 {
     return false;
 }

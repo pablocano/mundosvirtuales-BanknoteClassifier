@@ -1,10 +1,12 @@
 #include "CameraPoseProvider.h"
+#include "Platform/File.h"
+#include <opencv2/calib3d.hpp>
 
 MAKE_MODULE(CameraPoseProvider, BanknoteClassifier)
 
 CameraPoseProvider::CameraPoseProvider() : set(true)
 {
-    cv::FileStorage file(std::string(File::getGTDir()) + "/Config/cameraPose.yml", cv::FileStorage::READ);
+    cv::FileStorage file(std::string(File::getBCDir()) + "/Config/cameraPose.yml", cv::FileStorage::READ);
 
     file["rvec"] >> rvec;
     file["tvec"] >> tvec;

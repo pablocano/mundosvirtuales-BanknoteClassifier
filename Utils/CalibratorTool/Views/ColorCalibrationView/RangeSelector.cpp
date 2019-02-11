@@ -43,7 +43,7 @@ RangeSelector::RangeSelector(const QString& name, ColorCalibrationWidget* parent
 
 void RangeSelector::updateWidgets()
 {
-  if(parent->currentColor > white)
+  if(parent->currentColor > ColorClasses::white)
   {
     setEnabled(true);
     updateSlider(parent->colorCalibrationView.controller.colorCalibration.ranges[parent->currentColor]);
@@ -61,7 +61,7 @@ void RangeSelector::setEnabled(bool value)
 
 void RangeSelector::updateColorCalibration(int value, bool isMin)
 {
-  if(parent->currentColor > white)
+  if(parent->currentColor > ColorClasses::white)
   {
     updateColorCalibration(value, isMin, parent->colorCalibrationView.controller.colorCalibration.ranges[parent->currentColor]);
     parent->colorCalibrationView.controller.colorCalibrationChanged = true;

@@ -1,11 +1,12 @@
 #pragma once
 
+#include "Tools/Streams/AutoStreamable.h"
 #include <cstdint>
 #include <string>
 
 #define SIZE_POSITION_REGISTER 44
 
-struct PositionRegisterCartesian {
+struct PositionRegisterCartesian : public Streamable{
 
 	int16_t UT; // User Tool Number
 	int16_t UF; // User Frame Number
@@ -34,4 +35,32 @@ struct PositionRegisterCartesian {
 	void copyToBuffer(uint8_t *data);
 
 	std::string toString();
+
+    void serialize(In* in, Out* out) override
+    {
+        STREAM(UT);
+        STREAM(UF);
+        STREAM(x);
+        STREAM(y);
+        STREAM(z);
+        STREAM(w);
+        STREAM(p);
+        STREAM(r);
+        STREAM(Turn1);
+        STREAM(Turn2);
+        STREAM(Turn3);
+        STREAM(reserved);
+        STREAM(Front);
+        STREAM(Up);
+        STREAM(Left);
+        STREAM(Flip);
+        if(in)
+        {
+            in->read(EXT,3*sizeof(float));
+        }
+        if(out)
+        {
+            out->write(EXT,3*sizeof(float));
+        }
+    }
 };

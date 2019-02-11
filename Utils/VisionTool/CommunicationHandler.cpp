@@ -7,7 +7,7 @@
 //
 
 #include "CommunicationHandler.h"
-#include "Tools/MessageIDs.h"
+#include "Tools/MessageQueue/MessageIDs.h"
 #include <iostream>
 
 CommunicationHandler* CommunicationHandler::theInstance = 0;
@@ -18,7 +18,7 @@ CommunicationHandler::CommunicationHandler()
   theInstance = this;
 }
 
-bool CommunicationHandler::handleMessage(MessageQueue &message)
+bool CommunicationHandler::handleMessage(InMessage &message)
 {
   /*GroundTruthRobot robot;
   GroundTruthBall ball;

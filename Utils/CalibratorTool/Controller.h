@@ -28,7 +28,7 @@ class Controller : public MessageHandler{
   
 private:
   
-  virtual bool handleMessage(MessageQueue& message);
+  virtual bool handleMessage(InMessage &message);
   /**
    * Poll information of a certain kind if it needs updated.
    * @param id The information required.
@@ -91,7 +91,7 @@ public:
   ImageBGR westmage;
   ImageBGR* currentImage;
   
-  typedef std::unordered_map<std::string, DebugDrawing> Drawings;
+  using Drawings = std::unordered_map<std::string, DebugDrawing>;
   Drawings eastCamImageDrawings, westCamImageDrawings; /**< Buffers for image drawings from the debug queue. */
   
   Drawings* currentImageDrawings;

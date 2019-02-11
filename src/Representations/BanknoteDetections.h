@@ -8,13 +8,9 @@
 
 #pragma once
 
-#include "Tools/Streamable.h"
+#include "Tools/Streams/AutoStreamable.h"
 
-class BanknoteDetections : public Streamable
-{
-public:
-
-    BanknoteDetections(){}
-
-    int x = 0;
-};
+STREAMABLE(BanknoteDetections,
+{,
+    (int)(0) x;
+});

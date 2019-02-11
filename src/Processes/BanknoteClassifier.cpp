@@ -21,9 +21,8 @@
 BanknoteClassifier::BanknoteClassifier() :
 INIT_DEBUGGING,
 INIT_GROUND_TRUTH_COMM,
-moduleManager({"BanknoteClassifier","Segmentation","Common","BaslerCamera","Communication"}),
+moduleManager({ModuleBase::BanknoteClassifier,ModuleBase::Segmentation,ModuleBase::Common,ModuleBase::BaslerCamera,ModuleBase::Communication})
 //moduleManager({ "CameraPose","Communication","Common","BaslerCamera","Segmentation" }),
-pause(false)
 {
   theDebugOut.setSize(20200000);
   theDebugIn.setSize(2800000);
@@ -33,7 +32,7 @@ pause(false)
 
 void BanknoteClassifier::init()
 {
-  Global::theCommunicationOut = &theCommSender;
+  Global::theCommunicationOut = &theCommSender.out;
   START_BANKNOTE_CLASSIFIER_COMM;
   moduleManager.load();
 }
@@ -49,11 +48,14 @@ int BanknoteClassifier::main()
   int numberOfMessages = theDebugOut.getNumberOfMessages();
   
   char process = 'e';
-  OUTPUT(idProcessBegin, process);
+  OUTPUT(idProcessBegin, bin, process);
   
   moduleManager.execute();
   
-  DEBUG_RESPONSE_ONCE("automated requests:DrawingManager", OUTPUT(idDrawingManager, Global::getDrawingManager()););
+  DEBUG_RESPONSE_ONCE("automated requests:DrawingManager")
+  {
+      OUTPUT(idDrawingManager, bin, Global::getDrawingManager());
+  }
   
   if(Blackboard::getInstance().exists("CameraInfo"))
   {
@@ -64,14 +66,14 @@ int BanknoteClassifier::main()
   {
     // messages were sent in this frame -> send process finished
     if(Blackboard::getInstance().exists("CameraInfo") &&
-       ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).type == CameraInfo::Type::westCam)
+       ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).type == CameraInfo::CameraType::westCam)
     { // lower camera -> process called 'd'
       theDebugOut.patchMessage(numberOfMessages, 0, 'w');
       process = 'w';
     }
     else
       process = 'e';
-    OUTPUT(idProcessFinished, process);
+    OUTPUT(idProcessFinished, bin, process);
     
   }
   else if(theDebugOut.getNumberOfMessages() == numberOfMessages + 1)
@@ -80,7 +82,20 @@ int BanknoteClassifier::main()
   return 0;
 }
 
-bool BanknoteClassifier::handleMessage(MessageQueue &message)
+bool BanknoteClassifier::handleMessage(InMessage &message)
 {
-    return BanknoteClassifierConfiguration::handleMessage(message) || Process::handleMessage(message) || ArucoPoseEstimator::handleMessage(message);
+    switch(message.getMessageID())
+      {
+        case idModuleRequest:
+        {
+          unsigned timeStamp;
+          message.bin >> timeStamp;
+          moduleManager.update(message.bin, timeStamp);
+          return true;
+        }
+        default:
+          return BanknoteClassifierConfiguration::handleMessage(message) ||
+                 ArucoPoseEstimator::handleMessage(message) ||
+                 Process::handleMessage(message);
+      }
 }

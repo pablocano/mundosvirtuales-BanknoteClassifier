@@ -7,6 +7,7 @@
 #include "Tools/Math/Constants.h"
 #include "Tools/Math/Angle.h"
 #include "Tools/Debugging/DebugDrawings.h"
+#include <opencv2/calib3d.hpp>
 
 MAKE_MODULE(CameraPoseFilter, CameraPose)
 
@@ -64,7 +65,12 @@ void CameraPoseFilter::update(CameraPoseFiltered & cameraPoseFiltered)
 	if (theCameraPose.rotationMatrix.empty())
 	{
         if(!theCameraPose.rvec.empty())
-            COMPLEX_DRAWING("module:CameraPoseFilter:pose", {draw(cameraPoseFiltered);});
+        {
+            COMPLEX_DRAWING("module:CameraPoseFilter:pose")
+            {
+                draw(cameraPoseFiltered);
+            };
+        }
 		valid--;
 		return;
 	}
@@ -124,7 +130,10 @@ void CameraPoseFilter::update(CameraPoseFiltered & cameraPoseFiltered)
 
     cv::Rodrigues(R,cameraPoseFiltered.rvec);
 
-    COMPLEX_DRAWING("module:CameraPoseFilter:pose",{draw(cameraPoseFiltered);});
+    COMPLEX_DRAWING("module:CameraPoseFilter:pose")
+    {
+        draw(cameraPoseFiltered);
+    }
 
 	PositionRegisterCartesian pos;
 
@@ -149,10 +158,10 @@ void CameraPoseFilter::update(CameraPoseFiltered & cameraPoseFiltered)
 	PacketEthernetIPFanuc packetWrite(WRITE_POS, idPacket, 1);
 	pos.copyToBuffer(packetWrite.payload);
     packetWrite.sizePayload = sizeof(pos);
-    SEND_MESSAGE(idEthernetIPFanuc, packetWrite);
+    SEND_MESSAGE(idEthernetIPFanuc, bin, packetWrite);
 
     PacketEthernetIPFanuc packetReadReg(READ_REG, idPacket, REG_STATUS_AREA);
-    SEND_MESSAGE(idEthernetIPFanuc, packetReadReg);
+    SEND_MESSAGE(idEthernetIPFanuc, bin, packetReadReg);
 
 	RobotStatus::messageDelivered();
 
@@ -202,7 +211,7 @@ void CameraPoseFilter::draw(CameraPoseFiltered &cameraPose)
     std::vector<cv::Point2f > imagePoints;
     cv::projectPoints(objectPoints, cameraPose.rvec, cameraPose.tvec, theCameraInfo.K, theCameraInfo.d, imagePoints);
 
-    LINE("module:CameraPoseFilter:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[1].x, imagePoints[1].y, 7, Drawings::ps_solid,ColorRGBA::blue);
-    LINE("module:CameraPoseFilter:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[2].x, imagePoints[2].y, 7, Drawings::ps_solid,ColorRGBA::green);
-    LINE("module:CameraPoseFilter:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[3].x, imagePoints[3].y, 7, Drawings::ps_solid,ColorRGBA::red);
+    LINE("module:CameraPoseFilter:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[1].x, imagePoints[1].y, 7, Drawings::solidPen, ColorRGBA::blue);
+    LINE("module:CameraPoseFilter:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[2].x, imagePoints[2].y, 7, Drawings::solidPen, ColorRGBA::green);
+    LINE("module:CameraPoseFilter:pose",imagePoints[0].x, imagePoints[0].y, imagePoints[3].x, imagePoints[3].y, 7, Drawings::solidPen, ColorRGBA::red);
 }

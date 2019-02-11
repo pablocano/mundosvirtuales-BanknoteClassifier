@@ -67,12 +67,16 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/RobotStatus.h
   src/Modules/Segmentator.cpp
   src/Modules/Segmentator.h
-  src/Modules/TemplateInspection.cpp
-  src/Modules/TemplateInspection.h
   src/Modules/WorldCoordinatesPoseProvider.cpp
   src/Modules/WorldCoordinatesPoseProvider.h
+  src/Platform/BCAssert.cpp
+  src/Platform/BCAssert.h
+  src/Platform/File.cpp
+  src/Platform/File.h
   src/Platform/Memory.cpp
   src/Platform/Memory.h
+  src/Platform/Time.cpp
+  src/Platform/Time.h
   src/Processes/BanknoteClassifier.cpp
   src/Processes/BanknoteClassifier.h
   src/Processes/GripperCommunication.cpp
@@ -119,19 +123,34 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/Comm/Comm.h
   src/Tools/Comm/BanknoteClassifierMessageHandler.cpp
   src/Tools/Comm/BanknoteClassifierMessageHandler.h
+  src/Tools/Debugging/ColorRGBA.cpp
+  src/Tools/Debugging/ColorRGBA.h
+  src/Tools/Debugging/DebugDataStreamer.cpp
+  src/Tools/Debugging/DebugDataStreamer.h
+  src/Tools/Debugging/DebugDataTable.cpp
+  src/Tools/Debugging/DebugDataTable.h
+  src/Tools/Debugging/Debugging.h
+  src/Tools/Debugging/DebugDrawings.cpp
+  src/Tools/Debugging/DebugDrawings.h
   src/Tools/Debugging/Debugging.h
   src/Tools/Debugging/DebugRequest.cpp
   src/Tools/Debugging/DebugRequest.h
-  src/Tools/Debugging/DebugDrawings.cpp
-  src/Tools/Debugging/DebugDrawings.h
-  src/Tools/Enum.cpp
-  src/Tools/Enum.h
+  src/Tools/Debugging/Modify.h
+  src/Tools/Debugging/QueueFillRequest.cpp
+  src/Tools/Debugging/QueueFillRequest.h
+  src/Tools/Debugging/Stopwatch.h
+  src/Tools/Debugging/TimingManager.cpp
+  src/Tools/Debugging/TimingManager.h
   src/Tools/File.cpp
   src/Tools/File.h
+  src/Tools/Function.h
+  src/Tools/FunctionList.cpp
+  src/Tools/FunctionList.h
   src/Tools/Global.cpp
   src/Tools/Global.h
   src/Tools/Math/Angle.h
   src/Tools/Math/Constants.h
+  src/Tools/Math/OpenCv.h
   src/Tools/Math/Eigen.h
   src/Tools/Math/EigenArrayExtensions.h
   src/Tools/Math/EigenMatrixBaseExtensions.h
@@ -143,29 +162,52 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/Math/iou.h
   src/Tools/Math/Kalman.h
   src/Tools/Math/Kalman.cpp
-  src/Tools/Math/Pose2D.h
-  src/Tools/Math/Random.h
+  src/Tools/Math/Pose2f.h
   src/Tools/Math/Random.cpp
-  src/Tools/Math/Range.h
+  src/Tools/Math/Random.h
   src/Tools/Math/Transformation.cpp
   src/Tools/Math/Transformation.h
   src/Tools/Math/Vector2.h
-  src/Tools/Messages/MessageQueue.cpp
-  src/Tools/Messages/MessageQueue.h
+  src/Tools/MessageQueue/InMessage.cpp
+  src/Tools/MessageQueue/InMessage.h
+  src/Tools/MessageQueue/MessageIDs.h
+  src/Tools/MessageQueue/MessageQueue.cpp
+  src/Tools/MessageQueue/MessageQueue.h
+  src/Tools/MessageQueue/MessageQueueBase.cpp
+  src/Tools/MessageQueue/MessageQueueBase.h
+  src/Tools/MessageQueue/OutMessage.cpp
+  src/Tools/MessageQueue/OutMessage.h
   src/Tools/ModuleManager/Blackboard.cpp
   src/Tools/ModuleManager/Blackboard.h
   src/Tools/ModuleManager/Module.cpp
   src/Tools/ModuleManager/Module.h
   src/Tools/ModuleManager/ModuleManager.cpp
   src/Tools/ModuleManager/ModuleManager.h
+  src/Tools/Range.h
+  src/Tools/Streams/AutoStreamable.h
+  src/Tools/Streams/Eigen.h
+  src/Tools/Streams/Enum.h
+  src/Tools/Streams/EnumIndexedArray.h
+  src/Tools/Streams/InOut.cpp
+  src/Tools/Streams/InOut.h
+  src/Tools/Streams/InStreams.cpp
+  src/Tools/Streams/InStreams.h
+  src/Tools/Streams/OutStreams.cpp
+  src/Tools/Streams/OutStreams.h
+  src/Tools/Streams/SimpleMap.cpp
+  src/Tools/Streams/SimpleMap.h
+  src/Tools/Streams/Streamable.cpp
+  src/Tools/Streams/Streamable.h
+  src/Tools/Streams/TypeInfo.cpp
+  src/Tools/Streams/TypeInfo.h
+  src/Tools/Streams/TypeRegistry.cpp
+  src/Tools/Streams/TypeRegistry.h
   src/Tools/Process.cpp
   src/Tools/Process.h
   src/Tools/Settings.cpp
   src/Tools/Settings.h
-  src/Tools/Streamable.h
   src/Tools/SystemCall.cpp
   src/Tools/SystemCall.h
-  src/Tools/MessageIDs.h
 )
 
 
@@ -237,23 +279,21 @@ set( VISION_TOOL_SRC
   src/Tools/AlignedMemory.h
   src/Tools/Comm/BanknoteClassifierMessageHandler.cpp
   src/Tools/Comm/BanknoteClassifierMessageHandler.h
-  src/Tools/Enum.cpp
-  src/Tools/Enum.h
+  src/Tools/Streams/Enum.h
   src/Tools/File.cpp
   src/Tools/File.h
   src/Tools/Global.cpp
   src/Tools/Global.h
-  src/Tools/Math/Pose2D.h
+  src/Tools/Math/Pose2f.h
   src/Tools/Math/Vector2.h
-  src/Tools/Messages/MessageQueue.cpp
-  src/Tools/Messages/MessageQueue.h
+  src/Tools/MessageQueue/MessageQueue.cpp
+  src/Tools/MessageQueue/MessageQueue.h
   src/Tools/Settings.cpp
   src/Tools/Settings.h
-  src/Tools/Streamable.h
   src/Tools/SystemCall.cpp
   src/Tools/SystemCall.h
 
-  src/Tools/MessageIDs.h
+  src/Tools/MessageQueue/MessageIDs.h
 )
 
 set( LIBQXT_SRC_DIR Utils/libqxt)
@@ -301,7 +341,7 @@ source_group(Utils\\VisionTool REGULAR_EXPRESSION "Utils/VisionTool/*")
 if(WIN32)
 	set(CMAKE_CXX_STANDARD 11)
 else()
-	set(CMAKE_CXX_FLAGS "-std=c++11")
+        set(CMAKE_CXX_FLAGS "-std=c++14")
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

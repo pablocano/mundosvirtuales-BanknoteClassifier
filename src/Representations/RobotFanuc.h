@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include "Tools/Streamable.h"
-#include "Tools/Enum.h"
+#include "Tools/Streams/AutoStreamable.h"
+#include "Tools/Streams/Enum.h"
 #include "Tools/Fanuc/PositionRegisterCartesian.h"
-#include "Tools/Messages/MessageQueue.h"
+#include "Tools/MessageQueue/MessageQueue.h"
 
 #include <map>
 
@@ -105,7 +105,13 @@ public:
 	*/
 	void setRobotModel(RobotModelFanuc& _robotModel);
 
-
+protected:
+    /**
+     * @brief serialize
+     * @param in
+     * @param out
+     */
+    void serialize(In* in, Out* out) override;
 };
 
 /**
@@ -124,5 +130,6 @@ MessageQueue& operator>>(MessageQueue& stream, RobotFanuc& image);
  */
 MessageQueue& operator<<(MessageQueue& stream, RobotFanuc& image);
 
-
-class DummyComm : public Streamable {};
+STREAMABLE(DummyComm,
+{,
+});

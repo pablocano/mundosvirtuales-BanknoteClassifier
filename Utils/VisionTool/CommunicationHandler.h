@@ -7,7 +7,7 @@
 //
 
 #pragma once
-#include "Tools/Messages/MessageQueue.h"
+#include "Tools/MessageQueue/MessageQueue.h"
 #include "Representations/BanknoteClassifierMessages.h"
 #include <vector>
 
@@ -16,7 +16,7 @@ private:
   
   static CommunicationHandler* theInstance;
   
-  bool handleMessage(MessageQueue& message);
+  bool handleMessage(InMessage& message);
   
 public:
   

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Platform/BCAssert.h" // Our Eigen extensions use ASSERT
+
 // Extend the Eigen classes with our own methods (see: http://eigen.tuxfamily.org/dox-devel/TopicCustomizingEigen.html)
 #define EIGEN_MATRIXBASE_PLUGIN "Tools/Math/EigenMatrixBaseExtensions.h"
 #define EIGEN_ARRAY_PLUGIN "Tools/Math/EigenArrayExtensions.h"
@@ -10,7 +12,9 @@
 #define WARN_UNUSED_RESULT __attribute__ ((warn_unused_result))
 #endif
 
+#include <Eigen/StdVector>
 #include <Eigen/Dense>
+#include "Tools/Streams/Eigen.h"
 
 class Angle;
 

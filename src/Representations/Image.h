@@ -1,42 +1,40 @@
 
 #pragma once
-#include "Tools/Streamable.h"
-#include "Tools/Messages/MessageQueue.h"
-#include <opencv2/core/core.hpp>
+#include "Tools/Streams/AutoStreamable.h"
+#include "Tools/MessageQueue/MessageQueue.h"
+#include "Tools/Math/OpenCv.h"
 
-class Image : public cv::Mat, public Streamable {};
+STREAMABLE_WITH_BASE(Image, CvMat,
+{,
+});
 
-class GrayScaleImage : public cv::Mat, public Streamable {};
+STREAMABLE_WITH_BASE(GrayScaleImage, CvMat,
+{,
+});
 
-class GrayScaleImageEq : public cv::Mat, public Streamable {};
+STREAMABLE_WITH_BASE(GrayScaleImageEq, CvMat,
+{,
+});
 
-class SegmentedImage : public cv::Mat, public Streamable {
-public:
-  SegmentedImage() : cv::Mat(), timeStamp(0) {}
-  
-  SegmentedImage(const cv::Mat& m) : cv::Mat(m), timeStamp(0) {}
-  
-  unsigned timeStamp;
-};
-
-class MovementImage : public cv::Mat, public Streamable {
-public:
-  MovementImage() : cv::Mat() {}
-  
-  void draw() const;
-  
-  MovementImage(const cv::Mat& m) : cv::Mat(m) {}
-};
-
-class ImageBGR : public cv::Mat, public Streamable
+STREAMABLE_WITH_BASE(SegmentedImage, CvMat,
 {
-public:
-  ImageBGR() : cv::Mat(), timeStamp(0) {}
-  
-  ImageBGR(const cv::Mat& m) : cv::Mat(m), timeStamp(0) {}
-  
-  unsigned timeStamp;
-};
+    void operator=(const cv::Mat& other) {CvMat::operator=(other);},
+    (unsigned)(0) timeStamp,
+});
+
+STREAMABLE_WITH_BASE(MovementImage, CvMat,
+{
+   void draw() const;
+   ,
+});
+
+STREAMABLE_WITH_BASE(ImageBGR, CvMat,
+{
+    ImageBGR() = default;
+    ImageBGR(const cv::Mat& other);
+    void operator=(const cv::Mat& other) {CvMat::operator=(other);},
+    (unsigned)(0) timeStamp,
+});
 
 /**
  * Streaming operator that reads a DebugRequest from a stream.
@@ -44,7 +42,7 @@ public:
  * @param debugRequest The DebugRequest object.
  * @return The stream.
  */
-MessageQueue& operator>>(MessageQueue& stream, ImageBGR& image);
+//MessageQueue& operator>>(MessageQueue& stream, ImageBGR& image);
 
 /**
  * Streaming operator that writes a DebugRequest to a stream.
@@ -52,7 +50,7 @@ MessageQueue& operator>>(MessageQueue& stream, ImageBGR& image);
  * @param debugRequest The DebugRequest object.
  * @return The stream.
  */
-MessageQueue& operator<<(MessageQueue& stream, ImageBGR& image);
+//MessageQueue& operator<<(MessageQueue& stream, ImageBGR& image);
 
 /**
  * Streaming operator that reads a DebugRequest from a stream.
@@ -60,7 +58,7 @@ MessageQueue& operator<<(MessageQueue& stream, ImageBGR& image);
  * @param debugRequest The DebugRequest object.
  * @return The stream.
  */
-MessageQueue& operator>>(MessageQueue& stream, SegmentedImage& segmentedImage);
+//MessageQueue& operator>>(MessageQueue& stream, SegmentedImage& segmentedImage);
 
 /**
  * Streaming operator that writes a DebugRequest to a stream.
@@ -68,10 +66,10 @@ MessageQueue& operator>>(MessageQueue& stream, SegmentedImage& segmentedImage);
  * @param debugRequest The DebugRequest object.
  * @return The stream.
  */
-MessageQueue& operator<<(MessageQueue& stream, const SegmentedImage& segmentedImage);
+//MessageQueue& operator<<(MessageQueue& stream, const SegmentedImage& segmentedImage);
 
-MessageQueue& operator<<(MessageQueue& stream, SegmentedImage& segmentedImage);
+//MessageQueue& operator<<(MessageQueue& stream, SegmentedImage& segmentedImage);
 
-MessageQueue& operator>>(MessageQueue& stream, cv::Mat& image);
+//MessageQueue& operator>>(MessageQueue& stream, cv::Mat& image);
 
-MessageQueue& operator<<(MessageQueue& stream, cv::Mat& image);
+//MessageQueue& operator<<(MessageQueue& stream, cv::Mat& image);

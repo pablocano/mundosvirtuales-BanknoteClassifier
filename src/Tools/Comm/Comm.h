@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Tools/Messages/MessageQueue.h"
+#include "Tools/MessageQueue/MessageQueue.h"
 #include "Tools/Global.h"
 
 /**
@@ -9,6 +9,6 @@
  * @param format The message format of the message (bin or text).
  * @param expression A streamable expression.
  */
-#define SEND_MESSAGE(type,expression) \
-{ Global::geCommunicationOut() << expression; \
+#define SEND_MESSAGE(type, format, expression) \
+{ Global::geCommunicationOut().format << expression; \
 Global::geCommunicationOut().finishMessage(type); }

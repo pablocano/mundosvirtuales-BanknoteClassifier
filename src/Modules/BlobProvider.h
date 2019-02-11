@@ -11,7 +11,6 @@ MODULE(BlobProvider,
   REQUIRES(CameraInfo),
   REQUIRES(PreviousBanknotePosition),
   REQUIRES(Regions),
-
   PROVIDES(Blobs),
 });
 
