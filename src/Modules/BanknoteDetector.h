@@ -74,9 +74,11 @@ public:
     Eigen::Vector3f graspPoint;
     int ransacVotes;
     float graspScore;
+    float maxIOU;
     bool validTransform;
     bool validNms;
     bool validGrasp;
+    bool foreground;
 };
 
 class ClassDetections
@@ -179,8 +181,8 @@ protected:
     Eigen::Matrix3f getTransformAsMatrix(const cv::KeyPoint& src, const cv::KeyPoint& dst);
     inline void getTransform(const cv::KeyPoint& src, const cv::KeyPoint& dst, float& tx, float& ty, float& angleDegrees, float& e);
 
-    int getRansacConsensus(const Eigen::Matrix3f& transform, const std::vector<cv::DMatch>& matches, const std::vector<cv::KeyPoint>& trainKeypoints, const std::vector<cv::KeyPoint>& queryKeypoints, float maxError);
-    void getRansacInliers(const Eigen::Matrix3f& transform, const std::vector<cv::DMatch>& matches, std::vector<cv::DMatch>& acceptedMatchesfloat, const std::vector<cv::KeyPoint>& trainKeypoints, const std::vector<cv::KeyPoint>& queryKeypoints, float maxError, float maxError2, Eigen::VectorXi& acceptedStatus);
+    int getRansacConsensus(const Eigen::Matrix3f& transform, const std::vector<cv::DMatch>& matches, const std::vector<cv::KeyPoint>& trainKeypoints, const std::vector<cv::KeyPoint>& queryKeypoints, float maxError, const Eigen::VectorXi& acceptedStatus);
+    void getRansacInliers(const Eigen::Matrix3f& transform, const std::vector<cv::DMatch>& matches, const std::vector<cv::KeyPoint>& trainKeypoints, const std::vector<cv::KeyPoint>& queryKeypoints, float maxError, float maxError2, Eigen::VectorXi& acceptedStatus, std::vector<cv::DMatch>& acceptedMatchesfloat);
 
     void drawAcceptedHough();
     void drawAcceptedRansac();

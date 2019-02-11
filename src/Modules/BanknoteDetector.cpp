@@ -29,9 +29,11 @@ Hypothesys::Hypothesys() :
     graspPoint(Eigen::Vector3f::Identity()),
     ransacVotes(0),
     graspScore(0),
+    maxIOU(0.f),
     validTransform(true),
     validGrasp(true),
-    validNms(true)
+    validNms(true),
+    foreground(true)
 {
 }
 
@@ -112,7 +114,8 @@ void BanknoteDetector::update(BanknoteDetections& detections)
     DECLARE_DEBUG_DRAWING("module:BanknoteDetections:hough_keypoints", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteDetections:hough_detections", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteDetections:ransac_detections", "drawingOnImage");
-    DECLARE_DEBUG_DRAWING("module:BanknoteDetections:transform_detections", "drawingOnImage");
+    DECLARE_DEBUG_DRAWING("module:BanknoteDetections:hypotheses_detections", "drawingOnImage");
+    DECLARE_DEBUG_DRAWING("module:BanknoteDetections:hypotheses_info", "drawingOnImage");
 
     OUTPUT_TEXT("---------------------");
 
@@ -374,8 +377,8 @@ void BanknoteDetector::ransac(const Model& model, ClassDetections& detections)
 
     /* Parameters should depend on the model dimensions */
     float maxError = 20.f;
-    float maxError2 = 35.f;
-    int minConsensus = 10;
+    float maxError2 = 30.f;
+    int minConsensus = 15;
     float numberOfTrials = 50;
 
     float numberOfAcceptedMatches = 0;
@@ -401,15 +404,20 @@ void BanknoteDetector::ransac(const Model& model, ClassDetections& detections)
         const cv::KeyPoint& imageKeypoint = imageKeypoints[match.queryIdx];
         const cv::KeyPoint& modelKeypoint = model.features.keypoints[match.trainIdx];
 
-        Eigen::Matrix3f transform = getTransformAsMatrix(imageKeypoint, modelKeypoint);
+        const Eigen::Matrix3f transform = getTransformAsMatrix(imageKeypoint, modelKeypoint);
 
-        int consensus = getRansacConsensus(transform, detections.houghFilteredMatches, model.features.keypoints, imageKeypoints, maxError);
+        int consensus = getRansacConsensus(transform, detections.houghFilteredMatches, model.features.keypoints, imageKeypoints, maxError, acceptedStatus);
         //int consensus = 0;
         if(consensus > minConsensus)
         {
             detections.hypotheses.push_back(Hypothesys());
-            getRansacInliers(transform, detections.houghFilteredMatches, detections.hypotheses.back().matches, model.features.keypoints, imageKeypoints, maxError, maxError2, acceptedStatus);
-            detections.hypotheses.back().ransacVotes = consensus;
+
+            Hypothesys& newHypothesys = detections.hypotheses.back();
+
+            getRansacInliers(transform, detections.houghFilteredMatches, model.features.keypoints, imageKeypoints, maxError, maxError2, acceptedStatus, newHypothesys.matches);
+            newHypothesys.ransacVotes = consensus;
+
+            assert(newHypothesys.ransacVotes == newHypothesys.matches.size());
         }
     }
 }
@@ -419,7 +427,8 @@ int BanknoteDetector::getRansacConsensus(
         const std::vector<cv::DMatch>& matches,
         const std::vector<cv::KeyPoint>& trainKeypoints,
         const std::vector<cv::KeyPoint>& queryKeypoints,
-        float maxError)
+        float maxError,
+        const Eigen::VectorXi& acceptedStatus)
 {
     int concensus = 0;
 
@@ -427,8 +436,13 @@ int BanknoteDetector::getRansacConsensus(
     trainPoint.z() = 1.f;
     queryPoint.z() = 1.f;
 
-    for(const cv::DMatch& match : matches)
+    for(int index = 0; index < matches.size(); index++)
     {
+        const cv::DMatch& match = matches[index];
+
+        if(acceptedStatus(index) == 1)
+            continue;
+
         const cv::KeyPoint& trainKeypoint = trainKeypoints[match.trainIdx];
         const cv::KeyPoint& queryKeypoint = queryKeypoints[match.queryIdx];
 
@@ -452,12 +466,12 @@ int BanknoteDetector::getRansacConsensus(
 void BanknoteDetector::getRansacInliers(
         const Eigen::Matrix3f& transform,
         const std::vector<cv::DMatch>& matches,
-        std::vector<cv::DMatch>& acceptedMatches,
         const std::vector<cv::KeyPoint>& trainKeypoints,
         const std::vector<cv::KeyPoint>& queryKeypoints,
         float maxError,
         float maxError2,
-        Eigen::VectorXi& acceptedStatus)
+        Eigen::VectorXi& acceptedStatus,
+        std::vector<cv::DMatch>& acceptedMatches)
 {
 
     Eigen::Vector3f trainPoint, queryPoint, projection;
@@ -590,14 +604,6 @@ void BanknoteDetector::estimateTransforms(const Model& model, ClassDetections& d
 
         h.pose = Pose2f((end2d - start2d).angle(), start2d);
 
-        std::vector<Vector2f> inliers(queryPoints.size());
-
-        for(int i = 0; i < queryPoints.size(); i++)
-            inliers[i] = Vector2f(queryPoints[i].x, queryPoints[i].y);
-
-        Vector2f median = Geometry::geometricMedian(inliers);
-
-        h.graspPoint = Vector3f(median.x(), median.y(), 1.f);
     }
 }
 
@@ -623,7 +629,7 @@ void BanknoteDetector::nonMaximumSupression(const Model& model, ClassDetections&
             p1[i].y = corners2[i].y();
         }
 
-        std::sort(std::begin(p1), std::end(p1), compareAngle);
+        //std::sort(std::begin(p1), std::end(p1), compareAngle);
 
         IOU::Quad q1(p1);
 
@@ -644,13 +650,16 @@ void BanknoteDetector::nonMaximumSupression(const Model& model, ClassDetections&
                 p2[i].y = corners2[i].y();
             }
 
-            std::sort(std::begin(p2), std::end(p2), compareAngle);
+            //std::sort(std::begin(p2), std::end(p2), compareAngle);
 
             IOU::Quad q2(p2);
 
             float iou = IOU::iou(q1, q2);
 
-            if(iou > 0.8f) /* Great overlap is probably just duplicated detections*/
+            h1.maxIOU = std::max(h1.maxIOU, iou);
+            h2.maxIOU = std::max(h2.maxIOU, iou);
+
+            if(iou > 0.6f) /* Great overlap is probably just duplicated detections*/
             {
                 if(h1.ransacVotes >= h2.ransacVotes)
                 {
@@ -672,6 +681,35 @@ void BanknoteDetector::evaluateGraspingScore(const Model& model, ClassDetections
 {
     for(Hypothesys& h : detections.hypotheses)
     {
+        std::vector<Vector2f> inliers;
+        inliers.reserve(h.matches.size());
+
+        for(const cv::DMatch& match : h.matches)
+        {
+            cv::Point2f p = model.features.keypoints[match.trainIdx].pt;
+
+            bool s1 = p.x < graspRadius;
+            bool s2 = p.x > model.image.cols - graspRadius;
+            bool s3 = p.y < graspRadius;
+            bool s4 = p.y > model.image.rows - graspRadius;
+
+            if(s1 || s2 || s3 || s4)
+                continue;
+
+            inliers.push_back(Vector2f(p.x, p.y));
+        }
+
+        if(inliers.size() == 0)
+        {
+            h.validGrasp = false;
+            h.graspScore = 0;
+            continue;
+        }
+
+        Vector2f median = Geometry::geometricMedian(inliers);
+
+        h.graspPoint = h.transform * Vector3f(median.x(), median.y(), 1.f);
+
         Vector3f reprojection = h.transform.inverse()*h.graspPoint;
 
         float score = 0.5f*std::sqrt(model.image.cols*model.image.cols + model.image.rows*model.image.rows);
@@ -682,7 +720,6 @@ void BanknoteDetector::evaluateGraspingScore(const Model& model, ClassDetections
 
         score = std::min(score, std::min(score1, std::min(score2, std::min(score3, score4)))) - graspRadius;
 
-        h.validGrasp = score > 0.f;
         h.graspScore = score;
     }
 
@@ -696,8 +733,8 @@ void BanknoteDetector::drawAcceptedHough()
         Model& model = models[c];
         ClassDetections& detections = classDetections[c];
 
-        cv::Mat img_accepted;
-        cv::drawMatches(theGrayScaleImageEq, imageKeypoints, model.image, model.features.keypoints, detections.houghFilteredMatches, img_accepted);
+        //cv::Mat img_accepted;
+        //cv::drawMatches(theGrayScaleImageEq, imageKeypoints, model.image, model.features.keypoints, detections.houghFilteredMatches, img_accepted);
 
         ColorRGBA color = debugColors[c];
         const Eigen::Vector3f (&corners)[CornerID::numOfCornerIDs] = model.corners;
@@ -718,17 +755,17 @@ void BanknoteDetector::drawAcceptedHough()
             for(int i = 0; i < CornerID::numOfRealCorners - 1; i++)
             {
                 LINE("module:BanknoteDetections:hough_detections", corners2[i].x(), corners2[i].y() , corners2[i + 1].x(), corners2[i + 1].y(), 3, Drawings::dot, color);
-                cv::line (img_accepted, cv::Point(corners2[i].x(), corners2[i].y()), cv::Point(corners2[i + 1].x(), corners2[i + 1].y()), 255);
+                //cv::line (img_accepted, cv::Point(corners2[i].x(), corners2[i].y()), cv::Point(corners2[i + 1].x(), corners2[i + 1].y()), 255);
             }
 
             LINE("module:BanknoteDetections:hough_detections", corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y() , corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y(), 3, Drawings::dot, color);
-            cv::line (img_accepted, cv::Point(corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y()), cv::Point(corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y()), 255);
+            //cv::line (img_accepted, cv::Point(corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y()), cv::Point(corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y()), 255);
 
             CIRCLE("module:BanknoteDetections:hough_keypoints", queryKeypoint.pt.x, queryKeypoint.pt.y, 8, 1, Drawings::solidPen, ColorRGBA::white, Drawings::solidBrush, ColorRGBA::white);
             CIRCLE("module:BanknoteDetections:hough_keypoints", queryKeypoint.pt.x, queryKeypoint.pt.y, 5, 1, Drawings::solidPen, color, Drawings::solidBrush, color);
         }
 
-        imwrite("hough_" + std::to_string(c) + ".jpg", img_accepted);
+        //imwrite("hough_" + std::to_string(c) + ".jpg", img_accepted);
     }
 }
 
@@ -740,7 +777,7 @@ void BanknoteDetector::drawAcceptedRansac()
         Model& model = models[c];
         ClassDetections& detections = classDetections[c];
 
-        cv::Mat img_accepted = theGrayScaleImageEq.clone();
+        //cv::Mat img_accepted = theGrayScaleImageEq.clone();
 
         ColorRGBA color = debugColors[c];
         const Eigen::Vector3f (&corners)[CornerID::numOfCornerIDs] = model.corners;
@@ -764,17 +801,17 @@ void BanknoteDetector::drawAcceptedRansac()
                 for(int i = 0; i < CornerID::numOfRealCorners - 1; i++)
                 {
                     LINE("module:BanknoteDetections:ransac_detections", corners2[i].x(), corners2[i].y() , corners2[i + 1].x(), corners2[i + 1].y(), 3, Drawings::dot, color);
-                    cv::line (img_accepted, cv::Point(corners2[i].x(), corners2[i].y()), cv::Point(corners2[i + 1].x(), corners2[i + 1].y()), 255);
+                    //cv::line (img_accepted, cv::Point(corners2[i].x(), corners2[i].y()), cv::Point(corners2[i + 1].x(), corners2[i + 1].y()), 255);
                 }
 
                 LINE("module:BanknoteDetections:ransac_detections", corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y() , corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y(), 3, Drawings::dot, color);
-                cv::line (img_accepted, cv::Point(corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y()), cv::Point(corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y()), 255);
+                //cv::line (img_accepted, cv::Point(corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y()), cv::Point(corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y()), 255);
 
 
             }
         }
 
-        imwrite("ransac_" + std::to_string(c) + ".jpg", img_accepted);
+        //imwrite("ransac_" + std::to_string(c) + ".jpg", img_accepted);
     }
 }
 
@@ -786,7 +823,7 @@ void BanknoteDetector::drawAcceptedHypotheses()
         Model& model = models[c];
         ClassDetections& detections = classDetections[c];
 
-        cv::Mat img_accepted = theGrayScaleImageEq.clone();
+        //cv::Mat img_accepted = theGrayScaleImageEq.clone();
 
         ColorRGBA color = debugColors[c];
         const Eigen::Vector3f (&corners)[CornerID::numOfCornerIDs] = model.corners;
@@ -796,15 +833,15 @@ void BanknoteDetector::drawAcceptedHypotheses()
             ColorRGBA color2 = h.validTransform ? color : ColorRGBA::white;
             Eigen::Vector3f corners2[CornerID::numOfRealCorners];
 
-            if(!h.isValid())
-                continue;
+            //if(!h.isValid())
+            //    continue;
 
             for(const cv::DMatch& match : h.matches)
             {
                 const cv::Point& pt = imageKeypoints[match.queryIdx].pt;
 
-                CIRCLE("module:BanknoteDetections:transform_detections", pt.x, pt.y, 8, 1, Drawings::solidPen, ColorRGBA::white, Drawings::solidBrush, ColorRGBA::white);
-                CIRCLE("module:BanknoteDetections:transform_detections", pt.x, pt.y, 5, 1, Drawings::solidPen, color, Drawings::solidBrush, color);
+                CIRCLE("module:BanknoteDetections:hypotheses_detections", pt.x, pt.y, 8, 1, Drawings::solidPen, ColorRGBA::white, Drawings::solidBrush, ColorRGBA::white);
+                CIRCLE("module:BanknoteDetections:hypotheses_detections", pt.x, pt.y, 5, 1, Drawings::solidPen, color, Drawings::solidBrush, color);
             }
 
             for(int i = 0; i < CornerID::numOfRealCorners; i++)
@@ -814,13 +851,13 @@ void BanknoteDetector::drawAcceptedHypotheses()
 
             for(int i = 0; i < CornerID::numOfRealCorners - 1; i++)
             {
-                LINE("module:BanknoteDetections:transform_detections", corners2[i].x(), corners2[i].y() , corners2[i + 1].x(), corners2[i + 1].y(), 10, Drawings::solidPen, ColorRGBA(255,255,255,128));
-                LINE("module:BanknoteDetections:transform_detections", corners2[i].x(), corners2[i].y() , corners2[i + 1].x(), corners2[i + 1].y(), 4, Drawings::solidPen, color2);
-                cv::line (img_accepted, cv::Point(corners2[i].x(), corners2[i].y()), cv::Point(corners2[i + 1].x(), corners2[i + 1].y()), 255);
+                LINE("module:BanknoteDetections:hypotheses_detections", corners2[i].x(), corners2[i].y() , corners2[i + 1].x(), corners2[i + 1].y(), 10, Drawings::solidPen, ColorRGBA(255,255,255,128));
+                LINE("module:BanknoteDetections:hypotheses_detections", corners2[i].x(), corners2[i].y() , corners2[i + 1].x(), corners2[i + 1].y(), 4, Drawings::solidPen, color2);
+                //cv::line (img_accepted, cv::Point(corners2[i].x(), corners2[i].y()), cv::Point(corners2[i + 1].x(), corners2[i + 1].y()), 255);
             }
 
-            LINE("module:BanknoteDetections:transform_detections", corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y() , corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y(), 10, Drawings::solidPen, ColorRGBA(255,255,255,128));
-            LINE("module:BanknoteDetections:transform_detections", corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y() , corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y(), 4, Drawings::solidPen, color2);
+            LINE("module:BanknoteDetections:hypotheses_detections", corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y() , corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y(), 10, Drawings::solidPen, ColorRGBA(255,255,255,128));
+            LINE("module:BanknoteDetections:hypotheses_detections", corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y() , corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y(), 4, Drawings::solidPen, color2);
 
 
             Vector3f start = model.corners[CornerID::MiddleMiddle];
@@ -829,23 +866,36 @@ void BanknoteDetector::drawAcceptedHypotheses()
             start = h.transform * start;
             end = h.transform * end;
 
-            ARROW("module:BanknoteDetections:transform_detections", start.x(), start.y(), end.x(), end.y(), 8, Drawings::solidPen, ColorRGBA::white);
-            ARROW("module:BanknoteDetections:transform_detections", start.x(), start.y(), end.x(), end.y(), 5, Drawings::solidPen, color);
+            ARROW("module:BanknoteDetections:hypotheses_detections", start.x(), start.y(), end.x(), end.y(), 8, Drawings::solidPen, ColorRGBA::white);
+            ARROW("module:BanknoteDetections:hypotheses_detections", start.x(), start.y(), end.x(), end.y(), 5, Drawings::solidPen, color);
 
-            ColorRGBA colorGrasp = h.validGrasp ? color : ColorRGBA::white;
-            CIRCLE("module:BanknoteDetections:transform_detections", h.graspPoint.x(), h.graspPoint.y(), graspRadius, 8, Drawings::solidPen, ColorRGBA::white, Drawings::noBrush, ColorRGBA::white);
-            CIRCLE("module:BanknoteDetections:transform_detections", h.graspPoint.x(), h.graspPoint.y(), graspRadius, 5, Drawings::solidPen, colorGrasp, Drawings::noBrush, color);
+            ColorRGBA colorGrasp = h.validGrasp ? color : ColorRGBA(255,255,255,0);
+            ColorRGBA colorGrasp2 = h.validGrasp ? ColorRGBA::white : ColorRGBA(255,255,255,0);
+            CIRCLE("module:BanknoteDetections:hypotheses_detections", h.graspPoint.x(), h.graspPoint.y(), graspRadius, 8, Drawings::solidPen, colorGrasp2, Drawings::noBrush, ColorRGBA::white);
+            CIRCLE("module:BanknoteDetections:hypotheses_detections", h.graspPoint.x(), h.graspPoint.y(), graspRadius, 5, Drawings::solidPen, colorGrasp, Drawings::noBrush, color);
 
-            std::string text = std::to_string(h.ransacVotes);
-            Eigen::Vector3f middle(model.image.rows, model.image.cols, 1.f);
-            middle = h.transform * middle;
+            std::string ransac_votes_str = "RANSAC Votes: " + std::to_string(h.ransacVotes);
+            std::string hypotheses_points_str = "Points: " + std::to_string(h.matches.size());
+            std::string transform_str = "Transform: " + std::to_string(h.validTransform);
+            std::string nms_str = "NMS: " + std::to_string(h.validNms) + " | Max IOU: " + std::to_string(h.maxIOU);
+            std::string grasp_str = "Grasp: " + std::to_string(h.validGrasp);
+            std::string foreground_str = "Foreground: " + std::to_string(h.foreground);
+            ColorRGBA color_text = h.validNms ? ColorRGBA::white : ColorRGBA::black;
 
-            //DRAWTEXT("module:BanknoteDetections:transform_detections", middle.x(), middle.y(), 10, ColorRGBA::white, text);
+            float font = 20;
+            float step = font + 1;
 
-            cv::line (img_accepted, cv::Point(corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y()), cv::Point(corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y()), 255);
+            DRAWTEXT("module:BanknoteDetections:hypotheses_info", start.x(), start.y() + 0 * step, font, color_text, ransac_votes_str);
+            DRAWTEXT("module:BanknoteDetections:hypotheses_info", start.x(), start.y() + 1 * step, font, color_text, hypotheses_points_str);
+            DRAWTEXT("module:BanknoteDetections:hypotheses_info", start.x(), start.y() + 2 * step, font, color_text, transform_str);
+            DRAWTEXT("module:BanknoteDetections:hypotheses_info", start.x(), start.y() + 3 * step, font, color_text, nms_str);
+            DRAWTEXT("module:BanknoteDetections:hypotheses_info", start.x(), start.y() + 4 * step, font, color_text, grasp_str);
+            DRAWTEXT("module:BanknoteDetections:hypotheses_info", start.x(), start.y() + 5 * step, font, color_text, foreground_str);
+
+            //cv::line (img_accepted, cv::Point(corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y()), cv::Point(corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y()), 255);
 
         }
 
-        imwrite("transform_" + std::to_string(c) + ".jpg", img_accepted);
+        //imwrite("transform_" + std::to_string(c) + ".jpg", img_accepted);
     }
 }
