@@ -7,7 +7,7 @@ MAKE_MODULE(DummyImages, BanknoteClassifier);
 
 DummyImages::DummyImages()
 {
-    currentImage = cv::imread(std::string(File::getGTDir()) + "/Data/database/0009.jpg", cv::IMREAD_COLOR);
+    currentImage = cv::imread(std::string(File::getGTDir()) + "/Data/database/0003.bmp", cv::IMREAD_COLOR);
 }
 
 void DummyImages::update(Image& image)

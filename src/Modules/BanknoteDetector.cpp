@@ -291,7 +291,7 @@ void BanknoteDetector::hough4d(const Model& model, ClassDetections& detections)
     int maxVotes = 0;
 
     // Hough Parameters
-    double dxBin   = 30; // 60 pixels
+    double dxBin   = 45; // 60 pixels
     double dangBin = 30; // 30 degrees
     int votesTresh = 9;
 
@@ -375,8 +375,8 @@ void BanknoteDetector::ransac(const Model& model, ClassDetections& detections)
     /* Parameters should depend on the model dimensions */
     float maxError = 20.f;
     float maxError2 = 35.f;
-    int minConsensus = 20;
-    float numberOfTrials = 100;
+    int minConsensus = 10;
+    float numberOfTrials = 50;
 
     float numberOfAcceptedMatches = 0;
 
@@ -564,7 +564,7 @@ void BanknoteDetector::estimateTransforms(const Model& model, ClassDetections& d
 
 
         cv::Mat asd = cv::estimateAffinePartial2D(trainPoints, queryPoints, cv::noArray(),
-                                          cv::RANSAC, 3, 2000, 0.99, 10);
+                                          cv::RANSAC, 50, 1000, 0.95, 10);
         h.validTransform = !asd.empty();
 
         if(!asd.empty())
@@ -750,7 +750,7 @@ void BanknoteDetector::drawAcceptedRansac()
             for(const cv::DMatch& match : h.matches)
             {
                 cv::KeyPoint queryKeypoint = imageKeypoints[match.queryIdx];
-                cv::KeyPoint trainKeypoint = imageKeypoints[match.trainIdx];
+                cv::KeyPoint trainKeypoint = model.features.keypoints[0][match.trainIdx];
 
                 Eigen::Matrix3f transform = getTransformAsMatrix(trainKeypoint, queryKeypoint);
 
