@@ -64,7 +64,6 @@ private:
   // only a process is allowed to create the instance.
   friend class Process;
   friend class Controller;
-  friend class DrawingManager3D;
   friend In& operator>>(In& stream, DrawingManager&);
   friend Out& operator<<(Out& stream, const DrawingManager&);
 
