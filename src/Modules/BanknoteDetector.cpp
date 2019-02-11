@@ -814,13 +814,13 @@ void BanknoteDetector::drawAcceptedHypotheses()
 
             for(int i = 0; i < CornerID::numOfRealCorners - 1; i++)
             {
-                LINE("module:BanknoteDetections:transform_detections", corners2[i].x(), corners2[i].y() , corners2[i + 1].x(), corners2[i + 1].y(), 10, Drawings::dot, ColorRGBA(255,255,255,128));
-                LINE("module:BanknoteDetections:transform_detections", corners2[i].x(), corners2[i].y() , corners2[i + 1].x(), corners2[i + 1].y(), 4, Drawings::dot, color2);
+                LINE("module:BanknoteDetections:transform_detections", corners2[i].x(), corners2[i].y() , corners2[i + 1].x(), corners2[i + 1].y(), 10, Drawings::solidPen, ColorRGBA(255,255,255,128));
+                LINE("module:BanknoteDetections:transform_detections", corners2[i].x(), corners2[i].y() , corners2[i + 1].x(), corners2[i + 1].y(), 4, Drawings::solidPen, color2);
                 cv::line (img_accepted, cv::Point(corners2[i].x(), corners2[i].y()), cv::Point(corners2[i + 1].x(), corners2[i + 1].y()), 255);
             }
 
-            LINE("module:BanknoteDetections:transform_detections", corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y() , corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y(), 10, Drawings::dot, ColorRGBA(255,255,255,128));
-            LINE("module:BanknoteDetections:transform_detections", corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y() , corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y(), 4, Drawings::dot, color2);
+            LINE("module:BanknoteDetections:transform_detections", corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y() , corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y(), 10, Drawings::solidPen, ColorRGBA(255,255,255,128));
+            LINE("module:BanknoteDetections:transform_detections", corners2[CornerID::TopLeft].x(), corners2[CornerID::TopLeft].y() , corners2[CornerID::BottomLeft].x(), corners2[CornerID::BottomLeft].y(), 4, Drawings::solidPen, color2);
 
 
             Vector3f start = model.corners[CornerID::MiddleMiddle];
