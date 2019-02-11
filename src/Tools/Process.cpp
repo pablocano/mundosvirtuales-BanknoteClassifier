@@ -24,6 +24,8 @@ void Process::setGlobals()
   Global::theSettings = &settings;
   Global::theDrawingManager = &drawingManager;
   Global::theDebugRequestTable = &debugRequestTable;
+  Global::theDebugDataTable = &debugDataTable;
+  Global::theTimingManager = &timingManager;
   
   Blackboard::setInstance(blackboard);
 }

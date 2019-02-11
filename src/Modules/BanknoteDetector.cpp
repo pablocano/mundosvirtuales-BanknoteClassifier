@@ -206,7 +206,7 @@ void BanknoteDetector::hough4d(const Model& model, ClassDetections& detections)
 {
     /* Handy references */
     const std::vector<cv::DMatch> matches = detections.matches;
-    const std::vector<cv::KeyPoint> modelKeypoints = *reinterpret_cast<const std::vector<cv::KeyPoint>* >(&model.features.keypoints[0]);
+    const std::vector<cv::KeyPoint> modelKeypoints = model.features.keypoints;
 
     int maxVotes = 0;
 
@@ -296,7 +296,7 @@ void BanknoteDetector::drawAcceptedHough()
         ClassDetections& detections = classDetections[c];
 
         cv::Mat img_accepted;
-        cv::drawMatches(theGrayScaleImageEq, imageKeypoints, model.image, *reinterpret_cast<std::vector<cv::KeyPoint>* >(&model.features.keypoints[0]), detections.houghFilteredMatches, img_accepted);
+        cv::drawMatches(theGrayScaleImageEq, imageKeypoints, model.image, model.features.keypoints, detections.houghFilteredMatches, img_accepted);
 
         ColorRGBA color = debugColors[c];
         const std::vector<Eigen::Vector3f>& corners = model.corners;

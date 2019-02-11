@@ -223,7 +223,7 @@ bool Controller::handleMessage(InMessage& message)
     {
       std::string description;
       bool enable;
-      message.bin >> description >> enable;
+      message.text >> description >> enable;
       if(description != "pollingFinished")
         debugRequestTable.addRequest(DebugRequest(description, enable));
       return true;

@@ -6,11 +6,15 @@ BanknoteClassifierWrapper::BanknoteClassifierWrapper(Controller *controller)
  : controller(controller),
    shouldStop(false)
 {
-  banknoteClassifier.setGlobals();
+  // Acquire static data, e.g. about types
 }
 
 void BanknoteClassifierWrapper::run()
 {
+  FunctionList::execute();
+
+  banknoteClassifier.setGlobals();
+
   while (!shouldStop) {
     send();
     banknoteClassifier.procesMain();

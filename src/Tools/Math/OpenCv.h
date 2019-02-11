@@ -33,8 +33,7 @@ protected:
         if(in)
         {
             int size, width, height, matType;
-            unsigned timeStamp;
-            *in >> size >> width >> height >> timeStamp >> matType;
+            *in >> size >> width >> height >> matType;
             create(height,width,matType);
             in->read(data, size);
         }

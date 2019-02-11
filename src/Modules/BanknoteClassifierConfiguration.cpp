@@ -58,11 +58,12 @@ void BanknoteClassifierConfiguration::readColorCalibration()
         }
     }
     InMapFile stream(name);
-    stream >> *theColorCalibration;
+
+    if(stream.exists())
+        stream >> *theColorCalibration;
   
-    if (!theColorCalibration) {
-    theColorCalibration = new ColorCalibration();
-    }
+    if (!theColorCalibration)
+        theColorCalibration = new ColorCalibration();
 }
 
 void BanknoteClassifierConfiguration::writeColorCalibration()

@@ -13,23 +13,29 @@
  * Struct that contains the keypoints and the descriptors of an image
  * @author Pablo Cano
  */
-STREAMABLE(Features,
-{
-   /**
-    * @brief Features Constructor
-    */
-   Features();
 
-   /**
-    * @brief draw the representation
-    */
-   void draw() const;
-   ,
-   (std::vector<CvKeyPoint>) keypoints,
+class Features : public Streamable
+{
+public:
+    /**
+     * @brief Features Constructor
+     */
+    Features();
+
+    /**
+     * @brief draw the representation
+     */
+    void draw() const;
+
+    std::vector<cv::KeyPoint> keypoints;
 #ifndef BC_WITH_CUDA
-   (CvMat) descriptors,
+    CvMat descriptors;
 #else
-   (CvGpuMat) keypointsGpu,
-   (CvGpuMat) descriptors,
+    CvGpuMat keypointsGpu;
+    CvGpuMat descriptors;
 #endif
-});
+
+protected:
+
+    void serialize(In* in, Out* out) override;
+};

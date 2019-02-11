@@ -45,7 +45,7 @@ BanknotePositionProvider::BanknotePositionProvider() : minAreaPolygon(20000),max
         cv::cuda::GpuMat imageGpu;
         imageGpu.upload(image);
         surf(imageGpu,cv::cuda::GpuMat(),f.keypointsGpu,f.descriptors);
-        surf.downloadKeypoints(f.keypointsGpu,*reinterpret_cast<std::vector<cv::KeyPoint>*>(&f.keypoints));
+        surf.downloadKeypoints(f.keypointsGpu,f.keypoints);
 #endif
 
         //cv::Mat canny;

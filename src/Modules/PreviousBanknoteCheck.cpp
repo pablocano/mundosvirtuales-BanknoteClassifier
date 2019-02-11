@@ -57,7 +57,7 @@ void PreviousBanknoteCheck::update(PreviousBanknotePosition &previousBanknotePos
             cv::cuda::GpuMat grayScaleImageGpu(theGrayScaleImageEq);
             cv::cuda::GpuMat maskGpu(mask);
             surf_(grayScaleImageGpu,maskGpu,features.keypointsGpu,features.descriptors);
-            surf_.downloadKeypoints(features.keypointsGpu,*reinterpret_cast<std::vector<cv::KeyPoint>*>(&features.keypoints));
+            surf_.downloadKeypoints(features.keypointsGpu,features.keypoints);
 #endif
 
             cv::Mat H;

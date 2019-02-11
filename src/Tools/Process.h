@@ -3,6 +3,8 @@
 #include "Tools/AlignedMemory.h"
 #include "Tools/Debugging/DebugRequest.h"
 #include "Tools/Debugging/DebugDrawings.h"
+#include "Tools/Debugging/DebugDataTable.h"
+#include "Tools/Debugging/TimingManager.h"
 #include "Tools/MessageQueue/MessageQueue.h"
 #include "Tools/ModuleManager/Blackboard.h"
 #include "Tools/Settings.h"
@@ -27,6 +29,8 @@ public:
   void setGlobals();
   
 protected:
+
+  TimingManager timingManager; /**< keeps track of the module timing in this process */
   
   /**
    * The main funtion is called once in each frame.
@@ -64,4 +68,5 @@ private:
   
   DebugRequestTable debugRequestTable;
   DrawingManager drawingManager;
+  DebugDataTable debugDataTable;
 };
