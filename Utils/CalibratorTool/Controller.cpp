@@ -136,8 +136,8 @@ void Controller::update()
     colorModel.fromColorCalibration(colorCalibration, prevColorCalibration);
     {
       SYNC_WITH(*banknoteClassifierWrapper);
-      debugOut << colorCalibration;
-      debugOut.finishMessage(idColorCalibration);
+      debugOut.out.bin << colorCalibration;
+      debugOut.out.finishMessage(idColorCalibration);
     }
   }
 }
@@ -150,11 +150,11 @@ void Controller::stop()
 void Controller::saveColorCalibration()
 {
   SYNC_WITH(*banknoteClassifierWrapper);
-  debugOut << DebugRequest("module:GroundTruthConfiguration:saveColorCalibration");
-  debugOut.finishMessage(idDebugRequest);
+  debugOut.out.bin << DebugRequest("module:GroundTruthConfiguration:saveColorCalibration");
+  debugOut.out.finishMessage(idDebugRequest);
 
-  debugOut << DebugRequest("module:ArucoPoseEstimator:saveCameraPose");
-  debugOut.finishMessage(idDebugRequest);
+  debugOut.out.bin << DebugRequest("module:ArucoPoseEstimator:saveCameraPose");
+  debugOut.out.finishMessage(idDebugRequest);
 }
 
 bool Controller::poll(MessageID id)
@@ -173,8 +173,8 @@ bool Controller::poll(MessageID id)
       case idDebugResponse:
       {
         SYNC;
-        debugOut << DebugRequest("poll");
-        debugOut.finishMessage(idDebugRequest);
+        debugOut.out.bin << DebugRequest("poll");
+        debugOut.out.finishMessage(idDebugRequest);
         waitingFor[id] = 1;
         break;
       }
@@ -182,16 +182,16 @@ bool Controller::poll(MessageID id)
       {
         SYNC;
         drawingManager.clear();
-        debugOut << DebugRequest("automated requests:DrawingManager", true);
-        debugOut.finishMessage(idDebugRequest);
+        debugOut.out.bin << DebugRequest("automated requests:DrawingManager", true);
+        debugOut.out.finishMessage(idDebugRequest);
         waitingFor[id] = 1;
       }
       
       case idColorCalibration:
       {
         SYNC;
-        debugOut << DebugRequest("representation:ColorCalibration", true);
-        debugOut.finishMessage(idDebugRequest);
+        debugOut.out.bin << DebugRequest("representation:ColorCalibration", true);
+        debugOut.out.finishMessage(idDebugRequest);
         waitingFor[id] = 1;
         break;
       }
@@ -203,13 +203,13 @@ bool Controller::poll(MessageID id)
   return false;
 }
 
-bool Controller::handleMessage(MessageQueue& message)
+bool Controller::handleMessage(InMessage& message)
 {
   SYNC;
   switch (message.getMessageID()) {
     case idProcessBegin:
     {
-      message >> processIdentifier;
+      message.bin >> processIdentifier;
       if (processIdentifier == 'e') {
         currentImage = &eastImage;
       }
@@ -223,20 +223,20 @@ bool Controller::handleMessage(MessageQueue& message)
     {
       std::string description;
       bool enable;
-      message >> description >> enable;
+      message.text >> description >> enable;
       if(description != "pollingFinished")
-        debugRequestTable.addRequest(DebugRequest(description, enable), false);
+        debugRequestTable.addRequest(DebugRequest(description, enable));
       return true;
     }
     case idColorCalibration:
     {
-      message >> colorCalibration;
+      message.bin >> colorCalibration;
       colorCalibrationChanged = true;
       return true;
     }
     case idImage:
     {
-      message >> *currentImage;
+      message.bin >> *currentImage;
       return true;
     }
     case idDebugDrawing:
@@ -245,7 +245,7 @@ bool Controller::handleMessage(MessageQueue& message)
       {
         char shapeType,
         id;
-        message >> shapeType >> id;
+        message.bin >> shapeType >> id;
         const char* name = drawingManager.getDrawingName(id); // const char* is required here
         std::string type = drawingManager.getDrawingType(name);
         
@@ -266,60 +266,48 @@ bool Controller::handleMessage(MessageQueue& message)
       {
         currentImageDrawings = &westCamImageDrawings;
       }
-      // Delete all image drawings received earlier from the current process
-      for(Drawings::iterator i = currentImageDrawings->begin(), next; i != currentImageDrawings->end(); i = next)
+
+      // Add new Field and Image drawings
+        currentImageDrawings->clear();
+      for(const auto& pair : incompleteImageDrawings)
       {
-        next = i;
-        ++next;
-        if(i->second.processIdentifier == processIdentifier)
-          currentImageDrawings->erase(i);
+        DebugDrawing& debugDrawing = (*currentImageDrawings)[pair.first];
+        debugDrawing = pair.second;
       }
-      
-      // Add all image drawings received now from the current process
-      for(Drawings::const_iterator i = incompleteImageDrawings.begin(); i != incompleteImageDrawings.end(); ++i)
-      {
-        DebugDrawing& debugDrawing = (*currentImageDrawings)[i->first];
-        debugDrawing = i->second;
-        debugDrawing.processIdentifier = processIdentifier;
-      }
+
       incompleteImageDrawings.clear();
       return true;
     }
     case idDrawingManager:
     {
-      message >> drawingManager;
+      message.bin >> drawingManager;
       --waitingFor[idDrawingManager];
       return true;
     }
     case idCustomImage:
     {
       std::string imageName;
-      message >> imageName;
+      message.bin >> imageName;
 
       if(customImagesViews.count(imageName) == 0){
           customImagesViews[imageName] = false;
       }
 
-      cv::Mat image;
-      message >> image;
+      ImageBGR image;
+      message.bin >> image;
 
-      ImageBGR imageBGR(image);
-      unsigned timeStamp;
-      message >> timeStamp;
-
-      imageBGR.timeStamp = timeStamp;
-      customImages[imageName] = imageBGR;
+      customImages[imageName] = image;
 
       return true;
     }
     case idWorldPoseStatus:
     {
-      message >> banknotePose;
+      message.bin >> banknotePose;
       return true;
     }
     case idRobotRegisterStatus:
     {
-      message >> robot;
+      message.bin >> robot;
       return true;
     }
     default:
@@ -336,28 +324,21 @@ void Controller::receive()
 
 void Controller::drDebugDrawing(const std::string &request)
 {
-  SYNC;
   std::string debugRequest = std::string("debug drawing:") + request;
 
-  for(int i = 0; i < debugRequestTable.currentNumberOfDebugRequests; ++i)
-  {
-    if(debugRequestTable.debugRequests[i].description == debugRequest)
-    {
-      DebugRequest& d = debugRequestTable.debugRequests[i];
-      if (debugRequestTable.isActive(debugRequest.c_str())) {
-        d.enable = false;
-      }
-      else{
-        d.enable = true;
-      }
-      SYNC_WITH(*banknoteClassifierWrapper);
-      debugOut << (const DebugRequest&)d;
-      debugOut.finishMessage(idDebugRequest);
-      return;
-    }
-  }
+  for(const auto& i : debugRequestTable.slowIndex)
+      if(i.first == debugRequest)
+      {
+        if(debugRequestTable.isActive(debugRequest.c_str()))
+          debugRequestTable.enabled[i.second] = false;
+        else
+          debugRequestTable.enabled[i.second] = true;
 
-  debugOut << DebugRequest(debugRequest);
-  debugOut.finishMessage(idDebugRequest);
+        SYNC;
+        debugOut.out.bin << DebugRequest(i.first, debugRequestTable.enabled[i.second]);
+        debugOut.out.finishMessage(idDebugRequest);
+        return;
+      }
+
   return;
 }

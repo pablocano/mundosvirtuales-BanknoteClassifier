@@ -49,7 +49,7 @@ public:
 
     ArucoPoseEstimator();
 
-    static bool handleMessage(MessageQueue& message);
+    static bool handleMessage(InMessage& message);
 
 	bool readDetectorParameters(std::string filename, cv::Ptr<cv::aruco::DetectorParameters> &params);
 

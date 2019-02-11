@@ -19,10 +19,10 @@ void RobotFanucDataProvider::update(RobotFanuc& robotFanuc)
 
     robotFanuc.timeStamp = theFrameInfo.time;
 
-    DEBUG_RESPONSE("status:robotRegisters",
+    DEBUG_RESPONSE("status:robotRegisters")
     {
-        OUTPUT(idRobotRegisterStatus,robotFanuc);
-    });
+        OUTPUT(idRobotRegisterStatus,bin,robotFanuc);
+    };
 }
 
 void RobotFanucDataProvider::processPacket(PacketEthernetIPFanuc & packet)
@@ -68,13 +68,13 @@ void RobotFanucDataProvider::processPacket(PacketEthernetIPFanuc & packet)
 	}
 }
 
-bool RobotFanucDataProvider::handleMessage(MessageQueue &message)
+bool RobotFanucDataProvider::handleMessage(InMessage &message)
 {
     if (message.getMessageID() == idEthernetIPFanuc)
     {
         PacketEthernetIPFanuc packet;
 
-        message >> packet;
+        message.bin >> packet;
 
         processPacket(packet);
 

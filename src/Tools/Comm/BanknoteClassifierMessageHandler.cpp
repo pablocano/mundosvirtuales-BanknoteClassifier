@@ -1,7 +1,7 @@
 #include "BanknoteClassifierMessageHandler.h"
 #include "Tools/Fanuc/PacketEthernetIPFanuc.h"
 #include "Tools/Debugging/Debugging.h"
-#include "Tools/MessageIDs.h"
+#include "Tools/MessageQueue/MessageIDs.h"
 
 #include <string.h>
 
@@ -38,13 +38,13 @@ void BanknoteClassifierMessageHandler::send()
 
   for (int i = 0; i < out.getNumberOfMessages(); ++i)
   {
-	  out.setSelectedMessageForReading(i);
+      out.queue.setSelectedMessageForReading(i);
 	  
-	  if (out.getMessageID() == idEthernetIPFanuc)
+      if (out.queue.getMessageID() == idEthernetIPFanuc)
 	  {
 		  PacketEthernetIPFanuc packet;
 
-		  out >> packet;
+          out.in.bin >> packet;
           int sizePayload = packet.getSize();
           char *buffer = new char[sizePayload];
           memcpy(static_cast<void *>(buffer),reinterpret_cast<void *>(&packet),
@@ -86,8 +86,8 @@ unsigned BanknoteClassifierMessageHandler::receive()
           int sizePayload = packet.sizePayload;
           if(sizePayload == 0 || lpSocket->receive(reinterpret_cast<char *>(packet.payload), sizePayload, false))
           {
-            in << packet;
-            in.finishMessage(idEthernetIPFanuc);
+            in.out.bin << packet;
+            in.queue.finishMessage(idEthernetIPFanuc);
             totalSize += packet.getSize();
           }
 	  }

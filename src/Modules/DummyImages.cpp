@@ -7,7 +7,7 @@ MAKE_MODULE(DummyImages, BanknoteClassifier);
 
 DummyImages::DummyImages()
 {
-    currentImage = cv::imread(std::string(File::getGTDir()) + "/Data/database/0009.jpg", cv::IMREAD_COLOR);
+    currentImage = cv::imread(std::string(File::getGTDir()) + "/Data/dummyimage.jpg", cv::IMREAD_COLOR);
 }
 
 void DummyImages::update(Image& image)
@@ -16,10 +16,10 @@ void DummyImages::update(Image& image)
 
     currentImage.timeStamp = theFrameInfo.time;
 
-    DEBUG_RESPONSE("representation:ImageBGR",
+    DEBUG_RESPONSE("representation:ImageBGR")
     {
-        OUTPUT(idImage,currentImage);
-    });
+        OUTPUT(idImage,bin,currentImage);
+    };
 }
 
 void DummyImages::update(GrayScaleImage &grayScaleImage)

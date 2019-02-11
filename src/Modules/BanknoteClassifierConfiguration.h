@@ -5,14 +5,12 @@
 #include "Representations/ColorModel/ColorCalibration.h"
 #include "Representations/ColorModel/ColorModel.h"
 #include "Representations/FrameInfo.h"
-#include "Representations/RobotIdentifier.h"
-
-#include "Tools/Messages/MessageQueue.h"
+#include "Tools/MessageQueue/InMessage.h"
+#include "memory.h"
 
 MODULE(BanknoteClassifierConfiguration,
 {,
   PROVIDES(ColorModel),
-  PROVIDES(RobotsIdentifiers),
   PROVIDES(FrameInfo),
   //PROVIDES(CameraInfo),
 });
@@ -21,29 +19,21 @@ class BanknoteClassifierConfiguration : public BanknoteClassifierConfigurationBa
 {
 private:
 
-  static BanknoteClassifierConfiguration *theInstance;
-  
-  void update(ColorModel& colorModel);
-  
-  void update(RobotsIdentifiers& robotsIdentifiers);
-  
-  void update(FrameInfo& frameInfo);
+    static BanknoteClassifierConfiguration *theInstance;
 
-  //void update(CameraInfo& cameraInfo);
+    void update(ColorModel& colorModel);
+
+    void update(FrameInfo& frameInfo);
   
-  void readColorCalibration();
+    void readColorCalibration();
   
-  void writeColorCalibration();
+    void writeColorCalibration();
   
-  void readRobotsIdentifiers();
+    ColorCalibration* theColorCalibration = nullptr;
   
-  ColorCalibration* theColorCalibration = nullptr;
+    ColorCalibration colorCalibration;
   
-  RobotsIdentifiers* theRobotsIdentifiers = nullptr;
-  
-  ColorCalibration colorCalibration;
-  
-  unsigned last;
+    unsigned last;
   
 public:
   
@@ -51,5 +41,5 @@ public:
   
   static void saveColorCalibration();
   
-  static bool handleMessage(MessageQueue& message);
+  static bool handleMessage(InMessage& message);
 };

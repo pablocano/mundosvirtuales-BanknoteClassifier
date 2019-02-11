@@ -11,8 +11,8 @@
 Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> gradient(const _Scalar dt) const
 {
   Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> ret(Base::rows(), Base::cols());
-  //ASSERT(Base::cols() > 0);
-  //ASSERT(Base::rows() > 0);
+  ASSERT(Base::cols() > 0);
+  ASSERT(Base::rows() > 0);
   //forward difference quotient (special case for first element)
   ret.col(0) = (Base::col(1) - Base::col(0)) / dt;
 

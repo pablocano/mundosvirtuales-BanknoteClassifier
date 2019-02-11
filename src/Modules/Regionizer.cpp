@@ -17,7 +17,7 @@ void Regionizer::update(Regions& regions)
       if (j >= theImage.cols - step) {
         if (left.x() != j) {
           Vector2i right(j,i);
-          if(!color.is(white) && !color.is(none))
+          if(!color.is(ColorClasses::white) && !color.is(ColorClasses::none))
             regions.regions.push_back(Regions::Line(left,right,depth,color));
         }
       }
@@ -25,7 +25,7 @@ void Regionizer::update(Regions& regions)
       if (color.colors != color2.colors) {
         Vector2i right;
         findRightBound(Vector2i(j,i), right, color);
-        if(!color.is(white) && !color.is(none))
+        if(!color.is(ColorClasses::white) && !color.is(ColorClasses::none))
           regions.regions.push_back(Regions::Line(left,right,depth,color));
         left = Vector2i(right.x()+1,i);
         color = theColorModel.getColor(theImage.at<cv::Vec3b>(i,left.x()));

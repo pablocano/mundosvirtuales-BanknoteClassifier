@@ -1,24 +1,14 @@
 #pragma once
 
-#include "Tools/Streamable.h"
-#include "Tools/Math/Pose2D.h"
+#include "Tools/Streams/AutoStreamable.h"
+#include "Tools/Math/Pose2f.h"
 
-
-class WorldCoordinatesPose : public Streamable, public Pose2D
-{
-public:
-
-    WorldCoordinatesPose();
-
-    bool valid;
-
-    Vector2f pickOffset;
-
-    Vector2f dropOffset;
-
-    int banknote;
-
-    int timeStamp;
-
-};
+STREAMABLE_WITH_BASE(WorldCoordinatesPose, Pose2f,
+{,
+    (bool)(false) valid,
+    (Vector2f) pickOffset,
+    (Vector2f) dropOffset,
+    (int)(0) banknote,
+    (int)(0) timeStamp,
+});
 

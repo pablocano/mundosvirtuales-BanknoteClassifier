@@ -7,7 +7,7 @@
 #include <QPointF>
 #include "StatusView.h"
 #include "Controller.h"
-#include "Tools/File.h"
+#include "Platform/File.h"
 #include "Representations/Classification.h"
 #include "Tools/Debugging/Debugging.h"
 
@@ -20,7 +20,7 @@ name(name)
     for(unsigned i = 0; i < Classification::numOfBanknotes - 2; i++)
     {
         // Read the image and resize it
-        QImage image(QString::fromStdString(std::string(File::getGTDir()) + "/Data/img_scan/" + Classification::getName((Classification::Banknote)i) + ".jpg"));
+        QImage image(QString::fromStdString(std::string(File::getBCDir()) + "/Data/img_scan/" + TypeRegistry::getEnumName((Classification::Banknote)i) + ".jpg"));
 
         images.append(image.scaledToHeight(70));
     }
@@ -28,11 +28,11 @@ name(name)
 
 CalibratorTool::Widget* StatusView::createWidget()
 {
-    controller.debugOut << DebugRequest("status:worldPose");
-    controller.debugOut.finishMessage(idDebugRequest);
+    controller.debugOut.out.bin << DebugRequest("status:worldPose");
+    controller.debugOut.out.finishMessage(idDebugRequest);
 
-    controller.debugOut << DebugRequest("status:robotRegisters");
-    controller.debugOut.finishMessage(idDebugRequest);
+    controller.debugOut.out.bin << DebugRequest("status:robotRegisters");
+    controller.debugOut.out.finishMessage(idDebugRequest);
     return new StatusWidget(*this);
 }
 
@@ -49,11 +49,11 @@ StatusWidget::StatusWidget(StatusView& statusView) :
 
 StatusWidget::~StatusWidget()
 {
-    statusView.controller.debugOut << DebugRequest("status:worldPose",false);
-    statusView.controller.debugOut.finishMessage(idDebugRequest);
+    statusView.controller.debugOut.out.bin << DebugRequest("status:worldPose",false);
+    statusView.controller.debugOut.out.finishMessage(idDebugRequest);
 
-    statusView.controller.debugOut << DebugRequest("status:robotRegisters",false);
-    statusView.controller.debugOut.finishMessage(idDebugRequest);
+    statusView.controller.debugOut.out.bin << DebugRequest("status:robotRegisters",false);
+    statusView.controller.debugOut.out.finishMessage(idDebugRequest);
 }
 
 void StatusWidget::paintEvent(QPaintEvent* event)

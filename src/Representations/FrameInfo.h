@@ -1,11 +1,7 @@
 #pragma once
-#include "Tools/Streamable.h"
+#include "Tools/Streams/AutoStreamable.h"
 
-class FrameInfo : public Streamable
-{
-public:
-
-    FrameInfo() : time(0) {}
-
-    int time;
-};
+STREAMABLE(FrameInfo,
+{,
+  (int)(0) time,
+});

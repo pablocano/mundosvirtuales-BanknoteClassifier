@@ -77,7 +77,7 @@ private:
   unsigned lastColorTableTimeStamp;
   
   // which classified should be drawn?
-  Color drawnColor; /**< "none" means all. */
+  ColorClasses::Color drawnColor; /**< "none" means all. */
 
   void paintEvent(QPaintEvent* event);
   virtual void paint(QPainter& painter);
@@ -107,7 +107,7 @@ private:
   
 private slots:
   
-  void colorAct(int color) {drawnColor = (Color) color;}
+  void colorAct(int color) {drawnColor = (ColorClasses::Color) color;}
   
   void drDebugDrawing(const QString &debug);
 

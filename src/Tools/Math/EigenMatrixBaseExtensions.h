@@ -18,7 +18,7 @@ inline PlainObject normalized(RealScalar l) const
 inline PlainObject& mirror()
 {
   //mirror is only defined for vectors with length 2
-  //EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived, 2);
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived, 2);
   derived().x() = -derived().x();
   derived().y() = -derived().y();
   return derived();
@@ -27,7 +27,7 @@ inline PlainObject& mirror()
 inline PlainObject& rotateLeft()
 {
   //rotateLeft() is only defined for vectors with length 2
-  //EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived, 2);
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived, 2);
   Scalar buffer = -derived().y();
   derived().y() = derived().x();
   derived().x() = buffer;
@@ -37,7 +37,7 @@ inline PlainObject& rotateLeft()
 inline PlainObject& rotateRight()
 {
   //rotateRight() is only defined for vectors with length 2
-  //EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived, 2);
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived, 2);
   Scalar buffer = -derived().x();
   derived().x() = derived().y();
   derived().y() = buffer;
@@ -47,7 +47,7 @@ inline PlainObject& rotateRight()
 inline PlainObject& rotate(const float alpha)
 {
   //angle() is only defined for vectors with length 2
-  //EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived, 2);
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived, 2);
   const float buffer = static_cast<float>(derived().x());
   const float a = std::cos(alpha);
   const float b = std::sin(alpha);
@@ -64,7 +64,7 @@ inline PlainObject rotated(const float alpha) const
 inline RealScalar angle() const
 {
   //angle() is only defined for vectors with length 2
-  //EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived, 2);
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived, 2);
   const RealScalar x = derived().x();
   const RealScalar y = derived().y();
   return std::atan2(y, x);
@@ -77,8 +77,8 @@ inline RealScalar angle() const
  */
 RealScalar angleTo(const MatrixBase<Derived>& other) const
 {
-  //EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   const RealScalar normProd = derived().norm() * other.norm();
-  //ASSERT(normProd != 0.f);
+  ASSERT(normProd != 0.f);
   return normProd == RealScalar(0.f) ? RealScalar(0.f) : std::acos(derived().dot(other) / normProd);
 }

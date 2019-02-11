@@ -36,15 +36,15 @@ Classification::Banknote BanknoteClassifierProvider::getClassification(const Blo
 
     ColorModel::Colors blobColor = blob.color;
 
-    if(blobColor.is(green))
+    if(blobColor.is(ColorClasses::green))
         return Classification::UNO_C;
-    else if(blobColor.is(yellow))
+    else if(blobColor.is(ColorClasses::yellow))
         return Classification::DOS_C;
-    else if(blobColor.is(red))
+    else if(blobColor.is(ColorClasses::red))
         return Classification::CINCO_C;
-    else if(blobColor.is(blue))
+    else if(blobColor.is(ColorClasses::blue))
         return Classification::DIEZ_C;
-    else if(blobColor.is(orange))
+    else if(blobColor.is(ColorClasses::orange))
         return Classification::VEINTE_C;
 }
 

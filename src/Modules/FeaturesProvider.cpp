@@ -23,30 +23,6 @@ void FeaturesProvider::update(Features &features)
         mask = cv::Mat::zeros(theGrayScaleImageEq.rows, theGrayScaleImageEq.cols, CV_8U);
 
     cv::cuda::GpuMat grayScaleImageGpu(theGrayScaleImageEq);
-
-    int init = 150, step = 550;
-
-    if(theBestBlob.exists)
-    {
-        for(int i = 0; i < 3 && i < theBlobs.blobs.size(); i++)
-        {
-            features.keypoints[i].clear();
-
-            //setMask(theBlobs.blobs[i]);
-            mask.setTo(cv::Scalar(0));
-
-            int randomNumber = (rand() % static_cast<int>(3));
-
-            mask(cv::Rect(init + randomNumber*step, init + i*step , step + 200, step + 150 )) = 1;
-
-
-            cv::cuda::GpuMat maskGpu(mask);
-            surf_(grayScaleImageGpu,maskGpu,features.keypointsGpu[i],features.descriptors[i]);
-
-            surf_.downloadKeypoints(features.keypointsGpu[i],features.keypoints[i]);
-
-        }
-    }
 }
 
 void FeaturesProvider::setMask(const Blobs::Blob& blob)

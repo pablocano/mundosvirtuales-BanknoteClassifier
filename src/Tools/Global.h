@@ -8,21 +8,12 @@
 
 // Only declare prototypes. Don't include anything here, because this
 // file is included in many other files.
-class Settings;
-class MessageQueue;
+class OutMessage;
+struct Settings;
 class DebugRequestTable;
+class DebugDataTable;
 class DrawingManager;
-
-#ifdef WINDOWS
-	#if defined(banknoteClassifier_EXPORTS)
-		#define _API_ __declspec(dllexport)
-	#else
-		#define _API_ __declspec(dllimport)
-	#endif
-#else
-	#define _API_ 
-#endif
-
+class TimingManager;
 
 /**
  * @class Global
@@ -31,41 +22,68 @@ class DrawingManager;
 class Global
 {
 private:
-  _API_ static MessageQueue* theDebugOut;
-  static MessageQueue* theCommunicationOut;
-  static DebugRequestTable* theDebugRequestTable;
-  static DrawingManager* theDrawingManager;
-  static Settings* theSettings;
-  
+  static thread_local OutMessage* theDebugOut;
+  static thread_local OutMessage* theCommunicationOut;
+  static thread_local Settings* theSettings;
+  static thread_local DebugRequestTable* theDebugRequestTable;
+  static thread_local DebugDataTable* theDebugDataTable;
+  static thread_local DrawingManager* theDrawingManager;
+  static thread_local TimingManager* theTimingManager;
+
 public:
   /**
    * The method returns a reference to the process wide instance.
    * @return The instance of the outgoing debug message queue in this process.
    */
-  static MessageQueue& getDebugOut() {return *theDebugOut;}
-  
+  static OutMessage& getDebugOut() {return *theDebugOut;}
+
   /**
    * The method returns a reference to the process wide instance.
    * @return The instance of the outgoing team message queue in this process.
    */
-  static MessageQueue& geCommunicationOut() {return *theCommunicationOut;}
+  static OutMessage& geCommunicationOut() {return *theCommunicationOut;}
+
+  /**
+   * The method returns whether the outgoing message queue was already instantiated.
+   * @return Is it safe to use getDebugOut()?
+   */
+  static bool debugOutExists() {return theDebugOut != nullptr;}
+
   /**
    * The method returns a reference to the process wide instance.
    * @return The instance of the settings in this process.
    */
-  static Settings* getSettings() {return theSettings;}
-  
+  static Settings& getSettings() {return *theSettings;}
+
   /**
-   * The method returns a reference to the process wide instance.
-   * @return The instance of the drawing manager in this process.
+   * The method returns whether the settings have already been instantiated.
+   * @return Is it safe to use getSettings()?
    */
-  static DrawingManager& getDrawingManager() {return *theDrawingManager;}
-  
+  static bool settingsExist() {return theSettings != nullptr;}
+
   /**
    * The method returns a reference to the process wide instance.
    * @return The instance of the debug request table in this process.
    */
   static DebugRequestTable& getDebugRequestTable() {return *theDebugRequestTable;}
+
+  /**
+   * The method returns a reference to the process wide instance.
+   * @return The instance of the debug data table in this process.
+   */
+  static DebugDataTable& getDebugDataTable() {return *theDebugDataTable;}
+
+  /**
+   * The method returns a reference to the process wide instance.
+   * @return The instance of the drawing manager in this process.
+   */
+  static DrawingManager& getDrawingManager() {return *theDrawingManager;}
+
+  /**
+   * The method returns a reference to the process wide instance.
+   * @return the instance of the timing manager in this process.
+   */
+  static TimingManager& getTimingManager() { return *theTimingManager; }
   
   friend class Process; // The class Process can set these pointers.
   friend class BanknoteClassifier; // The class BanknoteClassifier can set theTeamOut.

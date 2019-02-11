@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Tools/Messages/MessageQueue.h"
-#include "Tools/MessageIDs.h"
+#include "Tools/MessageQueue/MessageQueue.h"
+#include "Tools/MessageQueue/MessageIDs.h"
 #include "Tools/Comm/TcpComm.h"
 
 #include <fstream>

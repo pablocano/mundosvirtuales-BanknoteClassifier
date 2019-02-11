@@ -21,7 +21,7 @@ public:
     void update(BestBlob& bestblob);
 
 
-    Color getColor(int banknote);
+    ColorClasses::Color getColor(int banknote);
 
     //get that blob
     int i;

@@ -40,7 +40,7 @@ ColorCalibrationWidget::ColorCalibrationWidget(ColorCalibrationView& colorCalibr
 
   QSettings& settings = MainWindow::application->getSettings();
   settings.beginGroup(colorCalibrationView.getFullName());
-  currentColor = (Color) settings.value("CurrentColor", green).toInt();
+  currentColor = (ColorClasses::Color) settings.value("CurrentColor", ColorClasses::green).toInt();
   settings.endGroup();
 
   hue = new HueSelector("Hue", this, 0, 255);
@@ -86,11 +86,11 @@ void ColorCalibrationWidget::update()
   }
 }
 
-void ColorCalibrationWidget::updateWidgets(Color currentColor)
+void ColorCalibrationWidget::updateWidgets(ColorClasses::Color currentColor)
 {
   this->currentColor = currentColor;
 
-  if(currentColor == white)
+  if(currentColor == ColorClasses::white)
   {
     hue->setVisible(false);
     saturation->setVisible(false);
@@ -140,7 +140,7 @@ QMenu* ColorCalibrationWidget::createUserMenu() const
   QActionGroup* colorGroup = new QActionGroup(menu);
   QSignalMapper* signalMapper = new QSignalMapper(const_cast<ColorCalibrationWidget*>(this));
   connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(colorAct(int)));
-  for(int i = 0; i < numOfColors - 1; ++i)
+  for(int i = 0; i < ColorClasses::numOfColors - 1; ++i)
   {
     signalMapper->setMapping(colorButtons[i], i + 1);
     connect(colorButtons[i], SIGNAL(triggered()), signalMapper, SLOT(map()));

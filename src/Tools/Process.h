@@ -3,7 +3,9 @@
 #include "Tools/AlignedMemory.h"
 #include "Tools/Debugging/DebugRequest.h"
 #include "Tools/Debugging/DebugDrawings.h"
-#include "Tools/Messages/MessageQueue.h"
+#include "Tools/Debugging/DebugDataTable.h"
+#include "Tools/Debugging/TimingManager.h"
+#include "Tools/MessageQueue/MessageQueue.h"
 #include "Tools/ModuleManager/Blackboard.h"
 #include "Tools/Settings.h"
 
@@ -27,6 +29,8 @@ public:
   void setGlobals();
   
 protected:
+
+  TimingManager timingManager; /**< keeps track of the module timing in this process */
   
   /**
    * The main funtion is called once in each frame.
@@ -46,7 +50,12 @@ protected:
    * @param message An interface to read the message from the queue
    * @return true if message was handled
    */
-  virtual bool handleMessage(MessageQueue& message);
+  virtual bool handleMessage(InMessage& message) override;
+
+  /**
+   * Is called from within processMain() with the debugIn message queue.
+   */
+  virtual void handleAllMessages(MessageQueue& messageQueue);
 
   
 private:
@@ -59,4 +68,5 @@ private:
   
   DebugRequestTable debugRequestTable;
   DrawingManager drawingManager;
+  DebugDataTable debugDataTable;
 };

@@ -48,7 +48,7 @@ void RobotFanucComm::update(DummyComm &dummyComm)
 
         pos.copyToBuffer(packetWrite.payload);
         packetWrite.sizePayload = sizeof(pos);
-        SEND_MESSAGE(idEthernetIPFanuc, packetWrite);
+        SEND_MESSAGE(idEthernetIPFanuc, bin, packetWrite);
 
         PositionRegisterCartesian offset;
 
@@ -57,7 +57,7 @@ void RobotFanucComm::update(DummyComm &dummyComm)
 
         offset.copyToBuffer(offsetPick.payload);
         offsetPick.sizePayload = sizeof(offset);
-        SEND_MESSAGE(idEthernetIPFanuc, offsetPick);
+        SEND_MESSAGE(idEthernetIPFanuc, bin, offsetPick);
 
         PositionRegisterCartesian offset2;
 
@@ -66,17 +66,17 @@ void RobotFanucComm::update(DummyComm &dummyComm)
 
         offset2.copyToBuffer(offsetDrop.payload);
         offsetDrop.sizePayload = sizeof(offset2);
-        SEND_MESSAGE(idEthernetIPFanuc, offsetDrop);
+        SEND_MESSAGE(idEthernetIPFanuc, bin, offsetDrop);
 
         //Flag to indicate side of banknote
-        SEND_MESSAGE(idEthernetIPFanuc, side);
+        SEND_MESSAGE(idEthernetIPFanuc, bin, side);
 
         //Flag to advertise new pose
-        SEND_MESSAGE(idEthernetIPFanuc, statusPose);
+        SEND_MESSAGE(idEthernetIPFanuc, bin, statusPose);
         RobotStatus::messageDelivered();
 
         PacketEthernetIPFanuc packetRead(READ_POS, idPacket, REG_POSITION_BANKNOTE);
-        SEND_MESSAGE(idEthernetIPFanuc, packetRead);
+        SEND_MESSAGE(idEthernetIPFanuc, bin, packetRead);
     }
 
     if(theFrameInfo.time - lastTimeSent < 33)
@@ -85,18 +85,18 @@ void RobotFanucComm::update(DummyComm &dummyComm)
     lastTimeSent = theFrameInfo.time;
 
     PacketEthernetIPFanuc packetRead(READ_CURR_POS, idPacket, 0);
-    SEND_MESSAGE(idEthernetIPFanuc, packetRead);
+    SEND_MESSAGE(idEthernetIPFanuc, bin, packetRead);
 
     PacketEthernetIPFanuc packetReadReg(READ_REG, idPacket, REG_STATUS_AREA);
-    SEND_MESSAGE(idEthernetIPFanuc, packetReadReg);
+    SEND_MESSAGE(idEthernetIPFanuc, bin, packetReadReg);
 
     PacketEthernetIPFanuc packetReadRegPoseStatus(READ_REG, idPacket, REG_STATUS_POSE);
-    SEND_MESSAGE(idEthernetIPFanuc, packetReadRegPoseStatus);
+    SEND_MESSAGE(idEthernetIPFanuc, bin, packetReadRegPoseStatus);
 
     for(int i = 0; i < 4; i++)
     {
         PacketEthernetIPFanuc packetReadRegCount(READ_REG, idPacket, i + 10);
-        SEND_MESSAGE(idEthernetIPFanuc, packetReadRegCount);
+        SEND_MESSAGE(idEthernetIPFanuc, bin, packetReadRegCount);
     }
 }
 

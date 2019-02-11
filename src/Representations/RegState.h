@@ -1,11 +1,7 @@
 #pragma once
-#include "Tools/Streamable.h"
+#include "Tools/Streams/AutoStreamable.h"
 
-class RegState : public Streamable
-{
-public:
-
-    RegState() : getbanknote(1){};
-
-    int getbanknote;
-};
+STREAMABLE(RegState,
+{,
+    (int)(1) getbanknote,
+});

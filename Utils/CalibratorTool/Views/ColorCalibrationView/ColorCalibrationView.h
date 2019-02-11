@@ -39,19 +39,19 @@ class ColorCalibrationWidget : public QWidget, public CalibratorTool::Widget
 
 public:
   ColorCalibrationView& colorCalibrationView;
-  Color currentColor;
+  ColorClasses::Color currentColor;
   unsigned timeStamp;
 
   ColorCalibrationWidget(ColorCalibrationView& colorCalibrationView);
   virtual ~ColorCalibrationWidget();
   virtual QWidget* getWidget();
   virtual void update();
-  void updateWidgets(Color currentColor);
+  void updateWidgets(ColorClasses::Color currentColor);
   virtual QMenu* createUserMenu() const;
 
 private slots:
   void saveColorCalibration();
-  void colorAct(int color) {updateWidgets((Color) color);}
+  void colorAct(int color) {updateWidgets((ColorClasses::Color) color);}
 
 private:
   HueSelector* hue;

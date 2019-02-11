@@ -49,38 +49,38 @@ void BlobFilter::update(BestBlob &bestblob){
 }
 
 
-Color BlobFilter::getColor(int banknote){
-    Color color;
+ColorClasses::Color BlobFilter::getColor(int banknote){
+    ColorClasses::Color color;
     switch (banknote) {
     case Classification::UNO_C:
-        color = Color::green;
+        color = ColorClasses::Color::green;
         break;
     case Classification::UNO_S:
-        color = Color::green;
+        color = ColorClasses::Color::green;
         break;
     case Classification::DOS_C:
-        color = Color::yellow;
+        color = ColorClasses::Color::yellow;
         break;
     case Classification::DOS_S:
-        color = Color::yellow;
+        color = ColorClasses::Color::yellow;
         break;
     case Classification::CINCO_C:
-        color = Color::red;
+        color = ColorClasses::Color::red;
         break;
     case Classification::CINCO_S:
-        color = Color::red;
+        color = ColorClasses::Color::red;
         break;
     case Classification::DIEZ_C:
-        color = Color::blue;
+        color = ColorClasses::Color::blue;
         break;
     case Classification::DIEZ_S:
-        color = Color::blue;
+        color = ColorClasses::Color::blue;
         break;
     case Classification::VEINTE_C:
-        color = Color::orange;
+        color = ColorClasses::Color::orange;
         break;
     case Classification::VEINTE_S:
-        color = Color::orange;
+        color = ColorClasses::Color::orange;
         break;
     }
     return color;

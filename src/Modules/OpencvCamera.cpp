@@ -1,4 +1,5 @@
 #include "OpencvCamera.h"
+#include "Platform/File.h"
 #include "Tools/Debugging/Debugging.h"
 #include <opencv2/imgproc/imgproc.hpp>
 #include <sstream>
@@ -10,7 +11,7 @@ OpencvCamera::OpencvCamera(): index(0)
     /**
      * Read image configuration
      * */
-    cv::FileStorage file( std::string(File::getGTDir())+"/Config/cameraConfig.xml", cv::FileStorage::READ);
+    cv::FileStorage file( std::string(File::getBCDir())+"/Config/cameraConfig.xml", cv::FileStorage::READ);
     if(!file.isOpened())
     {
       std::cout << "Could not open the camera configuration file"<< std::endl;
@@ -75,7 +76,7 @@ OpencvCamera::OpencvCamera(): index(0)
     file1.release();
     cam1 = CameraInfo(CameraInfo::eastCam, "Camera 1", K, d, fieldCenter, pix2World);*/
 
-	cv::FileStorage cameraCalibrationFile(std::string(File::getGTDir()) + "/Config/cameracalibration.xml", cv::FileStorage::READ);
+    cv::FileStorage cameraCalibrationFile(std::string(File::getBCDir()) + "/Config/cameracalibration.xml", cv::FileStorage::READ);
 
 	cameraCalibrationFile["camera_matrix"] >> cam1.K;
 	cameraCalibrationFile["distortion_coefficients"] >> cam1.d;
@@ -124,10 +125,10 @@ void OpencvCamera::update(Image& image)
 
   currentImage.timeStamp = theFrameInfo.time;
 
-  DEBUG_RESPONSE("representation:ImageBGR",
+  DEBUG_RESPONSE("representation:ImageBGR")
   {
-    OUTPUT(idImage,currentImage);
-  });
+    OUTPUT(idImage,bin,currentImage);
+  };
 
   cv::cvtColor(currentImage, image, cv::COLOR_BGR2YCrCb);
 
