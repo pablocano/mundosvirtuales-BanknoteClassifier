@@ -42,8 +42,7 @@ bool Hypothesys::isValid() const
 
 BanknoteDetector::BanknoteDetector():
     resizeModels(false),
-    trainBanknoteHeight(200),
-    graspRadius(60)
+    trainBanknoteHeight(200)
 {
     OUTPUT_TEXT("wololo init");
 

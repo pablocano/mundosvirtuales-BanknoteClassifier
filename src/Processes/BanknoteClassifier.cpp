@@ -15,6 +15,7 @@
 #include "Tools/Fanuc/PacketEthernetIPFanuc.h"
 #include "Modules/ArucoPoseEstimator.h"
 #include "Modules/RobotFanucDataProvider.h"
+#include "Tools/Streams/TypeInfo.h"
 
 #include <istream>
 
@@ -41,6 +42,8 @@ void BanknoteClassifier::init()
 /* Main del programa*/
 int BanknoteClassifier::main()
 {
+  DEBUG_RESPONSE_ONCE("automated requests:TypeInfo") OUTPUT(idTypeInfo, bin, TypeInfo(true));
+
   RECEIVE_BANKNOTE_CLASSIFIER_COMM;
 
   RobotFanucDataProvider::handleMessages(theCommReceiver);
