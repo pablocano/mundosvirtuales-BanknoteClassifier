@@ -30,6 +30,15 @@
 
 #include <Eigen/Eigen>
 
+#include <geos/geom/PrecisionModel.h>
+#include <geos/geom/GeometryFactory.h>
+#include <geos/geom/Geometry.h>
+#include <geos/geom/Point.h>
+#include <geos/geom/LinearRing.h>
+#include <geos/geom/LineString.h>
+#include <geos/geom/Polygon.h>
+#include <geos/geom/CoordinateArraySequence.h>
+
 MODULE(BanknoteDetector,
 {,
     REQUIRES(GrayScaleImage),
@@ -66,12 +75,17 @@ class Hypothesys
 public:
 
     Hypothesys();
+    ~Hypothesys();
     bool isValid() const;
 
     std::vector<cv::DMatch> matches;
     Eigen::Matrix3f transform; /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
     Pose2f pose;
     Eigen::Vector3f graspPoint;
+
+    geos::geom::Geometry* validGeometry;
+    geos::geom::Geometry* geometry;
+
     int ransacVotes;
     float graspScore;
     float maxIOU;
@@ -99,6 +113,7 @@ class BanknoteDetector : public BanknoteDetectorBase
 {
 public:
     BanknoteDetector();
+    ~BanknoteDetector();
 
     void update(BanknoteDetections& detections);
 
@@ -211,6 +226,10 @@ protected:
     bool resizeModels; /* This is a must when using scanned images */
     int trainBanknoteHeight; /* hardcoded parameter in order to resize*/
     float graspRadius; /* In pixels. This should be computed with the real grasp radius and the camera transform */
+
+    /** GEOS Stuff */
+    geos::geom::GeometryFactory::Ptr factory;
+    geos::geom::Point* aux_point;
 
     ColorRGBA debugColors[Classification::numOfBanknotes - 2];
 };

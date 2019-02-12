@@ -359,31 +359,31 @@ add_definitions(-DOSX)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 add_definitions(-DLINUX)
 set(PYLON_ROOT /opt/pylon5)
-link_directories(${PYLON_ROOT}/lib64)
+link_directories(${PYLON_ROOT}/lib64 /usr/local/lib)
 ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_definitions(-DWINDOWS)
 set(PYLON_ROOT $ENV{PYLON_DEV_DIR})
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    link_directories(${PYLON_ROOT}/lib/x64)
+    link_directories(${PYLON_ROOT}/lib/x64 /usr/local/lib)
 elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    link_directories(${PYLON_ROOT}/lib/Win32)
+    link_directories(${PYLON_ROOT}/lib/Win32 /usr/local/lib)
 endif()
 
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 message(STATUS ${EIGEN3_INCLUDE_DIR})
 
-include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
+include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt /usr/local/incude)
 
 message(STATUS "Pylon dir find in " ${PYLON_ROOT})
 
 add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE} ${LIB_ETHERNETIP_FANUC_SRC} ${LIB_ETHERNETIP_FANUC_INCLUDE})
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1)
+target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1 geos)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1)
+target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1 geos)
 ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen PylonBase_MD_VC120_v5_1 PylonUtility_MD_VC120_v5_1 GenApi_MD_VC120_v3_0_Basler_pylon_v5_1 GCBase_MD_VC120_v3_1_Basler_pylon_v5_1 ws2_32 winmm)
+target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen PylonBase_MD_VC120_v5_1 PylonUtility_MD_VC120_v5_1 GenApi_MD_VC120_v3_0_Basler_pylon_v5_1 GCBase_MD_VC120_v3_1_Basler_pylon_v5_1 ws2_32 winmm geos)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 

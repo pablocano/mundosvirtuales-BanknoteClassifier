@@ -13,7 +13,7 @@
 #include <opencv2/video/tracking.hpp>
 #include <chrono>
 #include <iostream>
-
+#include <cmath>
 
 MAKE_MODULE(BanknoteDetector, BanknoteClassifier)
 
@@ -27,19 +27,36 @@ Hypothesys::Hypothesys() :
     transform(Eigen::Matrix3f::Identity()),
     pose(),
     graspPoint(Eigen::Vector3f::Identity()),
+    validGeometry(nullptr),
+    geometry(nullptr),
     ransacVotes(0),
     graspScore(0),
     maxIOU(0.f),
     validTransform(true),
-    validGrasp(true),
     validNms(true),
+    validGrasp(true),
     foreground(true)
 {
+
+}
+
+Hypothesys::~Hypothesys()
+{
+    delete validGeometry;
+
+    int asd = 5;
+
+    delete geometry;
 }
 
 bool Hypothesys::isValid() const
 {
     return validNms && /*validGrasp && */validTransform;
+}
+
+BanknoteDetector::~BanknoteDetector()
+{
+    delete aux_point;
 }
 
 BanknoteDetector::BanknoteDetector():
@@ -89,6 +106,11 @@ BanknoteDetector::BanknoteDetector():
         model.corners[CornerID::MiddleMiddle] = Eigen::Vector3f(0.5f*image.cols, 0.5f*image.rows, 1);
         model.corners[CornerID::MiddleRight] = Eigen::Vector3f(0.75f*image.cols, 0.5f*image.rows, 1);
     }
+
+    factory = geos::geom::GeometryFactory::create();
+
+    geos::geom::Coordinate coordinate(0.0, 0.0);
+    aux_point = factory->createPoint(coordinate);
 
     debugColors[Classification::UNO_C] = ColorRGBA::green;
     debugColors[Classification::UNO_S] = ColorRGBA::green;
@@ -253,7 +275,7 @@ Eigen::Matrix3f BanknoteDetector::getTransformAsMatrix(const cv::KeyPoint& src, 
 {
     float e = dst.size / src.size;
 
-    float theta = M_PI * (dst.angle - src.angle) / 180.f;
+    float theta = Constants::pi * (dst.angle - src.angle) / 180.f;
     float costheta = std::cos(theta);
     float sintheta = std::sin(theta);
 
@@ -275,7 +297,7 @@ void BanknoteDetector::getTransform(const cv::KeyPoint& src, const cv::KeyPoint&
 {
     e = dst.size / src.size;
 
-    float theta = M_PI * (dst.angle - src.angle) / 180.f;
+    float theta = Constants::pi * (dst.angle - src.angle) / 180.f;
     float costheta = std::cos(theta);
     float sintheta = std::sin(theta);
     angleDegrees = dst.angle - src.angle;
@@ -604,6 +626,29 @@ void BanknoteDetector::estimateTransforms(const Model& model, ClassDetections& d
 
         h.pose = Pose2f((end2d - start2d).angle(), start2d);
 
+        if(h.validTransform)
+        {
+            Eigen::Vector3f corner2;
+
+            geos::geom::CoordinateSequence* cl1 = new geos::geom::CoordinateArraySequence();
+            geos::geom::CoordinateSequence* cl2 = new geos::geom::CoordinateArraySequence();
+
+            for(int i = 0; i <= CornerID::numOfRealCorners; i++)
+            {
+                int i2 = i % CornerID::numOfRealCorners;
+                corner2 = h.transform * model.corners[i2];
+                cl1->add(geos::geom::Coordinate(corner2.x(), corner2.y()));
+                cl2->add(geos::geom::Coordinate(corner2.x(), corner2.y()));
+            }
+
+            std::vector<geos::geom::Geometry*>* holes1 = new std::vector<geos::geom::Geometry*>;
+            std::vector<geos::geom::Geometry*>* holes2 = new std::vector<geos::geom::Geometry*>;
+
+            h.geometry  = factory->createPolygon(factory->createLinearRing(cl1), holes1);
+            h.validGeometry  = factory->createPolygon(factory->createLinearRing(cl2), holes2);
+
+        }
+
     }
 }
 
@@ -629,9 +674,8 @@ void BanknoteDetector::nonMaximumSupression(const Model& model, ClassDetections&
             p1[i].y = corners2[i].y();
         }
 
-        //std::sort(std::begin(p1), std::end(p1), compareAngle);
 
-        IOU::Quad q1(p1);
+        //IOU::Quad q1(p1);
 
         for(int index2 = 0; index2 < detections.hypotheses.size(); index2++)
         {
@@ -643,18 +687,26 @@ void BanknoteDetector::nonMaximumSupression(const Model& model, ClassDetections&
             if(!h2.validNms)
                 continue;
 
-            for(int i = 0; i < CornerID::numOfRealCorners; i++)
+            /*for(int i = 0; i < CornerID::numOfRealCorners; i++)
             {
                 corners2[i] = h2.transform * corners[i];
                 p2[i].x = corners2[i].x();
                 p2[i].y = corners2[i].y();
             }
 
-            //std::sort(std::begin(p2), std::end(p2), compareAngle);
-
             IOU::Quad q2(p2);
 
-            float iou = IOU::iou(q1, q2);
+            float iou = IOU::iou(q1, q2);*/
+
+            float iou = 0;
+
+            if(h1.validTransform && h2.validTransform && h1.geometry->intersects(h2.geometry))
+            {
+                geos::geom::Geometry* intersection = h1.geometry->intersection(h2.geometry);
+                double interArea = intersection->getArea();
+                iou = interArea / (h1.geometry->getArea() + h2.geometry->getArea() - interArea);
+                delete intersection;
+            }
 
             h1.maxIOU = std::max(h1.maxIOU, iou);
             h2.maxIOU = std::max(h2.maxIOU, iou);
