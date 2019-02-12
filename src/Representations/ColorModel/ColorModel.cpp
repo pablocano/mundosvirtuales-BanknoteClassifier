@@ -1,6 +1,6 @@
 #include "ColorModel.h"
 #include "Tools/ColorModelConversions.h"
-#include "Tools/File.h"
+#include "Platform/File.h"
 #include <fstream>
 
 static class ColorSpaceMapper

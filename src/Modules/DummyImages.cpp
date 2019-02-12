@@ -1,5 +1,5 @@
 #include "DummyImages.h"
-#include "Tools/File.h"
+#include "Platform/File.h"
 #include "Tools/Debugging/Debugging.h"
 #include <opencv2/opencv.hpp>
 
@@ -7,7 +7,7 @@ MAKE_MODULE(DummyImages, BanknoteClassifier);
 
 DummyImages::DummyImages()
 {
-    currentImage = cv::imread(std::string(File::getGTDir()) + "/Data/dummyimage.jpg", cv::IMREAD_COLOR);
+    currentImage = cv::imread(std::string(File::getBCDir()) + "/Data/dummyimage.jpg", cv::IMREAD_COLOR);
 }
 
 void DummyImages::update(Image& image)

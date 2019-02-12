@@ -9,6 +9,7 @@
 #include "Controller.h"
 #include "Views/ImageView.h"
 #include "Views/ColorCalibrationView/ColorCalibrationView.h"
+#include "Views/DataView/DataView.h"
 #include "Views/StatusView.h"
 #include "Tools/SystemCall.h"
 #include "MainWindow.h"
@@ -19,7 +20,8 @@ CalibratorTool::Application* Controller::application = 0;
 Controller::Controller(CalibratorTool::Application& application)
 : banknoteClassifierWrapper(0),
   colorCalibrationChanged(false),
-  colorTableTimeStamp(0)
+  colorTableTimeStamp(0),
+  dataViewWriter(&dataViews)
 {
   this->application = &application;
   
@@ -36,10 +38,12 @@ Controller::Controller(CalibratorTool::Application& application)
   poll(idDebugResponse);
   poll(idDrawingManager);
   poll(idColorCalibration);
+  poll(idTypeInfo);
   
   SYNC;
-  //debugOut << DebugRequest("representation:ImageBGR");
-  //debugOut.finishMessage(idDebugRequest);
+  DebugRequest d("debug data:parameters:BanknoteDetector", true);
+  debugOut.out.bin << d;
+  debugOut.out.finishMessage(idDebugRequest);
   
   banknoteClassifierWrapper->start();
 }
@@ -59,6 +63,9 @@ void Controller::compile()
   addView(new ImageView("GroundTruth.Images.EastCamSegmented", *this, "RightCam", true, true),"GroundTruth.Images");
   addView(new ColorCalibrationView("GroundTruth.Calibrations.ColorCalibration",*this),"GroundTruth.Calibrations");
   addView(new StatusView("GroundTruth.Status.Status",*this,"RobotStatus"),"GroundTruth.Status");
+
+  dataViews["parameters:BanknoteDetector"] = new DataView("BanknotePosition.data.parameters:BanknoteDetector", "parameters:BanknoteDetector", *this, typeInfo);
+  addView(dataViews["parameters:BanknoteDetector"], "GroundTruth.Data");
 }
 
 void Controller::addView(CalibratorTool::Object* object, const CalibratorTool::Object* parent, int flags)
@@ -195,6 +202,14 @@ bool Controller::poll(MessageID id)
         waitingFor[id] = 1;
         break;
       }
+      case idTypeInfo:
+      {
+        SYNC;
+        debugOut.out.bin << DebugRequest("automated requests:TypeInfo", true);
+        debugOut.out.finishMessage(idDebugRequest);
+        waitingFor[id] = 1;  // Debug will answer
+        break;
+      }
       default:
         return false;
     }
@@ -310,6 +325,39 @@ bool Controller::handleMessage(InMessage& message)
       message.bin >> robot;
       return true;
     }
+    case idTypeInfo:
+    {
+      message.bin >> typeInfo;
+      --waitingFor[idTypeInfo];
+      return true;
+    }
+    case idDebugDataResponse:
+    {
+        std::string name, type;
+        message.bin >> name >> type;
+        if(!processesOfDebugData[name] || (processesOfDebugData[name] != 'e') == (processIdentifier != 'e'))
+        {
+          processesOfDebugData[name] = processIdentifier;
+          if(debugDataInfos.find(name) == debugDataInfos.end())
+            debugDataInfos[name] = DebugDataInfoPair(type, new MessageQueue);
+          debugDataInfos[name].second->clear();
+          message >> *debugDataInfos[name].second;
+          dataViewWriter.handleMessage(message, type, name);
+
+          for(const auto& i : debugRequestTable.slowIndex)
+            if("debug data:" + name == i.first)
+            {
+              if(debugRequestTable.enabled[i.second]) // still enabled?
+              {
+                // then request it again for the next update
+                debugOut.out.bin << DebugRequest("debug data:" + name, true);
+                debugOut.out.finishMessage(idDebugRequest);
+              }
+              break;
+            }
+        }
+        return true;
+    }
     default:
       return false;
   }
@@ -341,4 +389,38 @@ void Controller::drDebugDrawing(const std::string &request)
       }
 
   return;
+}
+
+void Controller::sendDebugMessage(InMessage& msg)
+{
+  SYNC;
+  msg >> debugOut;
+}
+
+bool Controller::DataViewWriter::handleMessage(InMessage& message)
+{
+  std::string name, type;
+  message.bin >> name >> type;
+
+  return handleMessage(message, type, name);
+}
+
+bool Controller::DataViewWriter::handleMessage(InMessage& message, const std::string& type, const std::string& name)
+{
+  std::map<std::string, DataView*>::const_iterator view = pDataViews->find(name);
+  ASSERT(message.getMessageID() == idDebugDataResponse);
+  return view != pDataViews->end() && view->second->handleMessage(message, type, name);
+}
+
+void Controller::requestDebugData(const std::string& name, bool enable)
+{
+  SYNC;
+  DebugRequest d("debug data:" + name, enable);
+  debugRequestTable.addRequest(d);
+  if(enable)
+  {
+    processesOfDebugData[name] = 0;
+    debugOut.out.bin << d;
+    debugOut.out.finishMessage(idDebugRequest);
+  }
 }

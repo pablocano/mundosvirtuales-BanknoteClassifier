@@ -47,7 +47,7 @@ the use of this software, even if advised of the possibility of such damage.
 #include <pylon/PylonIncludes.h>
 #include <pylon/usb/BaslerUsbInstantCamera.h>
 
-#include "Tools/File.h"
+#include "Platform/File.h"
 
 using namespace std;
 using namespace cv;
@@ -175,7 +175,7 @@ int main(int argc, char *argv[]) {
 		float squareLength = parser.get<float>("sl");
 		float markerLength = parser.get<float>("ml");
 		int dictionaryId = parser.get<int>("d");
-		string outputFile = std::string(File::getGTDir()) + "/Config/cameracalibration.xml";
+        string outputFile = std::string(File::getBCDir()) + "/Config/cameracalibration.xml";
 
 		bool showChessboardCorners = parser.get<bool>("sc");
 
@@ -190,7 +190,7 @@ int main(int argc, char *argv[]) {
 
 		Ptr<aruco::DetectorParameters> detectorParams = aruco::DetectorParameters::create();
 		//if (parser.has("dp")) {
-		bool readOk = readDetectorParameters(std::string(File::getGTDir()) + "/Config/detector_params.yml", detectorParams);
+        bool readOk = readDetectorParameters(std::string(File::getBCDir()) + "/Config/detector_params.yml", detectorParams);
 		if (!readOk) {
 			cerr << "Invalid detector parameters file" << endl;
 			return 0;
@@ -220,7 +220,7 @@ int main(int argc, char *argv[]) {
 
 		cv::Mat boardImage;
 		charucoboard->draw(cv::Size(600, 500), boardImage, 10, 1);
-		cv::imwrite(std::string(File::getGTDir()) + "/Config/charucoBoard.jpg", boardImage);
+        cv::imwrite(std::string(File::getBCDir()) + "/Config/charucoBoard.jpg", boardImage);
 
 		CDeviceInfo info;
 		info.SetDeviceClass(CBaslerUsbInstantCamera::DeviceClass());
