@@ -89,6 +89,7 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Processes/GripperCommunication.h
   src/Representations/Blobs.cpp
   src/Representations/Blobs.h
+  src/Representations/BanknoteDetections.cpp
   src/Representations/BanknoteDetections.h
   src/Representations/BanknotePosition.cpp
   src/Representations/BanknotePosition.h

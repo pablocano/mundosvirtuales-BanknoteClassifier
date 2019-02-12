@@ -18,8 +18,6 @@
 #include "Tools/Debugging/DebugDrawings.h"
 #include "Tools/Debugging/Debugging.h"
 #include "Tools/Math/Geometry.h"
-#include "Tools/Math/iou.h"
-#include "Tools/Math/Pose2f.h"
 #include "Tools/Math/Random.h"
 
 #include "opencv2/core/cuda.hpp"
@@ -38,18 +36,6 @@
 #include <geos/geom/LineString.h>
 #include <geos/geom/Polygon.h>
 #include <geos/geom/CoordinateArraySequence.h>
-
-
-ENUM(CornerID,
-{,
-    TopLeft,
-    TopRight,
-    BottomRight,
-    BottomLeft,
-    numOfRealCorners,
-    MiddleMiddle = numOfRealCorners,
-    MiddleRight,
-});
 
 STREAMABLE(ClassParameters,
 {,
@@ -78,8 +64,6 @@ MODULE(BanknoteDetector,
     }),
 });
 
-
-
 class Model
 {
 public:
@@ -90,40 +74,6 @@ public:
     Vector3f corners[CornerID::numOfCornerIDs];
 };
 
-class Hypothesys
-{
-public:
-
-    Hypothesys();
-    ~Hypothesys();
-    bool isValid() const;
-
-    /* Buffer with detection related points */
-    std::vector<cv::DMatch> matches;
-    std::vector<Vector3f> queryPoints;
-    std::vector<Vector3f> trainPoints;
-    Vector3f queryCorners[CornerID::numOfRealCorners];
-
-    /* Detection representation*/
-    Matrix3f transform; /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
-    Pose2f pose; /* 2D Pose of the hypothesis in the image space */
-    Vector3f graspPoint; /* Estimated grasping point */
-
-    /* Detection statistics */
-    int ransacVotes;
-    float graspScore;
-    float maxIOU;
-    int layer; /* 0 = foreground. 1,2,... represent the "depth" */
-
-    /* Status flags */
-    bool validTransform;
-    bool validNms;
-    bool validGrasp;
-
-    /* Geometry objects representing the hypothesys */
-    geos::geom::Geometry* validGeometry;
-    geos::geom::Geometry* geometry;
-};
 
 class ClassDetections
 {
@@ -134,7 +84,7 @@ class ClassDetections
 
     std::vector<cv::DMatch> matches;
     std::vector<cv::DMatch> houghFilteredMatches;
-    std::vector<Hypothesys> hypotheses;
+    std::vector<BanknoteDetection> detections;
 };
 
 
@@ -239,7 +189,7 @@ protected:
     int getRansacConsensus(const Matrix3f& transform, const std::vector<cv::DMatch>& matches, const std::vector<cv::KeyPoint>& trainKeypoints, const std::vector<cv::KeyPoint>& queryKeypoints, float maxError, const VectorXi& acceptedStatus);
     void getRansacInliers(const Matrix3f& transform, const std::vector<cv::DMatch>& matches, const std::vector<cv::KeyPoint>& inputTrainKeypoints, const std::vector<cv::KeyPoint>& inputQueryKeypoints, float maxError, float maxError2, VectorXi& acceptedStatus, std::vector<cv::DMatch>& acceptedMatches, std::vector<Vector3f>& outputTrainKeypoints, std::vector<Vector3f>& outputQueryKeypoints);
 
-    void compareForeground(Hypothesys& h1, Hypothesys& s2);
+    void compareForeground(BanknoteDetection& d1, BanknoteDetection& d2);
 
     void drawAcceptedHough();
     void drawAcceptedRansac();

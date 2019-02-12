@@ -23,34 +23,6 @@ ClassDetections::ClassDetections()
     houghFilteredMatches.reserve(1000);
 }
 
-Hypothesys::Hypothesys() :
-    transform(Matrix3f::Identity()),
-    pose(),
-    graspPoint(Vector3f::Zero()),
-    ransacVotes(0),
-    graspScore(0),
-    maxIOU(0.f),
-    layer(0),
-    validTransform(true),
-    validNms(true),
-    validGrasp(true),
-    validGeometry(nullptr),
-    geometry(nullptr)
-{
-
-}
-
-Hypothesys::~Hypothesys()
-{
-    delete validGeometry;
-    delete geometry;
-}
-
-bool Hypothesys::isValid() const
-{
-    return validNms && /*validGrasp && */validTransform;
-}
-
 BanknoteDetector::~BanknoteDetector()
 {
     delete aux_point;
@@ -125,7 +97,7 @@ BanknoteDetector::BanknoteDetector():
 
 }
 
-void BanknoteDetector::update(BanknoteDetections& detections)
+void BanknoteDetector::update(BanknoteDetections& repr)
 {
     DECLARE_DEBUG_DRAWING("module:BanknoteDetections:raw_keypoints", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteDetections:raw_detections", "drawingOnImage");
@@ -194,23 +166,23 @@ void BanknoteDetector::update(BanknoteDetections& detections)
     std::cout << "Hough Matches filter time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Matches: " << numberOfMatches << ")" << std::endl;
 
     start = end;
-    int numberOfHypothesis = 0;
+    int numberOfHypotheses = 0;
 
     for(unsigned c = 0; c < Classification::numOfBanknotes - 2; c++)
     {
         Model& model = models[c];
         ClassDetections& detections = classDetections[c];
+        detections.detections.clear();
 
-        detections.hypotheses.clear();
         ransac(model, parameters[c], detections);
-        numberOfHypothesis += detections.hypotheses.size();
+        numberOfHypotheses += detections.detections.size();
     }
 
     end = std::chrono::system_clock::now();
-    std::cout << "Ransac filter time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypothesis << ")" << std::endl;
+    std::cout << "Ransac filter time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
 
     start = end;
-    numberOfHypothesis = 0;
+    numberOfHypotheses = 0;
 
     for(unsigned c = 0; c < Classification::numOfBanknotes - 2; c++)
     {
@@ -218,11 +190,11 @@ void BanknoteDetector::update(BanknoteDetections& detections)
         ClassDetections& detections = classDetections[c];
 
         estimateTransforms(model, parameters[c], detections);
-        numberOfHypothesis += detections.hypotheses.size();
+        numberOfHypotheses += detections.detections.size();
     }
 
     end = std::chrono::system_clock::now();
-    std::cout << "Estimate transform time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypothesis << ")" << std::endl;
+    std::cout << "Estimate transform time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
 
     start = end;
 
@@ -235,7 +207,7 @@ void BanknoteDetector::update(BanknoteDetections& detections)
     }
 
     end = std::chrono::system_clock::now();
-    std::cout << "NMS time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypothesis << ")" << std::endl;
+    std::cout << "NMS time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
 
     start = end;
 
@@ -244,13 +216,13 @@ void BanknoteDetector::update(BanknoteDetections& detections)
         Model& model1 = models[c1];
         ClassDetections& detections1 = classDetections[c1];
 
-        for(int i1 = 0; i1 < detections1.hypotheses.size(); i1++)
+        for(int i1 = 0; i1 < detections1.detections.size(); i1++)
         {
-            Hypothesys& h1 = detections1.hypotheses[i1];
+            BanknoteDetection& d1 = detections1.detections[i1];
 
-            if(!h1.isValid())
+            if(!d1.isValid())
             {
-                h1.layer = -1;
+                d1.layer = -1;
                 continue;
             }
 
@@ -259,20 +231,20 @@ void BanknoteDetector::update(BanknoteDetections& detections)
                 Model& model1 = models[c2];
                 ClassDetections& detections1 = classDetections[c2];
 
-                for(int i2 = 0; i2 < detections1.hypotheses.size(); i2++)
+                for(int i2 = 0; i2 < detections1.detections.size(); i2++)
                 {
-                    Hypothesys& h2 = detections1.hypotheses[i2];
+                    BanknoteDetection& d2 = detections1.detections[i2];
 
                     if(c1 == c2 && i1 && i2)
                         continue;
 
-                    if(!h2.isValid())
+                    if(!d2.isValid())
                     {
-                        h2.layer = -1;
+                        d2.layer = -1;
                         continue;
                     }
 
-                    compareForeground(h1, h2);
+                    compareForeground(d1, d2);
                 }
             }
 
@@ -280,7 +252,7 @@ void BanknoteDetector::update(BanknoteDetections& detections)
     }
 
     end = std::chrono::system_clock::now();
-    std::cout << "Foreground estimation time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypothesis << ")" << std::endl;
+    std::cout << "Foreground estimation time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
 
     start = end;
 
@@ -293,8 +265,21 @@ void BanknoteDetector::update(BanknoteDetections& detections)
     }
 
     end = std::chrono::system_clock::now();
-    std::cout << "Grasping Score time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypothesis << ")" << std::endl;
+    std::cout << "Grasping Score time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
 
+
+    repr.detections.clear();
+
+    for(unsigned c = 0; c < Classification::numOfBanknotes - 2; c++)
+    {
+        ClassDetections& detections = classDetections[c];
+
+        for(const BanknoteDetection& detection : detections.detections)
+        {
+            if(detection.isValid())
+                repr.detections.push_back(detection);
+        }
+    }
 
     drawAcceptedHough();
     drawAcceptedRansac();
@@ -435,7 +420,7 @@ void BanknoteDetector::ransac(
         const ClassParameters& params,
         ClassDetections& detections)
 {
-    detections.hypotheses.clear();
+    detections.detections.clear();
 
     float numberOfAcceptedMatches = 0;
 
@@ -466,18 +451,18 @@ void BanknoteDetector::ransac(
 
         if(consensus > params.ransacMinConsensus)
         {
-            detections.hypotheses.push_back(Hypothesys());
+            detections.detections.push_back(BanknoteDetection());
 
-            Hypothesys& newHypothesys = detections.hypotheses.back();
-            newHypothesys.matches.reserve(consensus);
-            newHypothesys.queryPoints.reserve(consensus);
-            newHypothesys.trainPoints.reserve(consensus);
+            BanknoteDetection& newDetection = detections.detections.back();
+            newDetection.matches.reserve(consensus);
+            newDetection.queryPoints.reserve(consensus);
+            newDetection.trainPoints.reserve(consensus);
 
 
-            getRansacInliers(transform, detections.houghFilteredMatches, model.features.keypoints, imageKeypoints, params.ransacMaxError, params.ransacMaxError2, acceptedStatus, newHypothesys.matches, newHypothesys.trainPoints, newHypothesys.queryPoints);
-            newHypothesys.ransacVotes = consensus;
+            getRansacInliers(transform, detections.houghFilteredMatches, model.features.keypoints, imageKeypoints, params.ransacMaxError, params.ransacMaxError2, acceptedStatus, newDetection.matches, newDetection.trainPoints, newDetection.queryPoints);
+            newDetection.ransacVotes = consensus;
 
-            assert(newHypothesys.ransacVotes == newHypothesys.matches.size());
+            assert(newDetection.ransacVotes == newDetection.matches.size());
         }
     }
 }
@@ -585,7 +570,7 @@ void BanknoteDetector::estimateTransforms(const Model& model, const ClassParamet
     queryPoints.reserve(500);
     trainPoints.reserve(500);
 
-    for(Hypothesys& h : detections.hypotheses)
+    for(BanknoteDetection& h : detections.detections)
     {
         queryPoints.resize(h.matches.size());
         trainPoints.resize(h.matches.size());
@@ -691,46 +676,46 @@ void BanknoteDetector::estimateTransforms(const Model& model, const ClassParamet
 
 void BanknoteDetector::nonMaximumSupression(const Model& model, const ClassParameters& params, ClassDetections& detections)
 { 
-    for(int index1 = 0; index1 < detections.hypotheses.size(); index1++)
+    for(int index1 = 0; index1 < detections.detections.size(); index1++)
     {
-        Hypothesys& h1 = detections.hypotheses[index1];
+        BanknoteDetection& d1 = detections.detections[index1];
 
-        if(!h1.validNms)
+        if(!d1.validNms)
             continue;
 
-        for(int index2 = 0; index2 < detections.hypotheses.size(); index2++)
+        for(int index2 = 0; index2 < detections.detections.size(); index2++)
         {
             if(index2 == index1)
                 continue;
 
-            Hypothesys& h2 = detections.hypotheses[index2];
+            BanknoteDetection& d2 = detections.detections[index2];
 
-            if(!h2.validNms)
+            if(!d2.validNms)
                 continue;
 
             float iou = 0;
 
-            if(h1.validTransform && h2.validTransform && h1.geometry->intersects(h2.geometry))
+            if(d1.validTransform && d2.validTransform && d1.geometry->intersects(d2.geometry))
             {
-                geos::geom::Geometry* intersection = h1.geometry->intersection(h2.geometry);
+                geos::geom::Geometry* intersection = d1.geometry->intersection(d2.geometry);
                 double interArea = intersection->getArea();
-                iou = interArea / (h1.geometry->getArea() + h2.geometry->getArea() - interArea);
+                iou = interArea / (d1.geometry->getArea() + d2.geometry->getArea() - interArea);
                 delete intersection;
             }
 
-            h1.maxIOU = std::max(h1.maxIOU, iou);
-            h2.maxIOU = std::max(h2.maxIOU, iou);
+            d1.maxIOU = std::max(d1.maxIOU, iou);
+            d2.maxIOU = std::max(d2.maxIOU, iou);
 
             if(iou > params.maxAllowedIOU) /* Great overlap is probably just duplicated detections*/
             {
-                if(h1.ransacVotes >= h2.ransacVotes)
+                if(d1.ransacVotes >= d2.ransacVotes)
                 {
-                    h2.validNms = false;
+                    d2.validNms = false;
                     continue;
                 }
                 else
                 {
-                    h1.validNms = false;
+                    d1.validNms = false;
                     break;
                 }
             }
@@ -738,9 +723,9 @@ void BanknoteDetector::nonMaximumSupression(const Model& model, const ClassParam
     }
 }
 
-void BanknoteDetector::compareForeground(Hypothesys& h1, Hypothesys& h2)
+void BanknoteDetector::compareForeground(BanknoteDetection& d1, BanknoteDetection& d2)
 {
-    if(!h1.geometry->intersects(h2.geometry))
+    if(!d1.geometry->intersects(d2.geometry))
         return;
 
     bool oneOverTwo = false;
@@ -750,19 +735,19 @@ void BanknoteDetector::compareForeground(Hypothesys& h1, Hypothesys& h2)
     int twoOverOnePoints = 0;
 
 
-    for(const cv::DMatch& match : h1.matches)
+    for(const cv::DMatch& match : d1.matches)
     {
         const cv::Point2d& p = imageKeypoints[match.queryIdx].pt;
 
         geos::geom::Coordinate coordinate(p.x, p.y);
         aux_point = factory->createPoint(coordinate);
 
-        if(h2.geometry->contains(aux_point))
+        if(d2.geometry->contains(aux_point))
         {
             oneOverTwo = true;
             oneOverTwoPoints++;
 
-            h2.layer++;
+            d2.layer++;
             delete aux_point;
             return;
         }
@@ -770,19 +755,19 @@ void BanknoteDetector::compareForeground(Hypothesys& h1, Hypothesys& h2)
         delete aux_point;
     }
 
-    for(const cv::DMatch& match : h2.matches)
+    for(const cv::DMatch& match : d2.matches)
     {
         const cv::Point2d& p = imageKeypoints[match.queryIdx].pt;
 
         geos::geom::Coordinate coordinate(p.x, p.y);
         aux_point = factory->createPoint(coordinate);
 
-        if(h1.geometry->contains(aux_point))
+        if(d1.geometry->contains(aux_point))
         {
             twoOverOne = true;
             twoOverOnePoints++;
 
-            h1.layer++;
+            d1.layer++;
             delete aux_point;
             return;
         }
@@ -791,15 +776,15 @@ void BanknoteDetector::compareForeground(Hypothesys& h1, Hypothesys& h2)
     }
 
     if(oneOverTwo && oneOverTwoPoints > twoOverOnePoints)
-        h2.layer++;
+        d2.layer++;
     else if(twoOverOne && twoOverOnePoints > oneOverTwoPoints)
-        h1.layer++;
+        d1.layer++;
 
 }
 
 void BanknoteDetector::evaluateGraspingScore(const Model& model, const ClassParameters& params, ClassDetections& detections)
 {
-    for(Hypothesys& h : detections.hypotheses)
+    for(BanknoteDetection& h : detections.detections)
     {
         std::vector<Vector2f> inliers;
         inliers.reserve(h.matches.size());
@@ -900,7 +885,7 @@ void BanknoteDetector::drawAcceptedRansac()
         ColorRGBA color = debugColors[c];
         const Vector3f (&corners)[CornerID::numOfCornerIDs] = model.corners;
 
-        for(Hypothesys& h : detections.hypotheses)
+        for(BanknoteDetection& h : detections.detections)
         {
             for(const cv::DMatch& match : h.matches)
             {
@@ -947,7 +932,7 @@ void BanknoteDetector::drawAcceptedHypotheses()
         ColorRGBA color = debugColors[c];
         const Vector3f (&corners)[CornerID::numOfCornerIDs] = model.corners;
 
-        for(Hypothesys& h : detections.hypotheses)
+        for(BanknoteDetection& h : detections.detections)
         {
             ColorRGBA color2 = h.isValid() ? color : ColorRGBA::white;
 
