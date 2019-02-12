@@ -7,7 +7,7 @@
 #include "Settings.h"
 #include "SystemCall.h"
 #include "Global.h"
-#include "File.h"
+#include "Platform/File.h"
 #include <opencv2/core/core.hpp>
 #include <iostream>
 
@@ -35,7 +35,7 @@ void Settings::init()
 
 bool Settings::load()
 {
-  cv::FileStorage file(std::string(File::getGTDir())+"/Config/settings.xml", cv::FileStorage::READ);
+  cv::FileStorage file(std::string(File::getBCDir())+"/Config/settings.xml", cv::FileStorage::READ);
   
   if (file.isOpened()) {
     file["teamNumber"] >> teamNumber;

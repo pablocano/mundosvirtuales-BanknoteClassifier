@@ -2,11 +2,17 @@ cmake_minimum_required(VERSION 3.1.0)
 
 PROJECT (BanknoteClassifier)
 find_package(OpenCV REQUIRED)
-find_package(Qt4 REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
+# Tell CMake to run moc when necessary:
+set(CMAKE_AUTOMOC ON)
+# As moc files are generated in the binary dir, tell CMake
+# to always look for includes there:
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 set(PYLON_ROOT /opt/pylon5)
-include(${QT_USE_FILE})
+#include(${QT_USE_FILE})
 
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
 
@@ -141,8 +147,6 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/Debugging/Stopwatch.h
   src/Tools/Debugging/TimingManager.cpp
   src/Tools/Debugging/TimingManager.h
-  src/Tools/File.cpp
-  src/Tools/File.h
   src/Tools/Function.h
   src/Tools/FunctionList.cpp
   src/Tools/FunctionList.h
@@ -213,66 +217,81 @@ set( BANCKNOTECLASSIFIER_SRC
 
 set( CAMERA_CALIBRATION
    Utils/CameraCalibration/calibration.cpp
-   src/Tools/File.cpp
-   src/Tools/File.h
+   src/Platform/BCAssert.cpp
+   src/Platform/File.cpp
+   src/Platform/File.h
 )
 
-set( FIELD_CALIBRATOR
-   Utils/FieldCalibrator/fieldCalibrator.cpp
-   src/Representations/FieldDimensions.h
-   src/Representations/FieldDimensions.cpp
-)
+#Calibrarion Tool
 
 set( CALIBRATOR_SRC_DIR Utils/CalibratorTool)
 
-QT4_WRAP_CPP(CALIBRATION_TOOL_MOCSrcs ${CALIBRATOR_SRC_DIR}/ListViewsDockWidget.h ${CALIBRATOR_SRC_DIR}/MainWindow.h ${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.h ${CALIBRATOR_SRC_DIR}/Views/ImageView.h ${CALIBRATOR_SRC_DIR}/Views/StatusView.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.h)
+#QT5_WRAP_CPP(CALIBRATION_TOOL_MOCSrcs ${CALIBRATOR_SRC_DIR}/ListViewsDockWidget.h ${CALIBRATOR_SRC_DIR}/MainWindow.h ${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.h ${CALIBRATOR_SRC_DIR}/Views/ImageView.h ${CALIBRATOR_SRC_DIR}/Views/StatusView.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.h ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.h)
 
-QT4_ADD_RESOURCES(CALIBRATION_TOOL_RESOURCES_RCC ${CALIBRATOR_SRC_DIR}/CalibratorTool.qrc)
+QT5_ADD_RESOURCES(CALIBRATION_TOOL_RESOURCES_RCC ${CALIBRATOR_SRC_DIR}/CalibratorTool.qrc)
 
 set( CALIBRATOR_TOOL_SRC
-  ${CALIBRATOR_SRC_DIR}/CalibratorTool.h
+  #${CALIBRATOR_SRC_DIR}/CalibratorTool.h
   ${CALIBRATOR_SRC_DIR}/Controller.cpp
-  ${CALIBRATOR_SRC_DIR}/Controller.h
+  #${CALIBRATOR_SRC_DIR}/Controller.h
   ${CALIBRATOR_SRC_DIR}/BanknoteClassifierWrapper.cpp
-  ${CALIBRATOR_SRC_DIR}/BanknoteClassifierWrapper.h
+  #${CALIBRATOR_SRC_DIR}/BanknoteClassifierWrapper.h
   ${CALIBRATOR_SRC_DIR}/ListViewsDockWidget.cpp
-  ${CALIBRATOR_SRC_DIR}/ListViewsDockWidget.h
+  #${CALIBRATOR_SRC_DIR}/ListViewsDockWidget.h
   ${CALIBRATOR_SRC_DIR}/Main.cpp
   ${CALIBRATOR_SRC_DIR}/MainWindow.cpp
-  ${CALIBRATOR_SRC_DIR}/MainWindow.h
+  #${CALIBRATOR_SRC_DIR}/MainWindow.h
   ${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.cpp
-  ${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.h
-  ${CALIBRATOR_SRC_DIR}/Synchronization.h
+  #${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.h
+  #${CALIBRATOR_SRC_DIR}/Synchronization.h
   ${CALIBRATOR_SRC_DIR}/Views/ImageView.cpp
-  ${CALIBRATOR_SRC_DIR}/Views/ImageView.h
+  #${CALIBRATOR_SRC_DIR}/Views/ImageView.h
   ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.cpp
-  ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.h
+  #${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.h
   ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.cpp
-  ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.h
+  #${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.h
   ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.cpp
-  ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.h
+  #${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.h
+  ${CALIBRATOR_SRC_DIR}/Views/DataView/DataView.cpp
+  #${CALIBRATOR_SRC_DIR}/Views/DataView/DataView.h
+  ${CALIBRATOR_SRC_DIR}/Views/DataView/DataWidget.cpp
+  #${CALIBRATOR_SRC_DIR}/Views/DataView/DataWidget.h
+  ${CALIBRATOR_SRC_DIR}/Views/DataView/EditorEventFilter.cpp
+  #${CALIBRATOR_SRC_DIR}/Views/DataView/EditorEventFilter.h
+  ${CALIBRATOR_SRC_DIR}/Views/DataView/PropertyEditorFactory.cpp
+  #${CALIBRATOR_SRC_DIR}/Views/DataView/PropertyEditorFactory.h
+  ${CALIBRATOR_SRC_DIR}/Views/DataView/PropertyManager.cpp
+  #${CALIBRATOR_SRC_DIR}/Views/DataView/PropertyManager.h
+  ${CALIBRATOR_SRC_DIR}/Views/DataView/PropertyTreeCreator.cpp
+  #${CALIBRATOR_SRC_DIR}/Views/DataView/PropertyTreeCreator.h
+  ${CALIBRATOR_SRC_DIR}/Views/DataView/PropertyTreeWriter.cpp
+  #${CALIBRATOR_SRC_DIR}/Views/DataView/PropertyTreeWriter.h
+  #${CALIBRATOR_SRC_DIR}/Views/DataView/TypeDeclarations.h
+  ${CALIBRATOR_SRC_DIR}/Views/DataView/TypeDescriptor.cpp
+  #${CALIBRATOR_SRC_DIR}/Views/DataView/TypeDescriptor.h
   ${CALIBRATOR_SRC_DIR}/Views/StatusView.cpp
-  ${CALIBRATOR_SRC_DIR}/Views/StatusView.h
+  #${CALIBRATOR_SRC_DIR}/Views/StatusView.h
   ${CALIBRATOR_SRC_DIR}/Visualization/DebugDrawing.cpp
-  ${CALIBRATOR_SRC_DIR}/Visualization/DebugDrawing.h
+  #${CALIBRATOR_SRC_DIR}/Visualization/DebugDrawing.h
   ${CALIBRATOR_SRC_DIR}/Visualization/PaintMethods.cpp
-  ${CALIBRATOR_SRC_DIR}/Visualization/PaintMethods.h
+  #${CALIBRATOR_SRC_DIR}/Visualization/PaintMethods.h
 )
 
+#Vision Tool Resurces
 set( VISION_TOOL_SRC_DIR Utils/VisionTool)
-
-QT4_WRAP_CPP(VISION_TOOL_MOCSrcs ${VISION_TOOL_SRC_DIR}/VisionToolWidget.h ${VISION_TOOL_SRC_DIR}/MainWindow.h)
-
+#QT5_WRAP_CPP(VISION_TOOL_MOCSrcs ${VISION_TOOL_SRC_DIR}/VisionToolWidget.h ${VISION_TOOL_SRC_DIR}/MainWindow.h)
 set( VISION_TOOL_SRC
   ${VISION_TOOL_SRC_DIR}/Main.cpp
   ${VISION_TOOL_SRC_DIR}/MainWindow.cpp
-  ${VISION_TOOL_SRC_DIR}/MainWindow.h
+  #${VISION_TOOL_SRC_DIR}/MainWindow.h
   ${VISION_TOOL_SRC_DIR}/CommunicationHandler.cpp
-  ${VISION_TOOL_SRC_DIR}/CommunicationHandler.h
+  #${VISION_TOOL_SRC_DIR}/CommunicationHandler.h
   ${VISION_TOOL_SRC_DIR}/VisionTool.cpp
-  ${VISION_TOOL_SRC_DIR}/VisionTool.h
+  #${VISION_TOOL_SRC_DIR}/VisionTool.h
   ${VISION_TOOL_SRC_DIR}/VisionToolWidget.cpp
-  ${VISION_TOOL_SRC_DIR}/VisionToolWidget.h
+  #${VISION_TOOL_SRC_DIR}/VisionToolWidget.h
+  src/Platform/File.cpp
+  src/Platform/File.h
   src/Platform/Memory.cpp
   src/Platform/Memory.h
   src/Tools/AlignedMemory.cpp
@@ -280,8 +299,6 @@ set( VISION_TOOL_SRC
   src/Tools/Comm/BanknoteClassifierMessageHandler.cpp
   src/Tools/Comm/BanknoteClassifierMessageHandler.h
   src/Tools/Streams/Enum.h
-  src/Tools/File.cpp
-  src/Tools/File.h
   src/Tools/Global.cpp
   src/Tools/Global.h
   src/Tools/Math/Pose2f.h
@@ -296,17 +313,29 @@ set( VISION_TOOL_SRC
   src/Tools/MessageQueue/MessageIDs.h
 )
 
-set( LIBQXT_SRC_DIR Utils/libqxt)
+#Qtpropertybrowser Resources
+set( QTPROPERTYBROWSER_SRC_DIR Utils/qtpropertybrowser)
+QT5_ADD_RESOURCES(QTPROPERTYBROWSER_RESOURCES_RCC ${QTPROPERTYBROWSER_SRC_DIR}/qtpropertybrowser.qrc)
 
-QT4_WRAP_CPP(LIBQXT_MOC_Srcs ${LIBQXT_SRC_DIR}/qxtspanslider_p.h ${LIBQXT_SRC_DIR}/qxtspanslider.h)
-
-set( LIBQXT_SRC
-  ${LIBQXT_SRC_DIR}/qxtglobal.h
-  ${LIBQXT_SRC_DIR}/qxtnamespace.h
-  ${LIBQXT_SRC_DIR}/qxtspanslider_p.h
-  ${LIBQXT_SRC_DIR}/qxtspanslider.cpp
-  ${LIBQXT_SRC_DIR}/qxtspanslider.h
+set( QTPROPERTYBROWSER_SRC
+  ${QTPROPERTYBROWSER_SRC_DIR}/qtbuttonpropertybrowser.cpp
+  ${QTPROPERTYBROWSER_SRC_DIR}/qteditorfactory.cpp
+  ${QTPROPERTYBROWSER_SRC_DIR}/qtgroupboxpropertybrowser.cpp
+  ${QTPROPERTYBROWSER_SRC_DIR}/qtpropertybrowser.cpp
+  ${QTPROPERTYBROWSER_SRC_DIR}/qtpropertybrowserutils.cpp
+  ${QTPROPERTYBROWSER_SRC_DIR}/qtpropertymanager.cpp
+  ${QTPROPERTYBROWSER_SRC_DIR}/qttreepropertybrowser.cpp
+  ${QTPROPERTYBROWSER_SRC_DIR}/qtvariantproperty.cpp
 )
+
+
+#LibQxt Resources
+set( LIBQXT_SRC_DIR Utils/libqxt)
+set( LIBQXT_SRC
+  ${LIBQXT_SRC_DIR}/qxtspanslider.cpp
+)
+
+
 
 set( LIB_ETHERNETIP_FANUC_SRC
 	src/Tools/Fanuc/PositionRegisterCartesian.cpp
@@ -386,9 +415,14 @@ ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen PylonBase_MD_VC120_v5_1 PylonUtility_MD_VC120_v5_1 GenApi_MD_VC120_v3_0_Basler_pylon_v5_1 GCBase_MD_VC120_v3_1_Basler_pylon_v5_1 ws2_32 winmm geos)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+include_directories(${Qt5Widgets_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/Utils/qtpropertybrowser ${CMAKE_CURRENT_BINARY_DIR}/Utils/qtpropertybrowser ${CMAKE_CURRENT_SOURCE_DIR})
+add_library( qtpropertybrowser STATIC ${QTPROPERTYBROWSER_SRC} ${QTPROPERTYBROWSER_RESOURCES_RCC})
+qt5_use_modules(qtpropertybrowser Widgets)
+target_compile_definitions(qtpropertybrowser PRIVATE QXT_STATIC )
 
-add_library( libqxt STATIC ${LIBQXT_SRC} ${LIBQXT_MOC_Srcs})
-target_link_libraries(libqxt ${QT_LIBRARIES})
+include_directories(${Qt5Widgets_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt ${CMAKE_CURRENT_BINARY_DIR}/Utils/libqxt ${CMAKE_CURRENT_SOURCE_DIR})
+add_library( libqxt STATIC ${LIBQXT_SRC})
+qt5_use_modules(libqxt Widgets)
 target_compile_definitions(libqxt PRIVATE QXT_STATIC )
 
 add_executable( cameraCalibration ${CAMERA_CALIBRATION} ${OpenCV_INCLUDE})
@@ -399,9 +433,6 @@ target_link_libraries( cameraCalibration ${OpenCV_LIBS} pylonbase pylonutility G
 ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 target_link_libraries( cameraCalibration ${OpenCV_LIBS} pylonBase_MD_VC120_v5_1 PylonUtility_MD_VC120_v5_1 GenApi_MD_VC120_v3_1_Basler_pylon_v5_1 GCBase_MD_VC120_v3_1_Basler_pylon_v5_1)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-add_executable( fieldCalibrator ${FIELD_CALIBRATOR} ${OpenCV_INCLUDE})
-target_link_libraries( fieldCalibrator ${OpenCV_LIBS} )
 
 add_executable(bc src/Processes/main.cpp)
 include (GenerateExportHeader)          
@@ -414,17 +445,17 @@ target_link_libraries(bc banknoteClassifier)
 add_executable(gripperComm src/Processes/mainGripperComm.cpp)
 target_link_libraries(gripperComm banknoteClassifier)
 
-include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/CalibratorTool  ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${OpenCV_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/CalibratorTool  ${CMAKE_CURRENT_BINARY_DIR} ${Qt5Widgets_INCLUDES})
 
-add_executable(calibrationTool ${CALIBRATOR_TOOL_SRC} ${CALIBRATION_TOOL_MOCSrcs} ${CALIBRATION_TOOL_RESOURCES_RCC})
+add_executable(calibrationTool ${CALIBRATOR_TOOL_SRC} ${CALIBRATION_TOOL_RESOURCES_RCC})
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-target_link_libraries( calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES})
+target_link_libraries( calibrationTool banknoteClassifier libqxt qtpropertybrowser ${Qt5Widgets_LIBRARIES})
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-target_link_libraries( calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES} rt pthread)
+target_link_libraries( calibrationTool banknoteClassifier libqxt qtpropertybrowser ${Qt5Widgets_LIBRARIES} rt pthread)
 ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-target_link_libraries( calibrationTool banknoteClassifier libqxt ${QT_LIBRARIES})
+target_link_libraries( calibrationTool banknoteClassifier libqxt qtpropertybrowser ${Qt5Widgets_LIBRARIES})
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 target_compile_definitions(calibrationTool PRIVATE QXT_STATIC)
 
-add_executable(visionTool ${VISION_TOOL_SRC} ${VISION_TOOL_MOCSrcs} ${OpenCV_INCLUDE})
-target_link_libraries( visionTool banknoteClassifier ${OpenCV_LIBS} ${QT_LIBRARIES} )
+#add_executable(visionTool ${VISION_TOOL_SRC} ${VISION_TOOL_MOCSrcs} ${OpenCV_INCLUDE})
+#target_link_libraries( visionTool banknoteClassifier ${OpenCV_LIBS} ${Qt5Widgets_LIBRARIES} )

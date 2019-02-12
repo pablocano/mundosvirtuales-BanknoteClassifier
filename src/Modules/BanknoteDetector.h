@@ -45,6 +45,10 @@ MODULE(BanknoteDetector,
     REQUIRES(GrayScaleImageEq),
     REQUIRES(FrameInfo),
     PROVIDES(BanknoteDetections),
+    DEFINES_PARAMETERS(
+    {,
+     (float)(60.f) graspRadius, // In pixels. This should be computed with the real grasp radius and the camera transform
+    }),
 });
 
 ENUM(CornerID,
@@ -262,7 +266,6 @@ protected:
     ClassParameters parameters;
     bool resizeModels; /* This is a must when using scanned images */
     int trainBanknoteHeight; /* hardcoded parameter in order to resize*/
-    float graspRadius; /* In pixels. This should be computed with the real grasp radius and the camera transform */
 
     /** GEOS Stuff */
     geos::geom::GeometryFactory::Ptr factory;

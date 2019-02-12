@@ -17,11 +17,13 @@
 #include "Representations/ColorModel/ColorModel.h"
 #include "Tools/Debugging/DebugDrawings.h"
 #include "Tools/Debugging/DebugRequest.h"
+#include "Tools/Streams/TypeInfo.h"
 #include "Synchronization.h"
 #include <QMutex>
 #include <QList>
 #include <unordered_map>
 
+class DataView;
 class MainWindow;
 
 class Controller : public MessageHandler{
@@ -52,8 +54,35 @@ private:
   BanknoteClassifierWrapper* banknoteClassifierWrapper;
   
   QList<CalibratorTool::Object*> views;
+
+  using DebugDataInfoPair = std::pair<std::string, MessageQueue*>; /**< The type of the information on a debug data entry. */
+  using DebugDataInfos = std::unordered_map<std::string, DebugDataInfoPair>; /**< The type of the map debug data. */
+  DebugDataInfos debugDataInfos; /** All debug data information. */
+  std::unordered_map<std::string, unsigned char> processesOfDebugData; /**< From which process was certain debug data accepted? */
   
 public:
+
+  class DataViewWriter : public MessageHandler
+    {
+    private:
+      std::map<std::string, DataView*>* pDataViews; /**< Pointer to dataViews of RobotConsole */
+
+    public:
+      DataViewWriter(std::map<std::string, DataView*>* pViews) : pDataViews(pViews) {}
+
+      /**
+       * Forwards the specified message to the representation view that  displays it.
+       */
+      bool handleMessage(InMessage& message, const std::string& type, const std::string& name);
+      /**
+       * Same as above but it extracts the type and name from the message
+       */
+      bool handleMessage(InMessage& message);
+    };
+    DataViewWriter dataViewWriter; /**< The writer which is used to translate data into a format that can be understood by the data views */
+
+    /**List of currently active representation views. Key: representation name, value: pointer to the view */
+      std::map<std::string, DataView*> dataViews;
   
   DECLARE_SYNC;
   
@@ -70,6 +99,18 @@ public:
   void compile();
   
   void saveColorCalibration();
+
+  /**
+   * Sends the specified message to debugOut
+   */
+  void sendDebugMessage(InMessage& msg);
+
+  /**
+   * Request debug data.
+   * @param name The name of the debug data. Does not contain "debug data:".
+   * @param enable Is sending the debug data enabled?
+   */
+  void requestDebugData(const std::string& name, bool on);
   
   DrawingManager& getDrawingManager() {return drawingManager;}
   DebugRequestTable& getDebugRequestTable() {return debugRequestTable;}
@@ -78,6 +119,8 @@ public:
   
   MessageQueue debugIn;
   MessageQueue debugOut; /**< The outgoing debug queue. */
+
+  TypeInfo typeInfo; /**< Information about all data types used by the connected robot. */
   
   ColorCalibration colorCalibration; /**< The color calibration */
   ColorCalibration prevColorCalibration; /**< The previous color calibration */

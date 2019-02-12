@@ -1,6 +1,6 @@
 #include "ArucoPoseEstimator.h"
 #include "Tools/Debugging/DebugDrawings.h"
-#include "Tools/File.h"
+#include "Platform/File.h"
 #include "Tools/Math/Eigen.h"
 #include "Tools/Math/Constants.h"
 #include <opencv2/opencv.hpp>
@@ -22,11 +22,11 @@ ArucoPoseEstimator::ArucoPoseEstimator() : mMarkerSize(0.115f)
 
     cv::Mat charucoImage;
     charucoBoard->draw(cv::Size(1920,1080),charucoImage);
-    cv::imwrite(std::string(File::getGTDir()) + "/Config/prosegur_charuco.jpg",charucoImage);
+    cv::imwrite(std::string(File::getBCDir()) + "/Config/prosegur_charuco.jpg",charucoImage);
 
 	detectorParams = cv::aruco::DetectorParameters::create();
 
-	bool readOk = readDetectorParameters(std::string(File::getGTDir()) + "/Config/detector_params.yml", detectorParams);
+    bool readOk = readDetectorParameters(std::string(File::getBCDir()) + "/Config/detector_params.yml", detectorParams);
 
 
     /*mMapConfig.readFromFile(std::string(File::getGTDir()) + "/Config/markerMapConfig.yml");
@@ -98,7 +98,7 @@ void ArucoPoseEstimator::update(CameraPose &cameraPose)
 
 void ArucoPoseEstimator::saveCameraPose(CameraPose &cameraPose)
 {
-    cv::FileStorage file(std::string(File::getGTDir()) + "/Config/cameraPose.yml", cv::FileStorage::WRITE);
+    cv::FileStorage file(std::string(File::getBCDir()) + "/Config/cameraPose.yml", cv::FileStorage::WRITE);
 
     file << "rvec" << cameraPose.rvec;
     file << "tvec" << cameraPose.tvec;

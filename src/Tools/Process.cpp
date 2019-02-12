@@ -66,6 +66,11 @@ bool Process::handleMessage(InMessage& message)
       Global::getDebugRequestTable().addRequest(debugRequest);
       return true;
     }
+    case idDebugDataChangeRequest:
+    {
+      Global::getDebugDataTable().processChangeRequest(message);
+      return true;
+    }
     default:
       return false;
   }
