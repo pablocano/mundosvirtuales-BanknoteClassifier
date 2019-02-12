@@ -39,17 +39,6 @@
 #include <geos/geom/Polygon.h>
 #include <geos/geom/CoordinateArraySequence.h>
 
-MODULE(BanknoteDetector,
-{,
-    REQUIRES(GrayScaleImage),
-    REQUIRES(GrayScaleImageEq),
-    REQUIRES(FrameInfo),
-    PROVIDES(BanknoteDetections),
-    DEFINES_PARAMETERS(
-    {,
-     (float)(60.f) graspRadius, // In pixels. This should be computed with the real grasp radius and the camera transform
-    }),
-});
 
 ENUM(CornerID,
 {,
@@ -76,6 +65,19 @@ STREAMABLE(ClassParameters,
     (float)(0.6f) maxAllowedIOU,
     (float)(60) graspRadius,
 });
+
+MODULE(BanknoteDetector,
+{,
+    REQUIRES(GrayScaleImage),
+    REQUIRES(GrayScaleImageEq),
+    REQUIRES(FrameInfo),
+    PROVIDES(BanknoteDetections),
+    DEFINES_PARAMETERS(
+    {,
+     (ClassParameters[Classification::numOfBanknotes - 2]) parameters, // In pixels. This should be computed with the real grasp radius and the camera transform
+    }),
+});
+
 
 
 class Model
@@ -226,7 +228,7 @@ protected:
      * @param model: The BankNote model
      * @param detections: the output Detections
      */
-    void evaluateGraspingScore(const Model& model, ClassDetections& detections);
+    void evaluateGraspingScore(const Model& model, const ClassParameters& params, ClassDetections& detections);
 
     /* Math Related */
     void resizeImage(cv::Mat& image);
@@ -263,7 +265,7 @@ protected:
     ClassDetections classDetections[Classification::numOfBanknotes - 2];
 
     /** Global Module Parameters */
-    ClassParameters parameters;
+    //ClassParameters parameters;
     bool resizeModels; /* This is a must when using scanned images */
     int trainBanknoteHeight; /* hardcoded parameter in order to resize*/
 
