@@ -78,21 +78,26 @@ public:
     ~Hypothesys();
     bool isValid() const;
 
-    std::vector<cv::DMatch> matches;
-    Eigen::Matrix3f transform; /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
-    Pose2f pose;
-    Eigen::Vector3f graspPoint;
 
+    std::vector<cv::DMatch> matches; /* Matches thar form the hypothesys */
+    Eigen::Matrix3f transform; /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
+    Pose2f pose; /* 2D Pose of the hypothesis in the image space */
+    Eigen::Vector3f graspPoint; /* Estimated grasping point */
+
+    /* Geometry objects representing the hypothesys */
     geos::geom::Geometry* validGeometry;
     geos::geom::Geometry* geometry;
 
     int ransacVotes;
     float graspScore;
     float maxIOU;
+    int layer; /* 0 = foreground. 1,2,... represent the "depth" */
+
+    /* Status flags */
     bool validTransform;
     bool validNms;
     bool validGrasp;
-    bool foreground;
+
 };
 
 class ClassDetections
@@ -180,6 +185,16 @@ protected:
     void nonMaximumSupression(const Model& model, ClassDetections& detections);
 
     /**
+     * @brief nonMaximumSupression
+     *
+     * Estimates the order based on overlapping descriptores over the hypotheses.
+     *
+     * @param model: The BankNote model
+     * @param detections: the output Detections
+     */
+    void foregroundEstimation(const Model& model, ClassDetections& detections);
+
+    /**
      * @brief evaluateGraspingScore
      *
      * Evaluates the selected grasping point
@@ -198,6 +213,8 @@ protected:
 
     int getRansacConsensus(const Eigen::Matrix3f& transform, const std::vector<cv::DMatch>& matches, const std::vector<cv::KeyPoint>& trainKeypoints, const std::vector<cv::KeyPoint>& queryKeypoints, float maxError, const Eigen::VectorXi& acceptedStatus);
     void getRansacInliers(const Eigen::Matrix3f& transform, const std::vector<cv::DMatch>& matches, const std::vector<cv::KeyPoint>& trainKeypoints, const std::vector<cv::KeyPoint>& queryKeypoints, float maxError, float maxError2, Eigen::VectorXi& acceptedStatus, std::vector<cv::DMatch>& acceptedMatchesfloat);
+
+    void compareForeground(Hypothesys& h1, Hypothesys& s2);
 
     void drawAcceptedHough();
     void drawAcceptedRansac();

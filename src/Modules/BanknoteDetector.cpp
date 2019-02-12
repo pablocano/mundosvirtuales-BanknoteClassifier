@@ -32,10 +32,10 @@ Hypothesys::Hypothesys() :
     ransacVotes(0),
     graspScore(0),
     maxIOU(0.f),
+    layer(0),
     validTransform(true),
     validNms(true),
-    validGrasp(true),
-    foreground(true)
+    validGrasp(true)
 {
 
 }
@@ -243,16 +243,62 @@ void BanknoteDetector::update(BanknoteDetections& detections)
 
     start = end;
 
+    for(unsigned c1 = 0; c1 < Classification::numOfBanknotes - 2; c1++)
+    {
+        Model& model1 = models[c1];
+        ClassDetections& detections1 = classDetections[c1];
+
+        for(int i1 = 0; i1 < detections1.hypotheses.size(); i1++)
+        {
+            Hypothesys& h1 = detections1.hypotheses[i1];
+
+            if(!h1.isValid())
+            {
+                h1.layer = -1;
+                continue;
+            }
+
+            for(unsigned c2 = 0; c2 < Classification::numOfBanknotes - 2; c2++)
+            {
+                Model& model1 = models[c2];
+                ClassDetections& detections1 = classDetections[c2];
+
+                for(int i2 = 0; i2 < detections1.hypotheses.size(); i2++)
+                {
+                    Hypothesys& h2 = detections1.hypotheses[i2];
+
+                    if(c1 == c2 && i1 && i2)
+                        continue;
+
+                    if(!h2.isValid())
+                    {
+                        h2.layer = -1;
+                        continue;
+                    }
+
+                    compareForeground(h1, h2);
+                }
+            }
+
+        }
+    }
+
+    end = std::chrono::system_clock::now();
+    std::cout << "Foreground estimation time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypothesis << ")" << std::endl;
+
+    start = end;
+
     for(unsigned c = 0; c < Classification::numOfBanknotes - 2; c++)
     {
-        Model& model = models[c];
-        ClassDetections& detections = classDetections[c];
+       Model& model = models[c];
+       ClassDetections& detections = classDetections[c];
 
-        evaluateGraspingScore(model, detections);
+       evaluateGraspingScore(model, detections);
     }
 
     end = std::chrono::system_clock::now();
     std::cout << "Grasping Score time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypothesis << ")" << std::endl;
+
 
     drawAcceptedHough();
     drawAcceptedRansac();
@@ -729,6 +775,65 @@ void BanknoteDetector::nonMaximumSupression(const Model& model, ClassDetections&
     }
 }
 
+void BanknoteDetector::compareForeground(Hypothesys& h1, Hypothesys& h2)
+{
+    if(!h1.geometry->intersects(h2.geometry))
+        return;
+
+    bool oneOverTwo = false;
+    bool twoOverOne = false;
+
+    int oneOverTwoPoints = 0;
+    int twoOverOnePoints = 0;
+
+
+    for(const cv::DMatch& match : h1.matches)
+    {
+        const cv::Point2d& p = imageKeypoints[match.queryIdx].pt;
+
+        geos::geom::Coordinate coordinate(p.x, p.y);
+        aux_point = factory->createPoint(coordinate);
+
+        if(h2.geometry->contains(aux_point))
+        {
+            oneOverTwo = true;
+            oneOverTwoPoints++;
+
+            h2.layer++;
+            delete aux_point;
+            return;
+        }
+
+        delete aux_point;
+    }
+
+    for(const cv::DMatch& match : h2.matches)
+    {
+        const cv::Point2d& p = imageKeypoints[match.queryIdx].pt;
+
+        geos::geom::Coordinate coordinate(p.x, p.y);
+        aux_point = factory->createPoint(coordinate);
+
+        if(h1.geometry->contains(aux_point))
+        {
+            twoOverOne = true;
+            twoOverOnePoints++;
+
+            h1.layer++;
+            delete aux_point;
+            return;
+        }
+
+        delete aux_point;
+    }
+
+    if(oneOverTwo && oneOverTwoPoints > twoOverOnePoints)
+        h2.layer++;
+    else if(twoOverOne && twoOverOnePoints > oneOverTwoPoints)
+        h1.layer++;
+
+}
+
 void BanknoteDetector::evaluateGraspingScore(const Model& model, ClassDetections& detections)
 {
     for(Hypothesys& h : detections.hypotheses)
@@ -931,7 +1036,7 @@ void BanknoteDetector::drawAcceptedHypotheses()
             std::string transform_str = "Transform: " + std::to_string(h.validTransform);
             std::string nms_str = "NMS: " + std::to_string(h.validNms) + " | Max IOU: " + std::to_string(h.maxIOU);
             std::string grasp_str = "Grasp: " + std::to_string(h.validGrasp);
-            std::string foreground_str = "Foreground: " + std::to_string(h.foreground);
+            std::string foreground_str = "Layer: " + std::to_string(h.layer);
             ColorRGBA color_text = h.validNms ? ColorRGBA::white : ColorRGBA::black;
 
             float font = 20;
