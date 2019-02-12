@@ -24,18 +24,18 @@ ClassDetections::ClassDetections()
 }
 
 Hypothesys::Hypothesys() :
-    transform(Eigen::Matrix3f::Identity()),
+    transform(Matrix3f::Identity()),
     pose(),
-    graspPoint(Eigen::Vector3f::Identity()),
-    validGeometry(nullptr),
-    geometry(nullptr),
+    graspPoint(Vector3f::Zero()),
     ransacVotes(0),
     graspScore(0),
     maxIOU(0.f),
     layer(0),
     validTransform(true),
     validNms(true),
-    validGrasp(true)
+    validGrasp(true),
+    validGeometry(nullptr),
+    geometry(nullptr)
 {
 
 }
@@ -43,9 +43,6 @@ Hypothesys::Hypothesys() :
 Hypothesys::~Hypothesys()
 {
     delete validGeometry;
-
-    int asd = 5;
-
     delete geometry;
 }
 
@@ -99,12 +96,12 @@ BanknoteDetector::BanknoteDetector():
         model.image = image;
         model.mask = binaryMask;
 
-        model.corners[CornerID::TopLeft] = Eigen::Vector3f(0, 0, 1);
-        model.corners[CornerID::TopRight] = Eigen::Vector3f(image.cols, 0, 1);
-        model.corners[CornerID::BottomRight] = Eigen::Vector3f(image.cols, image.rows, 1);
-        model.corners[CornerID::BottomLeft] = Eigen::Vector3f(0, image.rows, 1);
-        model.corners[CornerID::MiddleMiddle] = Eigen::Vector3f(0.5f*image.cols, 0.5f*image.rows, 1);
-        model.corners[CornerID::MiddleRight] = Eigen::Vector3f(0.75f*image.cols, 0.5f*image.rows, 1);
+        model.corners[CornerID::TopLeft] = Vector3f(0, 0, 1);
+        model.corners[CornerID::TopRight] = Vector3f(image.cols, 0, 1);
+        model.corners[CornerID::BottomRight] = Vector3f(image.cols, image.rows, 1);
+        model.corners[CornerID::BottomLeft] = Vector3f(0, image.rows, 1);
+        model.corners[CornerID::MiddleMiddle] = Vector3f(0.5f*image.cols, 0.5f*image.rows, 1);
+        model.corners[CornerID::MiddleRight] = Vector3f(0.75f*image.cols, 0.5f*image.rows, 1);
     }
 
     factory = geos::geom::GeometryFactory::create();
@@ -139,7 +136,7 @@ void BanknoteDetector::update(BanknoteDetections& detections)
     DECLARE_DEBUG_DRAWING("module:BanknoteDetections:hypotheses_detections", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteDetections:hypotheses_info", "drawingOnImage");
 
-    OUTPUT_TEXT("---------------------");
+    std::cout << "---------------------------" << std::endl;
 
     auto start = std::chrono::system_clock::now();
 
@@ -190,7 +187,7 @@ void BanknoteDetector::update(BanknoteDetections& detections)
         ClassDetections& detections = classDetections[c];
 
         detections.houghFilteredMatches.clear();
-        hough4d(model, detections);
+        hough4d(model, parameters, detections);
         numberOfMatches += detections.houghFilteredMatches.size();
     }
 
@@ -206,7 +203,7 @@ void BanknoteDetector::update(BanknoteDetections& detections)
         ClassDetections& detections = classDetections[c];
 
         detections.hypotheses.clear();
-        ransac(model, detections);
+        ransac(model, parameters, detections);
         numberOfHypothesis += detections.hypotheses.size();
     }
 
@@ -221,7 +218,7 @@ void BanknoteDetector::update(BanknoteDetections& detections)
         Model& model = models[c];
         ClassDetections& detections = classDetections[c];
 
-        estimateTransforms(model, detections);
+        estimateTransforms(model, parameters, detections);
         numberOfHypothesis += detections.hypotheses.size();
     }
 
@@ -235,7 +232,7 @@ void BanknoteDetector::update(BanknoteDetections& detections)
         Model& model = models[c];
         ClassDetections& detections = classDetections[c];
 
-        nonMaximumSupression(model, detections);
+        nonMaximumSupression(model, parameters, detections);
     }
 
     end = std::chrono::system_clock::now();
@@ -317,7 +314,7 @@ void BanknoteDetector::resizeImage(cv::Mat& image)
     clahe->apply(image,image);
 }
 
-Eigen::Matrix3f BanknoteDetector::getTransformAsMatrix(const cv::KeyPoint& src, const cv::KeyPoint& dst)
+Matrix3f BanknoteDetector::getTransformAsMatrix(const cv::KeyPoint& src, const cv::KeyPoint& dst)
 {
     float e = dst.size / src.size;
 
@@ -328,7 +325,7 @@ Eigen::Matrix3f BanknoteDetector::getTransformAsMatrix(const cv::KeyPoint& src, 
     float tx = dst.pt.x - e*(src.pt.x*costheta - src.pt.y*sintheta);
     float ty = dst.pt.y - e*(src.pt.x*sintheta + src.pt.y*costheta);
 
-    Eigen::Matrix3f transform = Eigen::Matrix3f::Identity();
+    Matrix3f transform = Matrix3f::Identity();
     transform(0, 0) = e*costheta;
     transform(1, 0) = e*sintheta;
     transform(0, 1) = -e*sintheta;
@@ -353,18 +350,13 @@ void BanknoteDetector::getTransform(const cv::KeyPoint& src, const cv::KeyPoint&
 }
 
 // Hough Based Matching
-void BanknoteDetector::hough4d(const Model& model, ClassDetections& detections)
+void BanknoteDetector::hough4d(const Model& model, const ClassParameters& params,  ClassDetections& detections)
 {
     /* Handy references */
     const std::vector<cv::DMatch> matches = detections.matches;
     const std::vector<cv::KeyPoint> modelKeypoints = model.features.keypoints;
 
     int maxVotes = 0;
-
-    // Hough Parameters
-    double dxBin   = 45; // 60 pixels
-    double dangBin = 30; // 30 degrees
-    int votesTresh = 9;
 
     int hsize[] = {1000, 1000, 1000, 1000};
     cv::SparseMat sm(4, hsize, CV_32F);
@@ -378,7 +370,7 @@ void BanknoteDetector::hough4d(const Model& model, ClassDetections& detections)
 
         getTransform(modelKeypoint, imageKeypoint, tx, ty, theta, e);
 
-        if(e < 0.8f || e > 1.2f)
+        if(e < params.minAllowedScale || e > params.maxAllowedScale)
             continue;
 
         int ptx = (int) modelKeypoint.pt.x;
@@ -387,9 +379,9 @@ void BanknoteDetector::hough4d(const Model& model, ClassDetections& detections)
         if(model.mask.at<unsigned char>(pty, ptx) == 0)
             continue;
 
-        int i = floor(tx / dxBin + 0.5);
-        int j = floor(ty / dxBin + 0.5);
-        int k = floor(theta / dangBin + 0.5);
+        int i = floor(tx / params.houghXYStep + 0.5);
+        int j = floor(ty / params.houghXYStep + 0.5);
+        int k = floor(theta / params.houghAngleStep + 0.5);
         int z = floor(log(e) / log(2.0) + 0.5);
 
         int idx[4];
@@ -418,12 +410,12 @@ void BanknoteDetector::hough4d(const Model& model, ClassDetections& detections)
 
         getTransform(modelKeypoint, imageKeypoint, tx, ty, theta, e);
 
-        if(e < 0.8f || e > 1.2f)
+        if(e < params.minAllowedScale || e > params.maxAllowedScale)
             continue;
 
-        int i = floor(tx / dxBin + 0.5);
-        int j = floor(ty / dxBin + 0.5);
-        int k = floor(theta / dangBin + 0.5);
+        int i = floor(tx / params.houghXYStep + 0.5);
+        int j = floor(ty / params.houghXYStep + 0.5);
+        int k = floor(theta / params.houghAngleStep + 0.5);
         int z = floor(log(e) / log(2.0) + 0.5);
 
         int idx[4];
@@ -432,32 +424,29 @@ void BanknoteDetector::hough4d(const Model& model, ClassDetections& detections)
         idx[2] = k + 500;
         idx[3] = z + 500;
 
-        if (sm.ref<float>(idx) >= votesTresh)
+        if (sm.ref<float>(idx) >= params.houghVotesThresh)
             detections.houghFilteredMatches.push_back(matches[index]);
     }
 
 }
 
 
-void BanknoteDetector::ransac(const Model& model, ClassDetections& detections)
+void BanknoteDetector::ransac(
+        const Model& model,
+        const ClassParameters& params,
+        ClassDetections& detections)
 {
     detections.hypotheses.clear();
 
-    /* Parameters should depend on the model dimensions */
-    float maxError = 20.f;
-    float maxError2 = 30.f;
-    int minConsensus = 15;
-    float numberOfTrials = 50;
-
     float numberOfAcceptedMatches = 0;
 
-    Eigen::VectorXi acceptedStatus(detections.houghFilteredMatches.size());
+    VectorXi acceptedStatus(detections.houghFilteredMatches.size());
     acceptedStatus.setZero();
 
-    for(int trial = 0; trial < numberOfTrials; trial++)
+    for(int trial = 0; trial < params.ransacNumberOfTrials; trial++)
     {
         /* Early Finish */
-        if(detections.houghFilteredMatches.size() - numberOfAcceptedMatches < minConsensus)
+        if(detections.houghFilteredMatches.size() - numberOfAcceptedMatches < params.ransacMinConsensus)
             break;
 
         int index = Random::uniformInt(0, int(detections.houghFilteredMatches.size() - 1));
@@ -472,17 +461,21 @@ void BanknoteDetector::ransac(const Model& model, ClassDetections& detections)
         const cv::KeyPoint& imageKeypoint = imageKeypoints[match.queryIdx];
         const cv::KeyPoint& modelKeypoint = model.features.keypoints[match.trainIdx];
 
-        const Eigen::Matrix3f transform = getTransformAsMatrix(imageKeypoint, modelKeypoint);
+        const Matrix3f transform = getTransformAsMatrix(imageKeypoint, modelKeypoint);
 
-        int consensus = getRansacConsensus(transform, detections.houghFilteredMatches, model.features.keypoints, imageKeypoints, maxError, acceptedStatus);
-        //int consensus = 0;
-        if(consensus > minConsensus)
+        int consensus = getRansacConsensus(transform, detections.houghFilteredMatches, model.features.keypoints, imageKeypoints, params.ransacMaxError, acceptedStatus);
+
+        if(consensus > params.ransacMinConsensus)
         {
             detections.hypotheses.push_back(Hypothesys());
 
             Hypothesys& newHypothesys = detections.hypotheses.back();
+            newHypothesys.matches.reserve(consensus);
+            newHypothesys.queryPoints.reserve(consensus);
+            newHypothesys.trainPoints.reserve(consensus);
 
-            getRansacInliers(transform, detections.houghFilteredMatches, model.features.keypoints, imageKeypoints, maxError, maxError2, acceptedStatus, newHypothesys.matches);
+
+            getRansacInliers(transform, detections.houghFilteredMatches, model.features.keypoints, imageKeypoints, params.ransacMaxError, params.ransacMaxError2, acceptedStatus, newHypothesys.matches, newHypothesys.trainPoints, newHypothesys.queryPoints);
             newHypothesys.ransacVotes = consensus;
 
             assert(newHypothesys.ransacVotes == newHypothesys.matches.size());
@@ -491,16 +484,16 @@ void BanknoteDetector::ransac(const Model& model, ClassDetections& detections)
 }
 
 int BanknoteDetector::getRansacConsensus(
-        const Eigen::Matrix3f& transform,
+        const Matrix3f& transform,
         const std::vector<cv::DMatch>& matches,
         const std::vector<cv::KeyPoint>& trainKeypoints,
         const std::vector<cv::KeyPoint>& queryKeypoints,
         float maxError,
-        const Eigen::VectorXi& acceptedStatus)
+        const VectorXi& acceptedStatus)
 {
     int concensus = 0;
 
-    Eigen::Vector3f trainPoint, queryPoint, projection;
+    Vector3f trainPoint, queryPoint, projection;
     trainPoint.z() = 1.f;
     queryPoint.z() = 1.f;
 
@@ -532,17 +525,19 @@ int BanknoteDetector::getRansacConsensus(
 }
 
 void BanknoteDetector::getRansacInliers(
-        const Eigen::Matrix3f& transform,
+        const Matrix3f& transform,
         const std::vector<cv::DMatch>& matches,
-        const std::vector<cv::KeyPoint>& trainKeypoints,
-        const std::vector<cv::KeyPoint>& queryKeypoints,
+        const std::vector<cv::KeyPoint>& inputTrainKeypoints,
+        const std::vector<cv::KeyPoint>& inputQueryKeypoints,
         float maxError,
         float maxError2,
-        Eigen::VectorXi& acceptedStatus,
-        std::vector<cv::DMatch>& acceptedMatches)
+        VectorXi& acceptedStatus,
+        std::vector<cv::DMatch>& acceptedMatches,
+        std::vector<Vector3f>& outputTrainKeypoints,
+        std::vector<Vector3f>& outputQueryKeypoints)
 {
 
-    Eigen::Vector3f trainPoint, queryPoint, projection;
+    Vector3f trainPoint, queryPoint, projection;
     trainPoint.z() = 1.f;
     queryPoint.z() = 1.f;
 
@@ -554,8 +549,8 @@ void BanknoteDetector::getRansacInliers(
 
         const cv::DMatch& match = matches[index];
 
-        const cv::KeyPoint& trainKeypoint = trainKeypoints[match.trainIdx];
-        const cv::KeyPoint& queryKeypoint = queryKeypoints[match.queryIdx];
+        const cv::KeyPoint& trainKeypoint = inputTrainKeypoints[match.trainIdx];
+        const cv::KeyPoint& queryKeypoint = inputQueryKeypoints[match.queryIdx];
 
         trainPoint.x() = trainKeypoint.pt.x;
         trainPoint.y() = trainKeypoint.pt.y;
@@ -570,6 +565,8 @@ void BanknoteDetector::getRansacInliers(
         if(error <= maxError)
         {
             acceptedMatches.push_back(match);
+            outputTrainKeypoints.push_back(Vector3f(trainKeypoint.pt.x, trainKeypoint.pt.y, 1.f));
+            outputQueryKeypoints.push_back(Vector3f(queryKeypoint.pt.x, queryKeypoint.pt.y, 1.f));
             acceptedStatus(index) = 1;
         }
         else if(error <= maxError2)
@@ -581,7 +578,7 @@ void BanknoteDetector::getRansacInliers(
     return;
 }
 
-void BanknoteDetector::estimateTransforms(const Model& model, ClassDetections& detections)
+void BanknoteDetector::estimateTransforms(const Model& model, const ClassParameters& params,  ClassDetections& detections)
 {
     static std::vector<cv::Point2f> queryPoints;
     static std::vector<cv::Point2f> trainPoints;
@@ -591,38 +588,37 @@ void BanknoteDetector::estimateTransforms(const Model& model, ClassDetections& d
 
     for(Hypothesys& h : detections.hypotheses)
     {
-        queryPoints.clear();
-        trainPoints.clear();
+        queryPoints.resize(h.matches.size());
+        trainPoints.resize(h.matches.size());
 
-        Eigen::MatrixXf X(2*h.matches.size(), 6);
-        Eigen::MatrixXf U(2*h.matches.size(), 1);
+        MatrixXf X(2*h.matches.size(), 6);
+        MatrixXf U(2*h.matches.size(), 1);
 
         X.setZero();
         U.setZero();
 
         for(int i = 0; i < h.matches.size(); i++)
         {
-            const cv::DMatch match = h.matches[i];
-            cv::Point2f pt2 = imageKeypoints[match.queryIdx].pt;
-            cv::Point2f pt1 = model.features.keypoints[match.trainIdx].pt;
+            const Vector3f& queryPoint = h.queryPoints[i];
+            const Vector3f& trainPoint = h.trainPoints[i];
 
-            queryPoints.push_back(pt2);
-            trainPoints.push_back(pt1);
+            queryPoints[i] = cv::Point2f(queryPoint.x(), queryPoint.y());
+            trainPoints[i] = cv::Point2f(trainPoint.x(), trainPoint.y());
 
-            X(2*i + 0, 0) = pt1.x;
-            X(2*i + 0, 1) = pt1.y;
+            X(2*i + 0, 0) = queryPoint.x();
+            X(2*i + 0, 1) = queryPoint.y();
 
-            X(2*i + 1, 2) = pt1.x;
-            X(2*i + 1, 3) = pt1.y;
+            X(2*i + 1, 2) = queryPoint.x();
+            X(2*i + 1, 3) = queryPoint.y();
 
             X(2*i + 0, 4) = 1;
             X(2*i + 1, 5) = 1;
 
-            U(2*i + 0, 0) = pt2.x;
-            U(2*i + 1, 0) = pt2.y;
+            U(2*i + 0, 0) = trainPoint.x();
+            U(2*i + 1, 0) = trainPoint.y();
         }
 
-        Eigen::VectorXf asd2 = (X.transpose()*X).inverse()*X.transpose()*U;
+        VectorXf asd2 = (X.transpose()*X).inverse()*X.transpose()*U;
 
         h.transform.setZero();
         h.transform(0, 0) = (float) asd2(0);
@@ -643,8 +639,6 @@ void BanknoteDetector::estimateTransforms(const Model& model, ClassDetections& d
         /* We assume a target scale of 1. If it is not so, we could look between the scales to see if  they are coherent */
         h.validTransform = minCoeff > 0.8f && maxCoeff < 1.2f;
 
-
-
         cv::Mat asd = cv::estimateAffinePartial2D(trainPoints, queryPoints, cv::noArray(),
                                           cv::RANSAC, 50, 1000, 0.95, 10);
         h.validTransform = !asd.empty();
@@ -661,7 +655,7 @@ void BanknoteDetector::estimateTransforms(const Model& model, ClassDetections& d
 
             float scale = h.transform(0, 0)*h.transform(0, 0) + h.transform(0, 1)*h.transform(0, 1);
 
-            if(scale < 0.8f || scale >= 1.2f)
+            if(scale < params.minAllowedScale || scale >= params.maxAllowedScale)
                 h.validTransform = false;
         }
 
@@ -674,17 +668,15 @@ void BanknoteDetector::estimateTransforms(const Model& model, ClassDetections& d
 
         if(h.validTransform)
         {
-            Eigen::Vector3f corner2;
-
             geos::geom::CoordinateSequence* cl1 = new geos::geom::CoordinateArraySequence();
             geos::geom::CoordinateSequence* cl2 = new geos::geom::CoordinateArraySequence();
 
             for(int i = 0; i <= CornerID::numOfRealCorners; i++)
             {
                 int i2 = i % CornerID::numOfRealCorners;
-                corner2 = h.transform * model.corners[i2];
-                cl1->add(geos::geom::Coordinate(corner2.x(), corner2.y()));
-                cl2->add(geos::geom::Coordinate(corner2.x(), corner2.y()));
+                h.queryCorners[i] = h.transform * model.corners[i2];
+                cl1->add(geos::geom::Coordinate(h.queryCorners[i].x(), h.queryCorners[i].y()));
+                cl2->add(geos::geom::Coordinate(h.queryCorners[i].x(), h.queryCorners[i].y()));
             }
 
             std::vector<geos::geom::Geometry*>* holes1 = new std::vector<geos::geom::Geometry*>;
@@ -698,30 +690,14 @@ void BanknoteDetector::estimateTransforms(const Model& model, ClassDetections& d
     }
 }
 
-void BanknoteDetector::nonMaximumSupression(const Model& model, ClassDetections& detections)
-{
-    const Eigen::Vector3f (&corners)[CornerID::numOfCornerIDs] = model.corners;
-    Eigen::Vector3f corners2[CornerID::numOfRealCorners];
-
-    IOU::Point p1[4];
-    IOU::Point p2[4];
-
+void BanknoteDetector::nonMaximumSupression(const Model& model, const ClassParameters& params,  ClassDetections& detections)
+{ 
     for(int index1 = 0; index1 < detections.hypotheses.size(); index1++)
     {
         Hypothesys& h1 = detections.hypotheses[index1];
 
         if(!h1.validNms)
             continue;
-
-        for(int i = 0; i < CornerID::numOfRealCorners; i++)
-        {
-            corners2[i] = h1.transform * corners[i];
-            p1[i].x = corners2[i].x();
-            p1[i].y = corners2[i].y();
-        }
-
-
-        //IOU::Quad q1(p1);
 
         for(int index2 = 0; index2 < detections.hypotheses.size(); index2++)
         {
@@ -732,17 +708,6 @@ void BanknoteDetector::nonMaximumSupression(const Model& model, ClassDetections&
 
             if(!h2.validNms)
                 continue;
-
-            /*for(int i = 0; i < CornerID::numOfRealCorners; i++)
-            {
-                corners2[i] = h2.transform * corners[i];
-                p2[i].x = corners2[i].x();
-                p2[i].y = corners2[i].y();
-            }
-
-            IOU::Quad q2(p2);
-
-            float iou = IOU::iou(q1, q2);*/
 
             float iou = 0;
 
@@ -757,7 +722,7 @@ void BanknoteDetector::nonMaximumSupression(const Model& model, ClassDetections&
             h1.maxIOU = std::max(h1.maxIOU, iou);
             h2.maxIOU = std::max(h2.maxIOU, iou);
 
-            if(iou > 0.6f) /* Great overlap is probably just duplicated detections*/
+            if(iou > params.maxAllowedIOU) /* Great overlap is probably just duplicated detections*/
             {
                 if(h1.ransacVotes >= h2.ransacVotes)
                 {
@@ -771,7 +736,6 @@ void BanknoteDetector::nonMaximumSupression(const Model& model, ClassDetections&
                 }
             }
         }
-
     }
 }
 
@@ -841,19 +805,17 @@ void BanknoteDetector::evaluateGraspingScore(const Model& model, ClassDetections
         std::vector<Vector2f> inliers;
         inliers.reserve(h.matches.size());
 
-        for(const cv::DMatch& match : h.matches)
+        for(const Vector3f& p : h.trainPoints)
         {
-            cv::Point2f p = model.features.keypoints[match.trainIdx].pt;
-
-            bool s1 = p.x < graspRadius;
-            bool s2 = p.x > model.image.cols - graspRadius;
-            bool s3 = p.y < graspRadius;
-            bool s4 = p.y > model.image.rows - graspRadius;
+            bool s1 = p.x() < graspRadius;
+            bool s2 = p.x() > model.image.cols - graspRadius;
+            bool s3 = p.y() < graspRadius;
+            bool s4 = p.y() > model.image.rows - graspRadius;
 
             if(s1 || s2 || s3 || s4)
                 continue;
 
-            inliers.push_back(Vector2f(p.x, p.y));
+            inliers.push_back(Vector2f(p.x(), p.y()));
         }
 
         if(inliers.size() == 0)
@@ -894,15 +856,15 @@ void BanknoteDetector::drawAcceptedHough()
         //cv::drawMatches(theGrayScaleImageEq, imageKeypoints, model.image, model.features.keypoints, detections.houghFilteredMatches, img_accepted);
 
         ColorRGBA color = debugColors[c];
-        const Eigen::Vector3f (&corners)[CornerID::numOfCornerIDs] = model.corners;
+        const Vector3f (&corners)[CornerID::numOfCornerIDs] = model.corners;
 
         for(const cv::DMatch& match : detections.houghFilteredMatches)
         {
             const cv::KeyPoint& queryKeypoint = imageKeypoints[match.queryIdx];
             const cv::KeyPoint& trainKeypoint = model.features.keypoints[match.trainIdx];
 
-            Eigen::Matrix3f transform = getTransformAsMatrix(trainKeypoint, queryKeypoint);
-            Eigen::Vector3f corners2[CornerID::numOfRealCorners];
+            Matrix3f transform = getTransformAsMatrix(trainKeypoint, queryKeypoint);
+            Vector3f corners2[CornerID::numOfRealCorners];
 
             for(int i = 0; i < CornerID::numOfRealCorners; i++)
             {
@@ -937,7 +899,7 @@ void BanknoteDetector::drawAcceptedRansac()
         //cv::Mat img_accepted = theGrayScaleImageEq.clone();
 
         ColorRGBA color = debugColors[c];
-        const Eigen::Vector3f (&corners)[CornerID::numOfCornerIDs] = model.corners;
+        const Vector3f (&corners)[CornerID::numOfCornerIDs] = model.corners;
 
         for(Hypothesys& h : detections.hypotheses)
         {
@@ -946,9 +908,9 @@ void BanknoteDetector::drawAcceptedRansac()
                 cv::KeyPoint queryKeypoint = imageKeypoints[match.queryIdx];
                 cv::KeyPoint trainKeypoint = model.features.keypoints[match.trainIdx];
 
-                Eigen::Matrix3f transform = getTransformAsMatrix(trainKeypoint, queryKeypoint);
+                Matrix3f transform = getTransformAsMatrix(trainKeypoint, queryKeypoint);
 
-                Eigen::Vector3f corners2[CornerID::numOfRealCorners];
+                Vector3f corners2[CornerID::numOfRealCorners];
 
                 for(int i = 0; i < CornerID::numOfRealCorners; i++)
                 {
@@ -983,12 +945,12 @@ void BanknoteDetector::drawAcceptedHypotheses()
         //cv::Mat img_accepted = theGrayScaleImageEq.clone();
 
         ColorRGBA color = debugColors[c];
-        const Eigen::Vector3f (&corners)[CornerID::numOfCornerIDs] = model.corners;
+        const Vector3f (&corners)[CornerID::numOfCornerIDs] = model.corners;
 
         for(Hypothesys& h : detections.hypotheses)
         {
-            ColorRGBA color2 = h.validTransform ? color : ColorRGBA::white;
-            Eigen::Vector3f corners2[CornerID::numOfRealCorners];
+            ColorRGBA color2 = h.isValid() ? color : ColorRGBA::white;
+            Vector3f corners2[CornerID::numOfRealCorners];
 
             //if(!h.isValid())
             //    continue;

@@ -58,7 +58,21 @@ ENUM(CornerID,
     MiddleRight,
 });
 
-bool compareAngle(IOU::Point p1, IOU::Point p2) { return (std::atan2(p1.y, p1.x) < std::atan2(p2.y, p2.x)); }
+STREAMABLE(ClassParameters,
+{,
+    (float)(45) houghXYStep, /* in pixels */
+    (float)(30) houghAngleStep, /* in degrees */
+    (int)(9) houghVotesThresh,
+    (float)(0.8f) minAllowedScale,
+    (float)(1.2f) maxAllowedScale,
+    (float)(20.f) ransacMaxError,
+    (float)(30.f) ransacMaxError2,
+    (int)(15) ransacMinConsensus,
+    (int)(50) ransacNumberOfTrials,
+    (float)(0.6f) maxAllowedIOU,
+    (float)(60) graspRadius,
+});
+
 
 class Model
 {
@@ -67,7 +81,7 @@ public:
     cv::Mat image;
     cv::Mat mask;
     Features features;
-    Eigen::Vector3f corners[CornerID::numOfCornerIDs];
+    Vector3f corners[CornerID::numOfCornerIDs];
 };
 
 class Hypothesys
@@ -78,16 +92,18 @@ public:
     ~Hypothesys();
     bool isValid() const;
 
+    /* Buffer with detection related points */
+    std::vector<cv::DMatch> matches;
+    std::vector<Vector3f> queryPoints;
+    std::vector<Vector3f> trainPoints;
+    Vector3f queryCorners[CornerID::numOfRealCorners];
 
-    std::vector<cv::DMatch> matches; /* Matches thar form the hypothesys */
-    Eigen::Matrix3f transform; /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
+    /* Detection representation*/
+    Matrix3f transform; /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
     Pose2f pose; /* 2D Pose of the hypothesis in the image space */
-    Eigen::Vector3f graspPoint; /* Estimated grasping point */
+    Vector3f graspPoint; /* Estimated grasping point */
 
-    /* Geometry objects representing the hypothesys */
-    geos::geom::Geometry* validGeometry;
-    geos::geom::Geometry* geometry;
-
+    /* Detection statistics */
     int ransacVotes;
     float graspScore;
     float maxIOU;
@@ -98,6 +114,9 @@ public:
     bool validNms;
     bool validGrasp;
 
+    /* Geometry objects representing the hypothesys */
+    geos::geom::Geometry* validGeometry;
+    geos::geom::Geometry* geometry;
 };
 
 class ClassDetections
@@ -141,7 +160,7 @@ protected:
      * @param model: The BankNote model
      * @param detections: the output Detections
      */
-    void hough4d(const Model& model, ClassDetections& detections);
+    void hough4d(const Model& model, const ClassParameters& parameters, ClassDetections& detections);
 
     /**
      * @brief ransac
@@ -159,7 +178,7 @@ protected:
      * @param model: The BankNote model
      * @param detections: the output Detections
      */
-    void ransac(const Model& model, ClassDetections& detections);
+    void ransac(const Model& model, const ClassParameters& parameters,  ClassDetections& detections);
 
     /**
      * @brief estimateTransforms
@@ -171,7 +190,7 @@ protected:
      * @param model: The BankNote model
      * @param detections: the output Detections
      */
-    void estimateTransforms(const Model& model, ClassDetections& detections);
+    void estimateTransforms(const Model& model, const ClassParameters& parameters,  ClassDetections& detections);
 
     /**
      * @brief nonMaximumSupression
@@ -182,7 +201,7 @@ protected:
      * @param model: The BankNote model
      * @param detections: the output Detections
      */
-    void nonMaximumSupression(const Model& model, ClassDetections& detections);
+    void nonMaximumSupression(const Model& model, const ClassParameters& parameters, ClassDetections& detections);
 
     /**
      * @brief nonMaximumSupression
@@ -208,11 +227,11 @@ protected:
     /* Math Related */
     void resizeImage(cv::Mat& image);
 
-    Eigen::Matrix3f getTransformAsMatrix(const cv::KeyPoint& src, const cv::KeyPoint& dst);
+    Matrix3f getTransformAsMatrix(const cv::KeyPoint& src, const cv::KeyPoint& dst);
     inline void getTransform(const cv::KeyPoint& src, const cv::KeyPoint& dst, float& tx, float& ty, float& angleDegrees, float& e);
 
-    int getRansacConsensus(const Eigen::Matrix3f& transform, const std::vector<cv::DMatch>& matches, const std::vector<cv::KeyPoint>& trainKeypoints, const std::vector<cv::KeyPoint>& queryKeypoints, float maxError, const Eigen::VectorXi& acceptedStatus);
-    void getRansacInliers(const Eigen::Matrix3f& transform, const std::vector<cv::DMatch>& matches, const std::vector<cv::KeyPoint>& trainKeypoints, const std::vector<cv::KeyPoint>& queryKeypoints, float maxError, float maxError2, Eigen::VectorXi& acceptedStatus, std::vector<cv::DMatch>& acceptedMatchesfloat);
+    int getRansacConsensus(const Matrix3f& transform, const std::vector<cv::DMatch>& matches, const std::vector<cv::KeyPoint>& trainKeypoints, const std::vector<cv::KeyPoint>& queryKeypoints, float maxError, const VectorXi& acceptedStatus);
+    void getRansacInliers(const Matrix3f& transform, const std::vector<cv::DMatch>& matches, const std::vector<cv::KeyPoint>& inputTrainKeypoints, const std::vector<cv::KeyPoint>& inputQueryKeypoints, float maxError, float maxError2, VectorXi& acceptedStatus, std::vector<cv::DMatch>& acceptedMatches, std::vector<Vector3f>& outputTrainKeypoints, std::vector<Vector3f>& outputQueryKeypoints);
 
     void compareForeground(Hypothesys& h1, Hypothesys& s2);
 
@@ -240,6 +259,7 @@ protected:
     ClassDetections classDetections[Classification::numOfBanknotes - 2];
 
     /** Global Module Parameters */
+    ClassParameters parameters;
     bool resizeModels; /* This is a must when using scanned images */
     int trainBanknoteHeight; /* hardcoded parameter in order to resize*/
     float graspRadius; /* In pixels. This should be computed with the real grasp radius and the camera transform */
