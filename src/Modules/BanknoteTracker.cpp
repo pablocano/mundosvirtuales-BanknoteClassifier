@@ -8,6 +8,8 @@
 
 #include "Modules/BanknoteTracker.h"
 
+#include "Platform/File.h"
+
 #include <cmath>
 
 MAKE_MODULE(BanknoteTracker, BanknoteClassifier)
@@ -15,6 +17,34 @@ MAKE_MODULE(BanknoteTracker, BanknoteClassifier)
 BanknoteTracker::BanknoteTracker()
 {
     detections.resize(maxDetections);
+
+    for(unsigned c = 0; c < Classification::numOfRealBanknotes; c++)
+    {
+        // Load models
+        cv::Mat image = cv::imread(std::string(File::getBCDir()) + "/Data/img_real/" + TypeRegistry::getEnumName((Classification::Banknote)c)  + ".jpg", cv::IMREAD_GRAYSCALE);
+        cv::Mat maskGrayscale = cv::imread(std::string(File::getBCDir()) + "/Data/img_real/" + TypeRegistry::getEnumName((Classification::Banknote) c) + "_mask.jpg", cv::IMREAD_GRAYSCALE);
+
+        cv::Mat binaryMask(maskGrayscale.size(), CV_8U);
+        cv::threshold(maskGrayscale, binaryMask, 127, 255, cv::THRESH_BINARY);
+
+        ASSERT(!resizeImage);
+
+        // Calculate the features of the image
+        Features f;
+
+        BanknoteModel& model = models[c];
+        model.features = f;
+        model.image = image;
+        model.mask = binaryMask;
+
+        model.corners[BanknoteModel::CornerID::TopLeft] = Vector3f(0, 0, 1);
+        model.corners[BanknoteModel::CornerID::TopRight] = Vector3f(image.cols, 0, 1);
+        model.corners[BanknoteModel::CornerID::BottomRight] = Vector3f(image.cols, image.rows, 1);
+        model.corners[BanknoteModel::CornerID::BottomLeft] = Vector3f(0, image.rows, 1);
+        model.corners[BanknoteModel::CornerID::MiddleMiddle] = Vector3f(0.5f*image.cols, 0.5f*image.rows, 1);
+        model.corners[BanknoteModel::CornerID::MiddleRight] = Vector3f(0.75f*image.cols, 0.5f*image.rows, 1);
+    }
+
 }
 
 BanknoteTracker::~BanknoteTracker()
@@ -24,8 +54,6 @@ BanknoteTracker::~BanknoteTracker()
 
 void BanknoteTracker::update(BanknotePosition& position)
 {
-    return;
-
     for(const BanknoteDetection& newDetection : theBanknoteDetections.detections)
     {
         bool detected = false;
@@ -60,7 +88,7 @@ void BanknoteTracker::update(BanknotePosition& position)
     }
 
     // check grasping pose and score
-
+    ASSERT(false);
 
 
     // check layers
@@ -80,7 +108,7 @@ void BanknoteTracker::attemptMerge(const BanknoteDetection& d1, BanknoteDetectio
 
     if(errorPosition > maxSameDetectionDistance || std::cos(angDiff) > std::cos(maxSameDetectionAngle) || d1.banknoteClass.result != d2.banknoteClass.result)
     {
-        //keepOne(d1, d2);
+        keepOne(d1, d2);
         return;
     }
 
@@ -119,6 +147,23 @@ void BanknoteTracker::attemptMerge(const BanknoteDetection& d1, BanknoteDetectio
         d2.layer = -1; // we need to calculate the layer again an also the grasping point
         //d2.updateTransform();
     }
+}
+
+void BanknoteTracker::keepOne(const BanknoteDetection& d1, BanknoteDetection& d2)
+{
+    ASSERT(d1.isDetectionValid());
+    ASSERT(d2.isDetectionValid());
+
+    /* Check if the old detection is temporally consistent */
+    int seenTime = d2.lastTimeDetected - d2.firstTimeDetected;
+    ASSERT(seenTime >= 0);
+
+    if(seenTime < 2000)
+    {
+        if(d1.matches.size() > 1.2f * d2.matches.size() || d1.hull->getArea() > 1.2f * d2.hull->getArea())
+            d2 = d1;
+    }
+
 }
 
 void BanknoteTracker::evaluateGraspingScore(const BanknoteModel& model, const BanknoteDetectionParameters& params)

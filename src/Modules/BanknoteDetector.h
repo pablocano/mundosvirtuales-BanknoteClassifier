@@ -47,7 +47,7 @@ MODULE(BanknoteDetector,
     PROVIDES(BanknoteDetections),
     DEFINES_PARAMETERS(
     {,
-     (BanknoteDetectionParameters[Classification::numOfRealBanknotes]) parameters, // In pixels. This should be computed with the real grasp radius and the camera transform
+     (BanknoteDetectionParameters[Classification::numOfRealBanknotes]) parameters,
     }),
 });
 
@@ -198,5 +198,5 @@ protected:
     geos::geom::GeometryFactory::Ptr factory;
     geos::geom::Point* aux_point;
 
-    ColorRGBA debugColors[Classification::numOfBanknotes - 2];
+    ColorRGBA debugColors[Classification::numOfRealBanknotes];
 };

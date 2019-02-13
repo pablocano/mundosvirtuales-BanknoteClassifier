@@ -34,15 +34,18 @@ MODULE(BanknoteTracker,
     REQUIRES(BanknoteDetections),
     REQUIRES(FrameInfo),
     PROVIDES(BanknotePosition),
-    /*DEFINES_PARAMETERS(
+    DEFINES_PARAMETERS(
     {,
+     (BanknoteDetectionParameters[Classification::numOfRealBanknotes]) parameters,
      (float)(60.f) graspRadius, // In pixels. This should be computed with the real grasp radius and the camera transform
      (int)(20) maxDetections,
      (int)(20000) maxNoDetectionTime,
      (float)(5.f) minDifferentPointDistance,
+     (float)(0.7f) minSameDetectionIOU,
      (float)(40.f) maxSameDetectionDistance,
      (Angle)(30_deg) maxSameDetectionAngle,
-    }),*/
+     (bool)(false) resizeImage,
+    }),
 });
 
 class BanknoteTracker : public BanknoteTrackerBase
@@ -59,14 +62,11 @@ protected:
 
     void evaluateGraspingScore(const BanknoteModel& model, const BanknoteDetectionParameters& params);
 
-    std::vector<BanknoteDetection> detections;
+    void keepOne(const BanknoteDetection& d1, BanknoteDetection& d2);
 
-    float graspRadius = 60.f;
-    int maxDetections = 20;
-    int maxNoDetectionTime = 20000;
-    float minDifferentPointDistance = 1.f;
-    float minSameDetectionIOU;
-    float maxSameDetectionDistance = 40.f;
-    Angle maxSameDetectionAngle = 30_deg;
+    /** Models */
+    BanknoteModel models[Classification::numOfRealBanknotes];
+
+    std::vector<BanknoteDetection> detections;
 
 };

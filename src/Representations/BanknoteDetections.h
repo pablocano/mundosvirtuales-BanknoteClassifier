@@ -48,7 +48,7 @@ public:
 
     /* Geometry objects representing the hypothesys */
     std::shared_ptr<geos::geom::Polygon> geometry;
-    std::shared_ptr<geos::geom::Polygon> validGeometry;
+    std::shared_ptr<geos::geom::Polygon> hull;
 
    /* Buffer with detection related points */
    std::vector<Vector3f> queryPoints;
@@ -74,6 +74,7 @@ public:
 
     /* Tracking flags */
    int lastTimeDetected;
+   int firstTimeDetected;
 
   virtual void serialize(In* in, Out* out);
 };

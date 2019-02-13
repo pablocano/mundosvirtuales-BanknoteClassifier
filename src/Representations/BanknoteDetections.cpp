@@ -16,8 +16,10 @@ BanknoteDetection::BanknoteDetection() :
     validTransform(false),
     validNms(true),
     validGrasp(true),
-    validGeometry(nullptr),
-    geometry(nullptr)
+    hull(nullptr),
+    geometry(nullptr),
+    lastTimeDetected(0),
+    firstTimeDetected(0)
 {
     if(factory == nullptr)
         factory = geos::geom::GeometryFactory::create();
@@ -113,12 +115,36 @@ void BanknoteDetection::updateTransformation(const BanknoteModel& model, const B
         std::vector<geos::geom::Geometry*>* holes2 = new std::vector<geos::geom::Geometry*>;
 
         geometry = std::shared_ptr<geos::geom::Polygon>((geos::geom::Polygon*) factory->createPolygon(factory->createLinearRing(cl1), holes1));
-        validGeometry  = std::shared_ptr<geos::geom::Polygon>((geos::geom::Polygon*) factory->createPolygon(factory->createLinearRing(cl2), holes2));
+        //hull  = std::shared_ptr<geos::geom::Geometry>((geos::geom::Geometry*) geometry->convexHull());
     }
 }
 
 void BanknoteDetection::serialize(In *in, Out *out)
 {
+    STREAM(queryPoints);
+    STREAM(trainPoints);
+    STREAM(queryCorners);
+
+    /* Detection representation*/
+    STREAM(banknoteClass);
+    STREAM(transform); /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
+    STREAM(pose); /* 2D Pose of the hypothesis in the image space */
+    STREAM(graspPoint); /* Estimated grasping point */
+
+    /* Detection statistics */
+    STREAM(ransacVotes);
+    STREAM(graspScore);
+    STREAM(maxIOU);
+    STREAM(layer); /* 0 = foreground. 1,2,... represent the "depth" */
+
+    /* Status flags */
+    STREAM(validTransform);
+    STREAM(validNms);
+    STREAM(validGrasp);
+
+     /* Tracking flags */
+    STREAM(lastTimeDetected);
+
     //STREAM(keypointsGpu);
     //STREAM(descriptors);
     /*if(in)
