@@ -10,9 +10,11 @@
 
 #include "Modules/BanknoteTracker.h"
 
+MAKE_MODULE(BanknoteTracker, BanknoteClassifier)
+
 BanknoteTracker::BanknoteTracker()
 {
-    detections.resize(maxDetections);
+    //detections.resize(maxDetections);
 }
 
 BanknoteTracker::~BanknoteTracker()
