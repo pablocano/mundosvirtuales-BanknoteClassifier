@@ -93,6 +93,9 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/Blobs.h
   src/Representations/BanknoteDetections.cpp
   src/Representations/BanknoteDetections.h
+  src/Representations/BanknoteDetectionParameters.h
+  src/Representations/BanknoteModel.cpp
+  src/Representations/BanknoteModel.h
   src/Representations/BanknotePosition.cpp
   src/Representations/BanknotePosition.h
   src/Representations/CameraInfo.cpp

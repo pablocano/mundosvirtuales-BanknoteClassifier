@@ -11,6 +11,8 @@
 
 #include "Tools/ModuleManager/Module.h"
 #include "Representations/BanknoteDetections.h"
+#include "Representations/BanknoteDetectionParameters.h"
+#include "Representations/BanknoteModel.h"
 #include "Representations/Classification.h"
 #include "Representations/Features.h"
 #include "Representations/Image.h"
@@ -20,11 +22,11 @@
 #include "Tools/Math/Geometry.h"
 #include "Tools/Math/Random.h"
 
-#include "opencv2/core/cuda.hpp"
-#include "opencv2/cudaarithm.hpp"
-#include "opencv2/cudafeatures2d.hpp"
-#include "opencv2/xfeatures2d/cuda.hpp"
-#include "opencv2/highgui.hpp"
+#include <opencv2/core/cuda.hpp>
+#include <opencv2/cudaarithm.hpp>
+#include <opencv2/cudafeatures2d.hpp>
+#include <opencv2/xfeatures2d/cuda.hpp>
+#include <opencv2/highgui.hpp>
 
 #include <Eigen/Eigen>
 
@@ -37,21 +39,6 @@
 #include <geos/geom/Polygon.h>
 #include <geos/geom/CoordinateArraySequence.h>
 
-STREAMABLE(ClassParameters,
-{,
-    (float)(45) houghXYStep, /* in pixels */
-    (float)(30) houghAngleStep, /* in degrees */
-    (int)(9) houghVotesThresh,
-    (float)(0.8f) minAllowedScale,
-    (float)(1.2f) maxAllowedScale,
-    (float)(20.f) ransacMaxError,
-    (float)(30.f) ransacMaxError2,
-    (int)(15) ransacMinConsensus,
-    (int)(50) ransacNumberOfTrials,
-    (float)(0.6f) maxAllowedIOU,
-    (float)(60) graspRadius,
-});
-
 MODULE(BanknoteDetector,
 {,
     REQUIRES(GrayScaleImage),
@@ -60,20 +47,9 @@ MODULE(BanknoteDetector,
     PROVIDES(BanknoteDetections),
     DEFINES_PARAMETERS(
     {,
-     (ClassParameters[Classification::numOfBanknotes - 2]) parameters, // In pixels. This should be computed with the real grasp radius and the camera transform
+     (BanknoteDetectionParameters[Classification::numOfRealBanknotes]) parameters, // In pixels. This should be computed with the real grasp radius and the camera transform
     }),
 });
-
-class Model
-{
-public:
-    cv::cuda::GpuMat gpuImage;
-    cv::Mat image;
-    cv::Mat mask;
-    Features features;
-    Vector3f corners[CornerID::numOfCornerIDs];
-};
-
 
 class ClassDetections
 {
@@ -116,7 +92,7 @@ protected:
      * @param model: The BankNote model
      * @param detections: the output Detections
      */
-    void hough4d(const Model& model, const ClassParameters& parameters, ClassDetections& detections);
+    void hough4d(const BanknoteModel& model, const BanknoteDetectionParameters& parameters, ClassDetections& detections);
 
     /**
      * @brief ransac
@@ -134,7 +110,7 @@ protected:
      * @param model: The BankNote model
      * @param detections: the output Detections
      */
-    void ransac(const Model& model, const ClassParameters& parameters,  ClassDetections& detections);
+    void ransac(const BanknoteModel& model, const BanknoteDetectionParameters& parameters,  ClassDetections& detections);
 
     /**
      * @brief estimateTransforms
@@ -146,7 +122,7 @@ protected:
      * @param model: The BankNote model
      * @param detections: the output Detections
      */
-    void estimateTransforms(const Model& model, const ClassParameters& parameters,  ClassDetections& detections);
+    void estimateTransforms(const BanknoteModel& model, const BanknoteDetectionParameters& parameters,  ClassDetections& detections);
 
     /**
      * @brief nonMaximumSupression
@@ -157,7 +133,7 @@ protected:
      * @param model: The BankNote model
      * @param detections: the output Detections
      */
-    void nonMaximumSupression(const Model& model, const ClassParameters& parameters, ClassDetections& detections);
+    void nonMaximumSupression(const BanknoteModel& model, const BanknoteDetectionParameters& parameters, ClassDetections& detections);
 
     /**
      * @brief nonMaximumSupression
@@ -167,7 +143,7 @@ protected:
      * @param model: The BankNote model
      * @param detections: the output Detections
      */
-    void foregroundEstimation(const Model& model, ClassDetections& detections);
+    void foregroundEstimation(const BanknoteModel& model, ClassDetections& detections);
 
     /**
      * @brief evaluateGraspingScore
@@ -178,7 +154,7 @@ protected:
      * @param model: The BankNote model
      * @param detections: the output Detections
      */
-    void evaluateGraspingScore(const Model& model, const ClassParameters& params, ClassDetections& detections);
+    void evaluateGraspingScore(const BanknoteModel& model, const BanknoteDetectionParameters& params, ClassDetections& detections);
 
     /* Math Related */
     void resizeImage(cv::Mat& image);
@@ -209,10 +185,9 @@ protected:
     std::vector<cv::KeyPoint> imageKeypoints;
 
     /** Models */
-    Model models[Classification::numOfBanknotes - 2];
+    BanknoteModel models[Classification::numOfRealBanknotes];
 
-    /** Matches Buffer. Should really use an alias or somethin'. Shape is classes x matches x 2 (2 is the KNN criteria)*/
-    ClassDetections classDetections[Classification::numOfBanknotes - 2];
+    ClassDetections classDetections[Classification::numOfRealBanknotes];
 
     /** Global Module Parameters */
     //ClassParameters parameters;

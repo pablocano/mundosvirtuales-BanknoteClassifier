@@ -8,7 +8,9 @@
 
 #pragma once
 
-#include <Representations/Classification.h>
+#include "Representations/Classification.h"
+#include "Representations/BanknoteDetectionParameters.h"
+#include "Representations/BanknoteModel.h"
 
 #include "Tools/Math/Eigen.h"
 #include "Tools/Math/Pose2f.h"
@@ -21,57 +23,60 @@
 #include <opencv2/xfeatures2d/cuda.hpp>
 #include <opencv2/highgui.hpp>
 
+#include <geos/geom/CoordinateArraySequence.h>
+#include <geos/geom/CoordinateSequence.h>
 #include <geos/geom/Geometry.h>
+#include <geos/geom/Polygon.h>
+#include <geos/geom/GeometryFactory.h>
 
-ENUM(CornerID,
-{,
-    TopLeft,
-    TopRight,
-    BottomRight,
-    BottomLeft,
-    numOfRealCorners,
-    MiddleMiddle = numOfRealCorners,
-    MiddleRight,
-});
 
-STREAMABLE(BanknoteDetection,
+class BanknoteDetection : public Streamable
 {
+public:
+
     BanknoteDetection();
-    ~BanknoteDetection();
+    ~BanknoteDetection() override;
+
     bool isDetectionValid() const;
     bool isGraspingValid() const;
+    float iou(const BanknoteDetection& detection) const;
+    void updateTransformation(const BanknoteModel& model, const BanknoteDetectionParameters& param);
 
     std::vector<cv::DMatch> matches;
 
+    static geos::geom::GeometryFactory::Ptr factory;
+
     /* Geometry objects representing the hypothesys */
-    geos::geom::Geometry* validGeometry;
-    geos::geom::Geometry* geometry;
-    ,
+    std::shared_ptr<geos::geom::Polygon> geometry;
+    std::shared_ptr<geos::geom::Polygon> validGeometry;
+
    /* Buffer with detection related points */
-   (std::vector<Vector3f>) queryPoints,
-   (std::vector<Vector3f>) trainPoints,
-   (Vector3f[CornerID::numOfRealCorners]) queryCorners,
+   std::vector<Vector3f> queryPoints;
+   std::vector<Vector3f> trainPoints;
+   Vector3f queryCorners[BanknoteModel::numOfRealCorners];
 
    /* Detection representation*/
-   (Classification) banknoteClass,
-   (Matrix3f) transform, /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
-   (Pose2f) pose, /* 2D Pose of the hypothesis in the image space */
-   (Vector3f) graspPoint, /* Estimated grasping point */
+   Classification banknoteClass;
+   Matrix3f transform; /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
+   Pose2f pose; /* 2D Pose of the hypothesis in the image space */
+   Vector3f graspPoint; /* Estimated grasping point */
 
    /* Detection statistics */
-   (int) ransacVotes,
-   (float) graspScore,
-   (float) maxIOU,
-   (int) layer, /* 0 = foreground. 1,2,... represent the "depth" */
+   int ransacVotes;
+   float graspScore;
+   float maxIOU;
+   int layer; /* 0 = foreground. 1,2,... represent the "depth" */
 
    /* Status flags */
-   (bool) validTransform,
-   (bool) validNms,
-   (bool) validGrasp,
+   bool validTransform;
+   bool validNms;
+   bool validGrasp;
 
     /* Tracking flags */
-    (int) lastTimeDetected,
-});
+   int lastTimeDetected;
+
+  virtual void serialize(In* in, Out* out);
+};
 
 STREAMABLE(BanknoteDetections,
 {,

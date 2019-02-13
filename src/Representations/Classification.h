@@ -17,7 +17,8 @@ STREAMABLE(Classification,
      DIEZ_S,
      VEINTE_C,
      VEINTE_S,
-     NONE,
+     numOfRealBanknotes,
+     NONE = numOfRealBanknotes,
      STOP,
     });
 
