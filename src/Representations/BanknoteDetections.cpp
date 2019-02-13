@@ -25,7 +25,12 @@ BanknoteDetection::~BanknoteDetection()
     delete geometry;
 }
 
-bool BanknoteDetection::isValid() const
+bool BanknoteDetection::isDetectionValid() const
 {
-    return validNms && /*validGrasp && */validTransform;
+    return validNms && validTransform;
+}
+
+bool BanknoteDetection::isGraspingValid() const
+{
+    return isDetectionValid() && validGrasp;
 }

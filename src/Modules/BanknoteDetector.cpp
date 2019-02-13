@@ -220,7 +220,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
         {
             BanknoteDetection& d1 = detections1.detections[i1];
 
-            if(!d1.isValid())
+            if(!d1.isDetectionValid())
             {
                 d1.layer = -1;
                 continue;
@@ -238,7 +238,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
                     if(c1 == c2 && i1 && i2)
                         continue;
 
-                    if(!d2.isValid())
+                    if(!d2.isDetectionValid())
                     {
                         d2.layer = -1;
                         continue;
@@ -276,7 +276,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
 
         for(const BanknoteDetection& detection : detections.detections)
         {
-            if(detection.isValid())
+            if(detection.isDetectionValid())
                 repr.detections.push_back(detection);
         }
     }
@@ -934,7 +934,7 @@ void BanknoteDetector::drawAcceptedHypotheses()
 
         for(BanknoteDetection& h : detections.detections)
         {
-            ColorRGBA color2 = h.isValid() ? color : ColorRGBA::white;
+            ColorRGBA color2 = h.isDetectionValid() ? color : ColorRGBA::white;
 
             //if(!h.isValid())
             //    continue;

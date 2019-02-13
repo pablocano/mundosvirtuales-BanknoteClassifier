@@ -43,6 +43,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/BanknotePositionProvider.h
   src/Modules/BanknoteClassifierProvider.cpp
   src/Modules/BanknoteClassifierProvider.h
+  src/Modules/BanknoteTracker.cpp
+  src/Modules/BanknoteTracker.h
   src/Modules/Camera.cpp
   src/Modules/Camera.h
   src/Modules/CameraPoseFilter.cpp
