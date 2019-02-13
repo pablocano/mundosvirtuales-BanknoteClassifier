@@ -48,7 +48,7 @@ public:
   
 private:
   
-  MessageQueue &in,&out;
+  MessageQueue &theCommIn,&theCommOut;
   
   SocketClientTcp* lpSocket;
 

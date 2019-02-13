@@ -9,8 +9,8 @@ BanknoteClassifierMessageHandler* BanknoteClassifierMessageHandler::theInstance 
 
 
 BanknoteClassifierMessageHandler::BanknoteClassifierMessageHandler(MessageQueue& in, MessageQueue& out) :
-in(in),
-out(out),
+theCommIn(in),
+theCommOut(out),
 lpSocket(nullptr)
 {
   theInstance = this;
@@ -31,20 +31,20 @@ BanknoteClassifierMessageHandler::~BanknoteClassifierMessageHandler()
 
 void BanknoteClassifierMessageHandler::send()
 {
-  if (out.isEmpty()) {
+  if (theCommOut.isEmpty()) {
     //Nothing to send
     return;
   }
 
-  for (int i = 0; i < out.getNumberOfMessages(); ++i)
+  for (int i = 0; i < theCommOut.getNumberOfMessages(); ++i)
   {
-      out.queue.setSelectedMessageForReading(i);
+      theCommOut.queue.setSelectedMessageForReading(i);
 	  
-      if (out.queue.getMessageID() == idEthernetIPFanuc)
+      if (theCommOut.queue.getMessageID() == idEthernetIPFanuc)
 	  {
 		  PacketEthernetIPFanuc packet;
 
-          out.in.bin >> packet;
+          theCommOut.in.bin >> packet;
           int sizePayload = packet.getSize();
           char *buffer = new char[sizePayload];
           memcpy(static_cast<void *>(buffer),reinterpret_cast<void *>(&packet),
@@ -66,13 +66,13 @@ void BanknoteClassifierMessageHandler::send()
 	  }
   }
 
-  out.clear();
+  theCommOut.clear();
 }
 
 unsigned BanknoteClassifierMessageHandler::receive()
 {
 
-  in.clear();
+  theCommIn.clear();
   if(!lpSocket)
     return 0; // not started yet
 
@@ -86,8 +86,8 @@ unsigned BanknoteClassifierMessageHandler::receive()
           int sizePayload = packet.sizePayload;
           if(sizePayload == 0 || lpSocket->receive(reinterpret_cast<char *>(packet.payload), sizePayload, false))
           {
-            in.out.bin << packet;
-            in.queue.finishMessage(idEthernetIPFanuc);
+            theCommIn.out.bin << packet;
+            theCommIn.queue.finishMessage(idEthernetIPFanuc);
             totalSize += packet.getSize();
           }
 	  }
@@ -102,5 +102,5 @@ unsigned BanknoteClassifierMessageHandler::receive()
 
 MessageQueue& BanknoteClassifierMessageHandler::getOutQueue()
 {
-  return theInstance->out;
+  return theInstance->theCommOut;
 }
