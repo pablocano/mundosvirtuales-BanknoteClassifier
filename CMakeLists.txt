@@ -31,18 +31,12 @@ endif()
 set( BANCKNOTECLASSIFIER_SRC
   src/Modules/ArucoPoseEstimator.cpp
   src/Modules/ArucoPoseEstimator.h
-  src/Modules/BlobProvider.cpp
-  src/Modules/BlobProvider.h
-  src/Modules/BlobFilter.cpp
-  src/Modules/BlobFilter.h
   src/Modules/BanknoteDetector.cpp
   src/Modules/BanknoteDetector.h
   src/Modules/BanknoteClassifierConfiguration.cpp
   src/Modules/BanknoteClassifierConfiguration.h
   src/Modules/BanknotePositionProvider.cpp
   src/Modules/BanknotePositionProvider.h
-  src/Modules/BanknoteClassifierProvider.cpp
-  src/Modules/BanknoteClassifierProvider.h
   src/Modules/BanknoteTracker.cpp
   src/Modules/BanknoteTracker.h
   src/Modules/Camera.cpp
@@ -59,20 +53,14 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/Equalizer.h
   src/Modules/FeaturesProvider.cpp
   src/Modules/FeaturesProvider.h
-  src/Modules/EstimatePosition.cpp
-  src/Modules/EstimatePosition.h
   src/Modules/OpencvCamera.cpp
   src/Modules/OpencvCamera.h
-  src/Modules/PreviousBanknoteCheck.cpp
-  src/Modules/PreviousBanknoteCheck.h
-  src/Modules/Regionizer.cpp
-  src/Modules/Regionizer.h
   src/Modules/RobotFanucDataProvider.cpp
   src/Modules/RobotFanucDataProvider.h
   src/Modules/RobotFanucComm.cpp
   src/Modules/RobotFanucComm.h
-  src/Modules/RobotStatus.cpp
-  src/Modules/RobotStatus.h
+  src/Modules/RobotStatusProvider.cpp
+  src/Modules/RobotStatusProvider.h
   src/Modules/Segmentator.cpp
   src/Modules/Segmentator.h
   src/Modules/WorldCoordinatesPoseProvider.cpp
@@ -89,8 +77,6 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Processes/BanknoteClassifier.h
   src/Processes/GripperCommunication.cpp
   src/Processes/GripperCommunication.h
-  src/Representations/Blobs.cpp
-  src/Representations/Blobs.h
   src/Representations/BanknoteDetections.cpp
   src/Representations/BanknoteDetections.h
   src/Representations/BanknoteDetectionParameters.h
@@ -102,31 +88,24 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/CameraInfo.h
   src/Representations/Classification.cpp
   src/Representations/Classification.h
-  src/Representations/ErrorInfo.cpp
-  src/Representations/ErrorInfo.h
   src/Representations/ColorModel/ColorCalibration.h
   src/Representations/ColorModel/ColorModel.cpp
   src/Representations/ColorModel/ColorModel.h
   src/Representations/Features.cpp
   src/Representations/Features.h
   src/Representations/FrameInfo.h
-  src/Representations/FieldDimensions.h
-  src/Representations/FieldDimensions.cpp
   src/Representations/GrabbingPosition.cpp
   src/Representations/GrabbingPosition.h
-  src/Representations/BanknoteClassifierMessages.h
   src/Representations/Image.cpp
   src/Representations/Image.h
   src/Representations/Modeling/WorldCoordinatesPose.cpp
   src/Representations/Modeling/WorldCoordinatesPose.h
   src/Representations/Modeling/CameraPose.cpp
   src/Representations/Modeling/CameraPose.h
-  src/Representations/Regions.cpp
-  src/Representations/Regions.h
-  src/Representations/RegState.cpp
-  src/Representations/RegState.h
-  src/Representations/RobotFanuc.cpp
-  src/Representations/RobotFanuc.h
+  src/Representations/RobotFanucStatus.cpp
+  src/Representations/RobotFanucStatus.h
+  src/Representations/RobotFanucRegisters.cpp
+  src/Representations/RobotFanucRegisters.h
   src/Tools/AlignedMemory.cpp
   src/Tools/AlignedMemory.h
   src/Tools/ColorClasses.cpp

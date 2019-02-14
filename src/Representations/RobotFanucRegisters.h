@@ -13,15 +13,6 @@
 
 #include <map>
 
-
-
-ENUM(StatusRobotFanuc,
-	nonDefined,
-	inMoving,
-	pointReachable,
-	ErrorMoving
-);
-
 /** Definition Register Position */
 #define REG_POSITION_BANKNOTE 0x01
 #define REG_POSITION_HOME 0x02
@@ -35,12 +26,20 @@ ENUM(StatusRobotFanuc,
 #define REG_STATUS_GRIP 0x07
 
 
+ENUM(MovementStatus,
+{,
+    nonDefined,
+    inMoving,
+    pointReachable,
+    ErrorMoving,
+});
+
 /**
  * Robot Model
  */
 struct RobotModelFanuc
 {
-	StatusRobotFanuc statusRobot; /** Status robot. */
+    MovementStatus statusRobot; /** Status robot. */
 	std::map<int, int> reg; /** Registers of robot. */
 	std::map<int, PositionRegisterCartesian> regPos;  /** Position Register (Cartesian format) of robot. */
 	PositionRegisterCartesian currentPosition;  /** Current position (Cartesian format). */
@@ -76,7 +75,7 @@ struct RobotModelFanuc
 /**
  * Representation of Fanuc Robot 
  */
-class RobotFanuc : public Streamable
+class RobotFanucRegisters : public Streamable
 {
 
 public:
@@ -84,7 +83,7 @@ public:
 	/**
 	 * @brief Default constructor
 	 */
-	RobotFanuc();
+    RobotFanucRegisters();
 
     RobotModelFanuc robotModel; /** Robot Model is a copy of the real robot */
 
@@ -98,7 +97,7 @@ public:
 	/**
 	 * @brief Setting current Robot status  
 	 */
-	void setStatus(StatusRobotFanuc status);
+    void setStatus(MovementStatus status);
 
 	/**
 	* @brief Setting Robot model
@@ -113,22 +112,6 @@ protected:
      */
     void serialize(In* in, Out* out) override;
 };
-
-/**
- * Streaming operator that reads a DebugRequest from a stream.
- * @param stream The stream from which is read.
- * @param debugRequest The DebugRequest object.
- * @return The stream.
- */
-MessageQueue& operator>>(MessageQueue& stream, RobotFanuc& image);
-
-/**
- * Streaming operator that writes a DebugRequest to a stream.
- * @param stream The stream to write on.
- * @param debugRequest The DebugRequest object.
- * @return The stream.
- */
-MessageQueue& operator<<(MessageQueue& stream, RobotFanuc& image);
 
 STREAMABLE(DummyComm,
 {,

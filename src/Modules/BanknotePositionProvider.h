@@ -2,9 +2,7 @@
 
 #include "Tools/ModuleManager/Module.h"
 #include "Representations/BanknotePosition.h"
-#include "Representations/Blobs.h"
 #include "Representations/Classification.h"
-#include "Representations/ErrorInfo.h"
 #include "Representations/Features.h"
 #include "Representations/FrameInfo.h"
 #include "Representations/Image.h"
@@ -22,14 +20,10 @@
 
 MODULE(BanknotePositionProvider,
 {,
- REQUIRES(Blobs),
- REQUIRES(Classification),
  REQUIRES(Features),
  REQUIRES(FrameInfo),
  //REQUIRES(ImageBGR),
- REQUIRES(PreviousBanknotePosition),
  PROVIDES(BanknotePosition),
- PROVIDES(ErrorInfo),
 });
 
 
@@ -55,8 +49,6 @@ public:
      * @param banknotePosition
      */
     void update(BanknotePosition& banknotePosition);
-
-    void update(ErrorInfo& errorinfo);
 
     /**
      * @brief Resize the image and aplicates and clane equalization

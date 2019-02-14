@@ -1,5 +1,4 @@
 #include "GripperCommunication.h"
-#include "Representations/Blobs.h"
 #include "Representations/CameraInfo.h"
 #include "Representations/Regions.h"
 #include "Modules/BanknoteClassifierConfiguration.h"

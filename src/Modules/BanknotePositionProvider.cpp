@@ -6,7 +6,6 @@
 #include <algorithm>
 #include "Tools/SystemCall.h"
 #include "Tools/Math/Geometry.h"
-#include "Modules/BanknoteClassifierProvider.h"
 #include "Platform/File.h"
 
 
@@ -89,89 +88,7 @@ BanknotePositionProvider::~BanknotePositionProvider()
 }
 
 void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
-{
-    DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:ransac_result","drawingOnImage");
-    DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:inliers","drawingOnImage");
-    DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:mass_center","drawingOnImage");
-    DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:median","drawingOnImage");
-    DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:analized_area", "drawingOnImage");
-
-    /*for(int i = 0; i < Classification::numOfBanknotes - 1; i++)
-    {
-        std::string name = "Template Canny " + std::string(Classification::getName((Classification::Banknote)i));
-        DRAW_IMAGE(name.c_str(), cannys[i], 1);
-    }
-
-
-    for(int i = 0; i < Classification::numOfBanknotes - 1; i++)
-    {
-        std::string name = "Templates " + std::string(Classification::getName((Classification::Banknote)i));
-        DRAW_IMAGE(name.c_str(), modpreviousBanknotePosition.banknote = Classification::NONE;elsImage[i], 1);
-    }*/
-
-    if(thePreviousBanknotePosition.banknote != Classification::NONE && thePreviousBanknotePosition.banknote != Classification::STOP)
-    {
-        //OUTPUT_TEXT("using prev pos");
-        banknotePosition.corners = thePreviousBanknotePosition.corners;
-        banknotePosition.homography = thePreviousBanknotePosition.homography;
-        banknotePosition.position = thePreviousBanknotePosition.position;
-        banknotePosition.banknote = thePreviousBanknotePosition.banknote;
-        return;
-    }
-
-    if (!theFeatures.descriptors.empty() /*&& theClassification.result != Classification::NONE*/)
-    {
-        //Matching
-        cv::Mat H;
-        Vector2f massCenter;
-
-        //int banknote = compare(theFeatures, H, theClassification.result, theClassification.result + 1);
-        int banknote = compare(theFeatures, H, 0, 9, massCenter);
-
-        banknotePosition.banknote = Classification::NONE;
-
-        if (!H.empty() && banknote != Classification::NONE)
-        {
-            Pose2f pose;
-            std::vector<Vector2f> scene_corners;
-            if(analyzeArea(H, scene_corners, pose, banknote))
-            {
-                //OUTPUT_TEXT("ransac");
-                error = 0;
-                banknotePosition.banknote = (Classification::Banknote)banknote;
-                scene_corners.push_back(scene_corners.front());
-                banknotePosition.homography = H;
-                banknotePosition.corners = scene_corners;
-                banknotePosition.position = pose;
-                banknotePosition.grabPos = massCenter;
-                //OUTPUT_TEXT("Found bancknote ");
-                //OUTPUT_TEXT(Classification::getName((Classification::Banknote)banknotePosition.banknote));
-            }
-            else{
-                //OUTPUT_TEXT("No ransac");
-                error++;
-                lastbanknote = theClassification.result;
-
-            }
-        }
-        else
-        {
-            error++;
-            lastbanknote = theClassification.result;
-        }
-    }
-        
-
-}
-
-void BanknotePositionProvider::update(ErrorInfo& errorinfo){
-    if (error > 3){
-        errorinfo.error = 1;
-        errorinfo.lastbanknote = lastbanknote;
-    }
-
-
-
+{        
 
 }
 
