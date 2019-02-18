@@ -20,6 +20,9 @@ BanknoteTracker::BanknoteTracker()
     comparisons.resize(maxDetections, maxDetections);
     comparisons.setZero();
 
+    bestDetectionIndex = -1;
+    state = TracketState::estimating;
+
     for(unsigned c = 0; c < Classification::numOfRealBanknotes; c++)
     {
         // Load models
@@ -70,7 +73,39 @@ BanknoteTracker::~BanknoteTracker()
 
 }
 
-void BanknoteTracker::update(BanknotePosition& position)
+void BanknoteTracker::update(BanknotePositionFiltered& position)
+{
+    position.valid = false;
+    bestDetectionIndex = -1;
+
+    switch(state)
+    {
+    case TracketState::estimating:
+
+        estimatingStateFunction(position);
+        break;
+
+    case TracketState::waitingForRobotIn:
+
+        waitingForRobotInStateFunction();
+        break;
+
+    case TracketState::waitingForRobotOut:
+
+        waitingForRobotOutStateFunction();
+        break;
+
+    default:
+        ASSERT(false);
+    }
+
+
+    /* Debug Drawings */
+    drawDetections();
+}
+
+
+void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position)
 {
     for(const BanknoteDetection& newDetection : theBanknoteDetections.detections)
     {
@@ -186,6 +221,9 @@ void BanknoteTracker::update(BanknotePosition& position)
     {
         BanknoteDetection& detection1 = detections[i1];
 
+        if(!detection1.isDetectionValid())
+            continue;
+
         int occlusions = 0;
 
         for(int i2 = 0; i2 < maxDetections; i2++)
@@ -202,11 +240,75 @@ void BanknoteTracker::update(BanknotePosition& position)
     }
 
 
-    // final decision
+    /* Final decision */
+    int bestDetectionNumberOfKeypoints = 0;
 
+    for(int i = 0; i < maxDetections; i++)
+    {
+        BanknoteDetection& detection = detections[i];
 
-    /* Debug Drawings */
-    drawDetections();
+        if(!detection.isDetectionValid())
+            continue;
+
+        if(detection.layer != 0)
+            continue;
+
+        if(theFrameInfo.getTimeSince(detection.firstTimeDetected) < 500
+                || theFrameInfo.getTimeSince(detection.lastTimeDetected) > 3000)
+            continue;
+
+        if(detection.trainPoints.size() > bestDetectionNumberOfKeypoints)
+        {
+            bestDetectionIndex = i;
+            bestDetectionNumberOfKeypoints = detection.trainPoints.size();
+        }
+    }
+
+    if(bestDetectionIndex != -1)
+    {
+        BanknoteDetection& detection = detections[bestDetectionIndex];
+
+        if(theFrameInfo.getTimeSince(detection.firstTimeDetected) > 500)
+        {
+            position.valid = true;
+            position.banknote = detection.banknoteClass.result;
+            position.corners.resize(4);
+            position.corners[BanknoteModel::CornerID::BottomLeft] = Vector2f(detection.queryCorners[BanknoteModel::CornerID::BottomLeft].x(), detection.queryCorners[BanknoteModel::CornerID::BottomLeft].y());
+            position.corners[BanknoteModel::CornerID::BottomRight] = Vector2f(detection.queryCorners[BanknoteModel::CornerID::BottomRight].x(), detection.queryCorners[BanknoteModel::CornerID::BottomRight].y());
+            position.corners[BanknoteModel::CornerID::TopLeft] = Vector2f(detection.queryCorners[BanknoteModel::CornerID::TopLeft].x(), detection.queryCorners[BanknoteModel::CornerID::TopLeft].y());
+            position.corners[BanknoteModel::CornerID::TopRight] = Vector2f(detection.queryCorners[BanknoteModel::CornerID::TopRight].x(), detection.queryCorners[BanknoteModel::CornerID::TopRight].y());
+            position.position = detection.pose;
+            position.grabPos = Vector2f(detection.graspPoint.x(), detection.graspPoint.y());
+
+             cv::Mat homography(3, 3, CV_32F, cv::Scalar(0));
+             homography.at<float>(0, 0) = detection.transform(0, 0);
+             homography.at<float>(0, 1) = detection.transform(0, 1);
+             homography.at<float>(1, 0) = detection.transform(1, 0);
+             homography.at<float>(1, 1) = detection.transform(1, 1);
+             homography.at<float>(0, 2) = detection.transform(0, 2);
+             homography.at<float>(1, 2) = detection.transform(1, 2);
+             homography.at<float>(2, 2) = detection.transform(2, 2);
+             position.homography = homography;
+
+             if(useRobotStates)
+             {
+                 state = TracketState::waitingForRobotIn;
+                 detections[bestDetectionIndex] = BanknoteDetection();
+             }
+        }
+    }
+}
+
+void BanknoteTracker::waitingForRobotInStateFunction()
+{
+    if(!theRobotFanucStatus.visionAreaClear)
+        state = TracketState::waitingForRobotOut;
+}
+
+void BanknoteTracker::waitingForRobotOutStateFunction()
+{
+    if(theRobotFanucStatus.visionAreaClear)
+        state = TracketState::estimating;
 }
 
 void BanknoteTracker::attemptMerge(const BanknoteDetection& d1, BanknoteDetection& d2)
@@ -332,6 +434,8 @@ void BanknoteTracker::drawDetections()
 {
     DECLARE_DEBUG_DRAWING("module:BanknoteTracker:hypotheses_detections", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteTracker:hypotheses_info", "drawingOnImage");
+    DECLARE_DEBUG_DRAWING("module:BanknoteTracker:best_detections", "drawingOnImage");
+
 
     for(int i = 0; i < detections.size(); i++)
     {
@@ -374,6 +478,9 @@ void BanknoteTracker::drawDetections()
         ColorRGBA colorGrasp = detection.validGrasp ? color : ColorRGBA(255,255,255,0);
         ColorRGBA colorGrasp2 = detection.validGrasp ? ColorRGBA::white : ColorRGBA(255,255,255,0);
 
+        CIRCLE("module:BanknoteTracker:hypotheses_detections", detection.graspPoint.x(), detection.graspPoint.y(), graspRadius, 8, Drawings::solidPen, colorGrasp2, Drawings::noBrush, ColorRGBA::white);
+        CIRCLE("module:BanknoteTracker:hypotheses_detections", detection.graspPoint.x(), detection.graspPoint.y(), graspRadius, 5, Drawings::solidPen, colorGrasp, Drawings::noBrush, color);
+
         std::string detection_id_str = "Detection id: " + std::to_string(i);
         std::string hypotheses_points_str = "Points: " + std::to_string(detection.matches.size());
         std::string first_time_str = "Since first: " + std::to_string(theFrameInfo.getTimeSince(detection.firstTimeDetected));
@@ -394,5 +501,50 @@ void BanknoteTracker::drawDetections()
 
 
 
+    }
+
+
+    if(bestDetectionIndex != -1)
+    {
+
+        const BanknoteDetection& detection = detections[bestDetectionIndex];
+
+        ASSERT(detection.isDetectionValid());
+        ASSERT(detection.banknoteClass.result >= 0 && detection.banknoteClass.result < Classification::numOfRealBanknotes);
+
+        const BanknoteModel& model = models[detection.banknoteClass.result];
+        ColorRGBA color = debugColors[detection.banknoteClass.result];
+        const Vector3f (&corners)[BanknoteModel::CornerID::numOfCornerIDs] = model.corners;
+
+        for(const Vector3f& p : detection.queryPoints)
+        {
+            CIRCLE("module:BanknoteTracker:best_detections", p.x(), p.y(), 8, 1, Drawings::solidPen, ColorRGBA::white, Drawings::solidBrush, ColorRGBA::white);
+            CIRCLE("module:BanknoteTracker:best_detections", p.x(), p.y(), 5, 1, Drawings::solidPen, color, Drawings::solidBrush, color);
+        }
+
+        for(int i = 0; i < BanknoteModel::CornerID::numOfRealCorners - 1; i++)
+        {
+            LINE("module:BanknoteTracker:best_detections", detection.queryCorners[i].x(), detection.queryCorners[i].y() , detection.queryCorners[i + 1].x(), detection.queryCorners[i + 1].y(), 10, Drawings::solidPen, ColorRGBA(255,255,255,128));
+            LINE("module:BanknoteTracker:best_detections", detection.queryCorners[i].x(), detection.queryCorners[i].y() , detection.queryCorners[i + 1].x(), detection.queryCorners[i + 1].y(), 4, Drawings::solidPen, color);
+        }
+
+        LINE("module:BanknoteTracker:best_detections", detection.queryCorners[BanknoteModel::CornerID::TopLeft].x(), detection.queryCorners[BanknoteModel::CornerID::TopLeft].y() , detection.queryCorners[BanknoteModel::CornerID::BottomLeft].x(), detection.queryCorners[BanknoteModel::CornerID::BottomLeft].y(), 10, Drawings::solidPen, ColorRGBA(255,255,255,128));
+        LINE("module:BanknoteTracker:best_detections", detection.queryCorners[BanknoteModel::CornerID::TopLeft].x(), detection.queryCorners[BanknoteModel::CornerID::TopLeft].y() , detection.queryCorners[BanknoteModel::CornerID::BottomLeft].x(), detection.queryCorners[BanknoteModel::CornerID::BottomLeft].y(), 4, Drawings::solidPen, color);
+
+
+        Vector3f start = model.corners[BanknoteModel::CornerID::MiddleMiddle];
+        Vector3f end = model.corners[BanknoteModel::CornerID::MiddleRight];
+
+        start = detection.transform * start;
+        end = detection.transform * end;
+
+        ARROW("module:BanknoteTracker:best_detections", start.x(), start.y(), end.x(), end.y(), 8, Drawings::solidPen, ColorRGBA::white);
+        ARROW("module:BanknoteTracker:best_detections", start.x(), start.y(), end.x(), end.y(), 5, Drawings::solidPen, color);
+
+        ColorRGBA colorGrasp = detection.validGrasp ? color : ColorRGBA(255,255,255,0);
+        ColorRGBA colorGrasp2 = detection.validGrasp ? ColorRGBA::white : ColorRGBA(255,255,255,0);
+
+        CIRCLE("module:BanknoteTracker:best_detections", detection.graspPoint.x(), detection.graspPoint.y(), graspRadius, 8, Drawings::solidPen, colorGrasp2, Drawings::noBrush, ColorRGBA::white);
+        CIRCLE("module:BanknoteTracker:best_detections", detection.graspPoint.x(), detection.graspPoint.y(), graspRadius, 5, Drawings::solidPen, colorGrasp, Drawings::noBrush, color);
     }
 }
