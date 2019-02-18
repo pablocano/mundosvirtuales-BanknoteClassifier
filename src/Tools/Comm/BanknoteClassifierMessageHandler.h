@@ -24,7 +24,7 @@ theBanknoteClassifierCommHandler.start("127.0.0.1");                            
 theBanknoteClassifierCommHandler.send()
 
 
-class BanknoteClassifierMessageHandler
+class BanknoteClassifierMessageHandler : public MessageHandler
 {
 public:
   
@@ -33,6 +33,8 @@ public:
   BanknoteClassifierMessageHandler(MessageQueue &in, MessageQueue &out);
   
   ~BanknoteClassifierMessageHandler();
+
+  bool handleMessage(InMessage &message);
   
   void send();
   

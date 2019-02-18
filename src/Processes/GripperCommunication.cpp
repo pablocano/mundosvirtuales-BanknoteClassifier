@@ -35,6 +35,8 @@ int GripperCommunication::main()
 {
   RECEIVE_BANKNOTE_CLASSIFIER_COMM;
 
+  RobotFanucDataProvider::handleMessages(theCommReceiver);
+
   int numberOfMessages = theDebugOut.getNumberOfMessages();
 
   char process = 'e';

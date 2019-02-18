@@ -29,6 +29,36 @@ BanknoteClassifierMessageHandler::~BanknoteClassifierMessageHandler()
   delete lpSocket;
 }
 
+bool BanknoteClassifierMessageHandler::handleMessage(InMessage &message)
+{
+    if (message.getMessageID() == idEthernetIPFanuc)
+    {
+        PacketEthernetIPFanuc packet;
+
+        theCommOut.in.bin >> packet;
+        int sizePayload = packet.getSize();
+        char *buffer = new char[sizePayload];
+
+        PacketEthernetIpFanucHeader header(packet);
+
+        memcpy(static_cast<void *>(buffer),reinterpret_cast<void *>(&header),
+                    SIZE_HEADER);
+        if (packet.sizePayload > 0 && packet.payload != nullptr)
+        {
+            memcpy(static_cast<void *>(buffer + SIZE_HEADER),reinterpret_cast<void *>(packet.payload),
+                   packet.sizePayload);
+        }
+
+        if (!lpSocket->send(buffer, sizePayload))
+        {
+            OUTPUT_ERROR("Could not send the message\n");
+            lpSocket->closeSocket();
+        }
+
+        delete[] buffer;
+    }
+}
+
 void BanknoteClassifierMessageHandler::send()
 {
   if (theCommOut.isEmpty()) {
@@ -36,35 +66,7 @@ void BanknoteClassifierMessageHandler::send()
     return;
   }
 
-  for (int i = 0; i < theCommOut.getNumberOfMessages(); ++i)
-  {
-      theCommOut.queue.setSelectedMessageForReading(i);
-	  
-      if (theCommOut.queue.getMessageID() == idEthernetIPFanuc)
-	  {
-		  PacketEthernetIPFanuc packet;
-
-          theCommOut.in.bin >> packet;
-          int sizePayload = packet.getSize();
-          char *buffer = new char[sizePayload];
-          memcpy(static_cast<void *>(buffer),reinterpret_cast<void *>(&packet),
-                      SIZE_HEADER);
-          if (packet.sizePayload > 0 && packet.payload != nullptr)
-          {
-              memcpy(static_cast<void *>(buffer + SIZE_HEADER),reinterpret_cast<void *>(packet.payload),
-                     packet.sizePayload);
-          }
-
-          if (!lpSocket->send(buffer, sizePayload))
-		  {
-              printf("Could not send the message\n");
-              lpSocket->closeSocket();
-		  }
-
-          delete[] buffer;
-
-	  }
-  }
+  theCommOut.handleAllMessages(*this);
 
   theCommOut.clear();
 }
@@ -76,24 +78,25 @@ unsigned BanknoteClassifierMessageHandler::receive()
   if(!lpSocket)
     return 0; // not started yet
 
-  PacketEthernetIPFanuc packet;
+  PacketEthernetIpFanucHeader header;
   
   unsigned totalSize = 0;
-  while(lpSocket->receive(reinterpret_cast<char *>(&packet), SIZE_HEADER, false))
+  while(lpSocket->receive(reinterpret_cast<char *>(&header), SIZE_HEADER, false))
   {
+      PacketEthernetIPFanuc packet(header);
 	  if (packet.isValid())
 	  {
           int sizePayload = packet.sizePayload;
           if(sizePayload == 0 || lpSocket->receive(reinterpret_cast<char *>(packet.payload), sizePayload, false))
           {
             theCommIn.out.bin << packet;
-            theCommIn.queue.finishMessage(idEthernetIPFanuc);
+            theCommIn.out.finishMessage(idEthernetIPFanuc);
             totalSize += packet.getSize();
           }
 	  }
 	  else
 	  {
-      OUTPUT_TEXT("Invalid packet");
+        OUTPUT_ERROR("Invalid packet");
 	  }
   }
 

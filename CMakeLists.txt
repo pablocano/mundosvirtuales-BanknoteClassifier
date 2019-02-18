@@ -338,7 +338,8 @@ set( LIB_ETHERNETIP_FANUC_SRC
 
 set( LIB_ETHERNETIP_FANUC_INCLUDE
 	src/Tools/Fanuc/PositionRegisterCartesian.h
-	src/Tools/Fanuc/PositionRegisterJoint.h
+        src/Tools/Fanuc/PositionRegisterJoint.h
+        src/Tools/Fanuc/PacketEthernetIPFanuc.cpp
 	src/Tools/Fanuc/PacketEthernetIPFanuc.h
 	src/Tools/Comm/TcpComm.h
 )

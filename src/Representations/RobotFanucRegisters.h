@@ -116,3 +116,7 @@ protected:
 STREAMABLE(DummyComm,
 {,
 });
+
+STREAMABLE(GripperDummyComm,
+{,
+});
