@@ -5,8 +5,8 @@
 
 STREAMABLE(BanknoteDetectionParameters,
 {,
-    (float)(45) houghXYStep, /* in pixels */
-    (float)(30) houghAngleStep, /* in degrees */
+    (float)(45.f) houghXYStep, /* in pixels */
+    (float)(30.f) houghAngleStep, /* in degrees */
     (int)(9) houghVotesThresh,
     (float)(0.8f) minAllowedScale,
     (float)(1.2f) maxAllowedScale,

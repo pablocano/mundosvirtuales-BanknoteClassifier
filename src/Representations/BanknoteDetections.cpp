@@ -12,7 +12,7 @@ BanknoteDetection::BanknoteDetection() :
     ransacVotes(0),
     graspScore(0),
     maxIOU(0.f),
-    layer(0),
+    layer(-1),
     validTransform(false),
     validNms(true),
     validGrasp(true),
@@ -21,6 +21,8 @@ BanknoteDetection::BanknoteDetection() :
     lastTimeDetected(0),
     firstTimeDetected(0)
 {
+    banknoteClass.result = Classification::NONE;
+
     if(factory == nullptr)
         factory = geos::geom::GeometryFactory::create();
 }
@@ -108,15 +110,45 @@ void BanknoteDetection::updateTransformation(const BanknoteModel& model, const B
             int i2 = i % BanknoteModel::CornerID::numOfRealCorners;
             queryCorners[i2] = transform * model.corners[i2];
             cl1->add(geos::geom::Coordinate(queryCorners[i2].x(), queryCorners[i2].y()));
-            cl2->add(geos::geom::Coordinate(queryCorners[i2].x(), queryCorners[i2].y()));
         }
 
         std::vector<geos::geom::Geometry*>* holes1 = new std::vector<geos::geom::Geometry*>;
         std::vector<geos::geom::Geometry*>* holes2 = new std::vector<geos::geom::Geometry*>;
 
         geometry = std::shared_ptr<geos::geom::Polygon>((geos::geom::Polygon*) factory->createPolygon(factory->createLinearRing(cl1), holes1));
-        //hull  = std::shared_ptr<geos::geom::Geometry>((geos::geom::Geometry*) geometry->convexHull());
+
+        int numberOfPoints = queryPoints.size();
+        for(int i = 0; i <= queryPoints.size(); i++)
+        {
+            int i2 = i % numberOfPoints;
+            cl2->add(geos::geom::Coordinate(queryPoints[i2].x(), queryPoints[i2].y()));
+        }
+
+
+        std::shared_ptr<geos::geom::Polygon> poly2 = std::shared_ptr<geos::geom::Polygon>((geos::geom::Polygon*)(factory->createPolygon(factory->createLinearRing(cl2), holes2)));
+
+        hull = std::shared_ptr<geos::geom::Geometry>(poly2->convexHull());
+        ASSERT(hull->getArea());
     }
+}
+
+int BanknoteDetection::compare(const BanknoteDetection& other)
+{
+    if(!geometry->intersects(other.geometry.get()))
+        return 0;
+
+    geos::geom::Geometry* oneOverTwoIntersection = hull->intersection(other.geometry.get());
+    geos::geom::Geometry* twoOverOneIntersection = geometry->intersection(other.hull.get());
+
+    float oneOverTwoIntersectionArea = oneOverTwoIntersection->getArea();
+    float twoOverOneIntersectionArea = twoOverOneIntersection->getArea();
+
+    bool result = oneOverTwoIntersectionArea > twoOverOneIntersectionArea ? 1 : oneOverTwoIntersectionArea < twoOverOneIntersectionArea ? -1 : 0;
+
+    delete oneOverTwoIntersection;
+    delete twoOverOneIntersection;
+
+    return result;
 }
 
 void BanknoteDetection::serialize(In *in, Out *out)

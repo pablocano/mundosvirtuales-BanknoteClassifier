@@ -60,13 +60,17 @@ protected:
 
     void attemptMerge(const BanknoteDetection& newDetection, BanknoteDetection& previousDetection);
 
-    void evaluateGraspingScore(const BanknoteModel& model, const BanknoteDetectionParameters& params);
+    void evaluateGraspingScore(BanknoteDetection& detection, const BanknoteModel& model, const BanknoteDetectionParameters& params);
 
     void keepOne(const BanknoteDetection& d1, BanknoteDetection& d2);
+
+    void drawDetections();
 
     /** Models */
     BanknoteModel models[Classification::numOfRealBanknotes];
 
     std::vector<BanknoteDetection> detections;
+    MatrixXi comparisons; /* current vs other. +1 current is over. -1 below. 0 unknown */
 
+    ColorRGBA debugColors[Classification::numOfRealBanknotes];
 };

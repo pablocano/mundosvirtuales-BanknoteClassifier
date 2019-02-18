@@ -17,6 +17,8 @@ MAKE_MODULE(BanknoteTracker, BanknoteClassifier)
 BanknoteTracker::BanknoteTracker()
 {
     detections.resize(maxDetections);
+    comparisons.resize(maxDetections, maxDetections);
+    comparisons.setZero();
 
     for(unsigned c = 0; c < Classification::numOfRealBanknotes; c++)
     {
@@ -45,6 +47,22 @@ BanknoteTracker::BanknoteTracker()
         model.corners[BanknoteModel::CornerID::MiddleRight] = Vector3f(0.75f*image.cols, 0.5f*image.rows, 1);
     }
 
+
+    debugColors[Classification::UNO_C] = ColorRGBA::green;
+    debugColors[Classification::UNO_S] = ColorRGBA::green;
+
+    debugColors[Classification::DOS_C] = ColorRGBA::magenta;
+    debugColors[Classification::DOS_S] = ColorRGBA::magenta;
+
+    debugColors[Classification::CINCO_C] = ColorRGBA::red;
+    debugColors[Classification::CINCO_S] = ColorRGBA::red;
+
+    debugColors[Classification::DIEZ_C] = ColorRGBA::blue;
+    debugColors[Classification::DIEZ_S] = ColorRGBA::blue;
+
+    debugColors[Classification::VEINTE_C] = ColorRGBA::orange;
+    debugColors[Classification::VEINTE_S] = ColorRGBA::orange;
+
 }
 
 BanknoteTracker::~BanknoteTracker()
@@ -62,7 +80,7 @@ void BanknoteTracker::update(BanknotePosition& position)
             if(!previousDetection.isDetectionValid())
                 continue;
 
-            if(newDetection.iou(newDetection) > minSameDetectionIOU)
+            if(newDetection.iou(previousDetection) > minSameDetectionIOU)
             {
                 attemptMerge(newDetection, previousDetection);
                 detected = true;
@@ -74,13 +92,49 @@ void BanknoteTracker::update(BanknotePosition& position)
             continue;
 
         /* So this is a new detection */
-        for(BanknoteDetection& detection : detections)
+        for(int i = 0; i < maxDetections; i++)
         {
+            BanknoteDetection& detection = detections[i];
+
             if(!detection.isDetectionValid())
+            {
                 detection = newDetection;
+                ASSERT(detection.layer == -1);
+
+                /* Variable Setup */
+                int height = models[detection.banknoteClass.result].image.rows;
+                int width = models[detection.banknoteClass.result].image.cols;
+
+                detection.trainKeypointStatus.resize(height, width);
+                detection.trainKeypointStatus.setZero();
+
+                detection.lastTimeDetected = theFrameInfo.time;
+                detection.firstTimeDetected = theFrameInfo.time;
+
+                for(int j = 0; j < maxDetections; j++)
+                {
+                    comparisons(i, j) = 0;
+                    comparisons(j, i) = 0;
+                }
+
+                for(const Vector3f& p : detection.trainPoints)
+                {
+                    int y = p.y();
+                    int x = p.x();
+
+                    ASSERT(x >= 0 && x < detection.trainKeypointStatus.cols());
+                    ASSERT(y >= 0 && y < detection.trainKeypointStatus.rows());
+
+                    detection.trainKeypointStatus(y, x) = 1;
+                }
+
+                break;
+            }
+
         }
     }
 
+    /* Destroy hypotheses upon timeout */
     for(BanknoteDetection& detection : detections)
     {
         if(theFrameInfo.getTimeSince(detection.lastTimeDetected) > maxNoDetectionTime)
@@ -88,25 +142,87 @@ void BanknoteTracker::update(BanknotePosition& position)
     }
 
     // check grasping pose and score
-    ASSERT(false);
+    for(BanknoteDetection& detection : detections)
+    {
+        if(!detection.isDetectionValid())
+            continue;
+
+        ASSERT(detection.banknoteClass.result >= 0 && detection.banknoteClass.result < Classification::numOfRealBanknotes);
+
+        const BanknoteDetectionParameters& params = parameters[detection.banknoteClass.result];
+        const BanknoteModel& model = models[detection.banknoteClass.result];
+
+        if(detection.layer == -1)
+            evaluateGraspingScore(detection, model, params);
+    }
+
+    /* Check oclusion (comparison) */
+    for(int i1 = 0; i1 < maxDetections; i1++)
+    {
+        BanknoteDetection& detection1 = detections[i1];
+
+        if(!detection1.isDetectionValid() || detection1.layer != -1)
+            continue;
+
+        for(int i2 = 0; i2 < detections.size(); i2++)
+        {
+            if(i1 == i2)
+                continue;
+
+            BanknoteDetection& detection2 = detections[i2];
+
+            if(!detection2.isDetectionValid())
+                continue;
+
+            int comparison = detection1.compare(detection2);
+
+            comparisons(i1, i2) = comparison;
+            comparisons(i2, i1) = -comparison;
+        }
+    }
+
+    /* Compute layers */
+    for(int i1 = 0; i1 < maxDetections; i1++)
+    {
+        BanknoteDetection& detection1 = detections[i1];
+
+        int occlusions = 0;
+
+        for(int i2 = 0; i2 < maxDetections; i2++)
+        {
+            if(i1 == i2)
+                continue;
+
+            BanknoteDetection& detection2 = detections[i2];
+
+            occlusions += comparisons(i1, i2) == -1;
+        }
+
+        detection1.layer = occlusions;
+    }
 
 
-    // check layers
+    // final decision
 
 
-
+    /* Debug Drawings */
+    drawDetections();
 }
 
 void BanknoteTracker::attemptMerge(const BanknoteDetection& d1, BanknoteDetection& d2)
 {
     ASSERT(d1.isDetectionValid());
     ASSERT(d2.isDetectionValid());
-    ASSERT(d1.banknoteClass.result == d2.banknoteClass.result);
+    //ASSERT(d1.banknoteClass.result == d2.banknoteClass.result);
 
     float errorPosition = (d1.pose.translation - d2.pose.translation).norm();
     float angDiff = d1.pose.rotation - d2.pose.rotation;
 
-    if(errorPosition > maxSameDetectionDistance || std::cos(angDiff) > std::cos(maxSameDetectionAngle) || d1.banknoteClass.result != d2.banknoteClass.result)
+    bool s1 = errorPosition > maxSameDetectionDistance;
+    bool s2 = std::abs(angDiff) > std::abs(maxSameDetectionAngle);
+    bool s3 = d1.banknoteClass.result != d2.banknoteClass.result;
+
+    if(s1 || s2 || s3)
     {
         keepOne(d1, d2);
         return;
@@ -123,21 +239,20 @@ void BanknoteTracker::attemptMerge(const BanknoteDetection& d1, BanknoteDetectio
 
     for(int i1 = 0; i1 < numberOfDetectionPoints; i1++)
     {
-        bool status = false;
-        for(int i2 = 0; i2 < numberOfOldPoints; i2++)
-        {
-            /* We do it in train points since for a class they are supposedly constants */
-            status = (d2.trainPoints[i2] - d1.trainPoints[i1]).norm() < minDifferentPointDistance;
+        int y = d1.trainPoints[i1].y();
+        int x = d1.trainPoints[i1].x();
 
-            if(status)
-                break;
-        }
+        ASSERT(x >= 0 && x < d2.trainKeypointStatus.cols());
+        ASSERT(y >= 0 && y < d2.trainKeypointStatus.rows());
 
-        if(!status)
+        if(d2.trainKeypointStatus(y, x) == 0)
         {
             d2.matches.push_back(d1.matches[i1]);
             d2.queryPoints.push_back(d1.queryPoints[i1]);
             d2.trainPoints.push_back(d1.trainPoints[i1]);
+
+            d2.trainKeypointStatus(y, x) = 1;
+
             newPoints = true;
         }
     }
@@ -145,8 +260,10 @@ void BanknoteTracker::attemptMerge(const BanknoteDetection& d1, BanknoteDetectio
     if(newPoints)
     {
         d2.layer = -1; // we need to calculate the layer again an also the grasping point
-        //d2.updateTransform();
+        d2.updateTransformation(models[d2.banknoteClass.result], parameters[d2.banknoteClass.result]);
     }
+
+    d2.lastTimeDetected = theFrameInfo.time;
 }
 
 void BanknoteTracker::keepOne(const BanknoteDetection& d1, BanknoteDetection& d2)
@@ -164,50 +281,118 @@ void BanknoteTracker::keepOne(const BanknoteDetection& d1, BanknoteDetection& d2
             d2 = d1;
     }
 
+    d2.firstTimeDetected = theFrameInfo.time;
+    d2.lastTimeDetected = theFrameInfo.time;
 }
 
-void BanknoteTracker::evaluateGraspingScore(const BanknoteModel& model, const BanknoteDetectionParameters& params)
+void BanknoteTracker::evaluateGraspingScore(BanknoteDetection& detection, const BanknoteModel& model, const BanknoteDetectionParameters& params)
 {
-    /*for(BanknoteDetection& h : detections.detections)
+    std::vector<Vector2f> inliers;
+    inliers.reserve(detection.matches.size());
+
+    for(const Vector3f& p : detection.trainPoints)
     {
-        std::vector<Vector2f> inliers;
-        inliers.reserve(h.matches.size());
+        bool s1 = p.x() < graspRadius;
+        bool s2 = p.x() > model.image.cols - graspRadius;
+        bool s3 = p.y() < graspRadius;
+        bool s4 = p.y() > model.image.rows - graspRadius;
 
-        for(const Vector3f& p : h.trainPoints)
-        {
-            bool s1 = p.x() < params.graspRadius;
-            bool s2 = p.x() > model.image.cols - params.graspRadius;
-            bool s3 = p.y() < params.graspRadius;
-            bool s4 = p.y() > model.image.rows - params.graspRadius;
-
-            if(s1 || s2 || s3 || s4)
-                continue;
-
-            inliers.push_back(Vector2f(p.x(), p.y()));
-        }
-
-        if(inliers.size() == 0)
-        {
-            h.validGrasp = false;
-            h.graspScore = 0;
+        if(s1 || s2 || s3 || s4)
             continue;
+
+        inliers.push_back(Vector2f(p.x(), p.y()));
+    }
+
+    if(inliers.size() == 0)
+    {
+        detection.validGrasp = false;
+        detection.graspScore = 0;
+        return;
+    }
+
+    Vector2f median = Geometry::geometricMedian(inliers);
+
+    detection.graspPoint = detection.transform * Vector3f(median.x(), median.y(), 1.f);
+
+    Vector3f reprojection = detection.transform.inverse()*detection.graspPoint;
+
+    float score = 0.5f*std::sqrt(model.image.cols*model.image.cols + model.image.rows*model.image.rows);
+    float score1 = reprojection.x() < 0.f ? 0.f : reprojection.x();
+    float score2 = reprojection.x() > model.image.cols ? 0.f : model.image.cols - reprojection.x();
+    float score3 = reprojection.y() < 0.f ? 0.f : reprojection.y();
+    float score4 = reprojection.y() > model.image.rows ? 0.f : model.image.rows - reprojection.y();
+
+    score = std::min(score, std::min(score1, std::min(score2, std::min(score3, score4)))) - graspRadius;
+
+    detection.graspScore = score;
+}
+
+
+void BanknoteTracker::drawDetections()
+{
+    DECLARE_DEBUG_DRAWING("module:BanknoteTracker:hypotheses_detections", "drawingOnImage");
+    DECLARE_DEBUG_DRAWING("module:BanknoteTracker:hypotheses_info", "drawingOnImage");
+
+    for(int i = 0; i < detections.size(); i++)
+    {
+        const BanknoteDetection& detection = detections[i];
+
+        if(!detection.isDetectionValid())
+            continue;
+
+        ASSERT(detection.banknoteClass.result >= 0 && detection.banknoteClass.result < Classification::numOfRealBanknotes);
+
+        const BanknoteModel& model = models[detection.banknoteClass.result];
+        ColorRGBA color = debugColors[detection.banknoteClass.result];
+        const Vector3f (&corners)[BanknoteModel::CornerID::numOfCornerIDs] = model.corners;
+
+        for(const Vector3f& p : detection.queryPoints)
+        {
+            CIRCLE("module:BanknoteTracker:hypotheses_detections", p.x(), p.y(), 8, 1, Drawings::solidPen, ColorRGBA::white, Drawings::solidBrush, ColorRGBA::white);
+            CIRCLE("module:BanknoteTracker:hypotheses_detections", p.x(), p.y(), 5, 1, Drawings::solidPen, color, Drawings::solidBrush, color);
         }
 
-        Vector2f median = Geometry::geometricMedian(inliers);
+        for(int i = 0; i < BanknoteModel::CornerID::numOfRealCorners - 1; i++)
+        {
+            LINE("module:BanknoteTracker:hypotheses_detections", detection.queryCorners[i].x(), detection.queryCorners[i].y() , detection.queryCorners[i + 1].x(), detection.queryCorners[i + 1].y(), 10, Drawings::solidPen, ColorRGBA(255,255,255,128));
+            LINE("module:BanknoteTracker:hypotheses_detections", detection.queryCorners[i].x(), detection.queryCorners[i].y() , detection.queryCorners[i + 1].x(), detection.queryCorners[i + 1].y(), 4, Drawings::solidPen, color);
+        }
 
-        h.graspPoint = h.transform * Vector3f(median.x(), median.y(), 1.f);
+        LINE("module:BanknoteTracker:hypotheses_detections", detection.queryCorners[BanknoteModel::CornerID::TopLeft].x(), detection.queryCorners[BanknoteModel::CornerID::TopLeft].y() , detection.queryCorners[BanknoteModel::CornerID::BottomLeft].x(), detection.queryCorners[BanknoteModel::CornerID::BottomLeft].y(), 10, Drawings::solidPen, ColorRGBA(255,255,255,128));
+        LINE("module:BanknoteTracker:hypotheses_detections", detection.queryCorners[BanknoteModel::CornerID::TopLeft].x(), detection.queryCorners[BanknoteModel::CornerID::TopLeft].y() , detection.queryCorners[BanknoteModel::CornerID::BottomLeft].x(), detection.queryCorners[BanknoteModel::CornerID::BottomLeft].y(), 4, Drawings::solidPen, color);
 
-        Vector3f reprojection = h.transform.inverse()*h.graspPoint;
 
-        float score = 0.5f*std::sqrt(model.image.cols*model.image.cols + model.image.rows*model.image.rows);
-        float score1 = reprojection.x() < 0.f ? 0.f : reprojection.x();
-        float score2 = reprojection.x() > model.image.cols ? 0.f : model.image.cols - reprojection.x();
-        float score3 = reprojection.y() < 0.f ? 0.f : reprojection.y();
-        float score4 = reprojection.y() > model.image.rows ? 0.f : model.image.rows - reprojection.y();
+        Vector3f start = model.corners[BanknoteModel::CornerID::MiddleMiddle];
+        Vector3f end = model.corners[BanknoteModel::CornerID::MiddleRight];
 
-        score = std::min(score, std::min(score1, std::min(score2, std::min(score3, score4)))) - params.graspRadius;
+        start = detection.transform * start;
+        end = detection.transform * end;
 
-        h.graspScore = score;
-    }*/
+        ARROW("module:BanknoteTracker:hypotheses_detections", start.x(), start.y(), end.x(), end.y(), 8, Drawings::solidPen, ColorRGBA::white);
+        ARROW("module:BanknoteTracker:hypotheses_detections", start.x(), start.y(), end.x(), end.y(), 5, Drawings::solidPen, color);
 
+        ColorRGBA colorGrasp = detection.validGrasp ? color : ColorRGBA(255,255,255,0);
+        ColorRGBA colorGrasp2 = detection.validGrasp ? ColorRGBA::white : ColorRGBA(255,255,255,0);
+
+        std::string detection_id_str = "Detection id: " + std::to_string(i);
+        std::string hypotheses_points_str = "Points: " + std::to_string(detection.matches.size());
+        std::string first_time_str = "Since first: " + std::to_string(theFrameInfo.getTimeSince(detection.firstTimeDetected));
+        std::string last_time_str = "Since last: " + std::to_string(theFrameInfo.getTimeSince(detection.lastTimeDetected));
+        std::string grasp_str = "Grasp: " + std::to_string(detection.validGrasp);
+        std::string foreground_str = "Layer: " + std::to_string(detection.layer);
+        ColorRGBA color_text = detection.validNms ? ColorRGBA::white : ColorRGBA::black;
+
+        float font = 20;
+        float step = font + 1;
+
+        DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 0 * step, font, color_text, detection_id_str);
+        DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 1 * step, font, color_text, hypotheses_points_str);
+        DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 2 * step, font, color_text, first_time_str);
+        DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 3 * step, font, color_text, last_time_str);
+        DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 4 * step, font, color_text, grasp_str);
+        DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 5 * step, font, color_text, foreground_str);
+
+
+
+    }
 }
