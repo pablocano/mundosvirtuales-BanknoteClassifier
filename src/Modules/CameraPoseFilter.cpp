@@ -1,8 +1,8 @@
 #include "CameraPoseFilter.h"
+#include "Modules/RobotStatusProvider.h"
 #include "Tools/Fanuc/PacketEthernetIPFanuc.h"
 #include "Tools/Fanuc/PositionRegisterCartesian.h"
 #include "Tools/Comm/Comm.h"
-#include "Modules/RobotStatus.h"
 #include "Tools/Debugging/Debugging.h"
 #include "Tools/Math/Constants.h"
 #include "Tools/Math/Angle.h"
@@ -163,7 +163,7 @@ void CameraPoseFilter::update(CameraPoseFiltered & cameraPoseFiltered)
     PacketEthernetIPFanuc packetReadReg(READ_REG, idPacket, REG_STATUS_AREA);
     SEND_MESSAGE(idEthernetIPFanuc, bin, packetReadReg);
 
-	RobotStatus::messageDelivered();
+    RobotStatusProvider::messageDelivered();
 
 	lastTimeSent = theFrameInfo.time;
 }

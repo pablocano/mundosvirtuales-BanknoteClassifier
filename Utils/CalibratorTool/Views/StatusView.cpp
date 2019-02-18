@@ -139,7 +139,7 @@ void StatusWidget::drawBase(QPainter &painter)
     painter.setTransform(baseTrans);
 }
 
-void StatusWidget::drawRobotRegisters(QPainter &painter, RobotFanuc& robot)
+void StatusWidget::drawRobotRegisters(QPainter &painter, RobotFanucRegisters& robot)
 {
     const QTransform baseTrans(painter.transform());
 

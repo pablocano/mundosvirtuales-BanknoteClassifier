@@ -8,7 +8,7 @@
 
 #include "Tools/ModuleManager/Module.h"
 #include "Tools/Fanuc/PacketEthernetIPFanuc.h"
-#include "Representations/RobotFanuc.h"
+#include "Representations/RobotFanucRegisters.h"
 #include "Tools/MessageQueue/MessageQueue.h"
 #include "Representations/FrameInfo.h"
 
@@ -16,7 +16,7 @@
 MODULE(RobotFanucDataProvider,
 {,
     REQUIRES(FrameInfo),
-    PROVIDES(RobotFanuc),
+    PROVIDES(RobotFanucRegisters),
 });
 
 /**
@@ -32,7 +32,7 @@ private:
     /**
      * @brief Update robot model representation.
      */
-    void update(RobotFanuc& robotFanuc);
+    void update(RobotFanucRegisters& robotFanuc);
 
     /**
      * @brief Process incoming packets, update state robot model.

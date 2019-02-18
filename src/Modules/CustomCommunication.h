@@ -2,13 +2,13 @@
 
 #include "Tools/ModuleManager/Module.h"
 #include "Tools/Fanuc/PacketEthernetIPFanuc.h"
-#include "Representations/RobotFanuc.h"
+#include "Representations/RobotFanucRegisters.h"
 
 #define REG_CONTROL_GRIP 50
 
 MODULE(CustomComunication,
 {,
-    REQUIRES(RobotFanuc),
+    REQUIRES(RobotFanucRegisters),
     PROVIDES(DummyComm),
 });
 

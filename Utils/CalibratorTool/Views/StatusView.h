@@ -6,7 +6,7 @@
 #include <QPainter>
 #include "Tools/Math/Vector2.h"
 #include "Tools/ColorClasses.h"
-#include "Representations/RobotFanuc.h"
+#include "Representations/RobotFanucRegisters.h"
 #include "Representations/Modeling/WorldCoordinatesPose.h"
 #include <queue>
 
@@ -75,7 +75,7 @@ private:
 
   void drawBase(QPainter& painter);
 
-  void drawRobotRegisters(QPainter& painter, RobotFanuc &robot);
+  void drawRobotRegisters(QPainter& painter, RobotFanucRegisters &robot);
 
   void drawBanknote(QPainter& painter);
 
