@@ -9,7 +9,7 @@
 MODULE(CustomComunication,
 {,
     REQUIRES(RobotFanucRegisters),
-    PROVIDES(DummyComm),
+    PROVIDES(GripperDummyComm),
 });
 
 
@@ -18,7 +18,7 @@ class CustomComunication : public CustomComunicationBase
 public:
     CustomComunication();
 
-    void update(DummyComm& dummy);
+    void update(GripperDummyComm& dummy);
 
     /**
      * Identifier Packet.

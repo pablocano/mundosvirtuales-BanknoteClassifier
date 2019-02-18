@@ -131,6 +131,7 @@
 #include <cstdlib>
 #include <string.h>
 
+struct PacketEthernetIpFanucHeader;
 
 struct PacketEthernetIPFanuc : public Streamable{
 public:
@@ -171,6 +172,8 @@ public:
         sizePayload = (sizePayload > MAX_SIZE_PAYLOAD ? MAX_SIZE_PACKET - 1 : sizePayload);
         memcpy(payload, p, sizePayload);
 	}
+
+    PacketEthernetIPFanuc(const PacketEthernetIpFanucHeader& other);
 
 	int getSize() const noexcept
 	{
@@ -446,6 +449,35 @@ protected:
             out->write(payload,MAX_SIZE_PAYLOAD);
         }
     }
+};
+
+struct PacketEthernetIpFanucHeader
+{
+public:
+    int16_t magicNum;
+    int16_t command;
+    int32_t idPacket;
+    int32_t reg;
+    int16_t idDevice;
+    int16_t sizePayload;
+    uint8_t payload[MAX_SIZE_PAYLOAD];
+
+    PacketEthernetIpFanucHeader(): magicNum(VALID_MAGIC_NUMBER), command(0), idPacket(0), reg(0),
+        idDevice(DEFAULT_ID_ROBOT), sizePayload(0)
+    {
+
+    }
+
+    PacketEthernetIpFanucHeader(const PacketEthernetIPFanuc& other)
+    {
+        magicNum = other.magicNum;
+        command = other.command;
+        idPacket = other.idPacket;
+        reg = other.reg;
+        idDevice = other.idDevice;
+        sizePayload = other.sizePayload;
+    }
+
 };
 
 #ifdef WINDOWS
