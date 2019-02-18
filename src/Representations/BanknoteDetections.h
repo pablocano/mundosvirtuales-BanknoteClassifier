@@ -41,6 +41,7 @@ public:
     bool isGraspingValid() const;
     float iou(const BanknoteDetection& detection) const;
     void updateTransformation(const BanknoteModel& model, const BanknoteDetectionParameters& param);
+    int compare(const BanknoteDetection& other); /* 1. this is over. -1 other is over. 0 unknown */
 
     std::vector<cv::DMatch> matches;
 
@@ -48,7 +49,7 @@ public:
 
     /* Geometry objects representing the hypothesys */
     std::shared_ptr<geos::geom::Polygon> geometry;
-    std::shared_ptr<geos::geom::Polygon> hull;
+    std::shared_ptr<geos::geom::Geometry> hull;
 
    /* Buffer with detection related points */
    std::vector<Vector3f> queryPoints;
@@ -75,6 +76,9 @@ public:
     /* Tracking flags */
    int lastTimeDetected;
    int firstTimeDetected;
+
+   /* Experimental: Mask for O(n) addition */
+   MatrixXi trainKeypointStatus;
 
   virtual void serialize(In* in, Out* out);
 };

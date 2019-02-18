@@ -208,7 +208,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
 
     start = end;
 
-    for(unsigned c1 = 0; c1 < Classification::numOfBanknotes - 2; c1++)
+    /*for(unsigned c1 = 0; c1 < Classification::numOfBanknotes - 2; c1++)
     {
         BanknoteModel& model1 = models[c1];
         ClassDetections& detections1 = classDetections[c1];
@@ -246,7 +246,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
             }
 
         }
-    }
+    }*/
 
     end = std::chrono::system_clock::now();
     std::cout << "Foreground estimation time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
@@ -267,12 +267,14 @@ void BanknoteDetector::update(BanknoteDetections& repr)
 
     repr.detections.clear();
 
-    for(unsigned c = 0; c < Classification::numOfBanknotes - 2; c++)
+    for(unsigned c = 0; c < Classification::numOfRealBanknotes; c++)
     {
         ClassDetections& detections = classDetections[c];
 
-        for(const BanknoteDetection& detection : detections.detections)
+        for(BanknoteDetection& detection : detections.detections)
         {
+            detection.banknoteClass.result = (Classification::Banknote)c;
+
             if(detection.isDetectionValid())
                 repr.detections.push_back(detection);
         }

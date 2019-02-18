@@ -81,6 +81,7 @@ using MatrixXx3d = Eigen::Matrix<double, Eigen::Dynamic, 3>;
 using MatrixXx3f = Eigen::Matrix<float, Eigen::Dynamic, 3>;
 using MatrixXd = Eigen::MatrixXd;
 using MatrixXf = Eigen::MatrixXf;
+using MatrixXi = Eigen::MatrixXi;
 
 using Quaterniond = Eigen::Quaterniond;
 using Quaternionf = Eigen::Quaternionf;

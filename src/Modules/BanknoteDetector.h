@@ -45,10 +45,6 @@ MODULE(BanknoteDetector,
     REQUIRES(GrayScaleImageEq),
     REQUIRES(FrameInfo),
     PROVIDES(BanknoteDetections),
-    DEFINES_PARAMETERS(
-    {,
-     (BanknoteDetectionParameters[Classification::numOfRealBanknotes]) parameters,
-    }),
 });
 
 class ClassDetections
@@ -199,4 +195,6 @@ protected:
     geos::geom::Point* aux_point;
 
     ColorRGBA debugColors[Classification::numOfRealBanknotes];
+
+    BanknoteDetectionParameters parameters[Classification::numOfRealBanknotes];
 };

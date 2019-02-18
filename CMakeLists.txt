@@ -5,6 +5,14 @@ find_package(OpenCV 4 REQUIRED)
 find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
+if(WIN32)
+        set(CMAKE_CXX_STANDARD 11)
+else()
+        set(CMAKE_CXX_FLAGS "-std=c++14")
+endif()
+
+#set(CMAKE_VERBOSE_MAKEFILE ON)
+
 # Tell CMake to run moc when necessary:
 set(CMAKE_AUTOMOC ON)
 # As moc files are generated in the binary dir, tell CMake
@@ -372,12 +380,6 @@ source_group(Utils\\CalibratorTool\\Visualization REGULAR_EXPRESSION "Utils/Cali
 source_group(Utils\\CalibratorTool\\Views\\ColorCalibrationView REGULAR_EXPRESSION "Utils/CalibratorTool/Views/ColorCalibrationView/*")
 source_group(Utils\\libqxt REGULAR_EXPRESSION "Utils/libqxt*")
 source_group(Utils\\VisionTool REGULAR_EXPRESSION "Utils/VisionTool/*")
-
-if(WIN32)
-	set(CMAKE_CXX_STANDARD 11)
-else()
-        set(CMAKE_CXX_FLAGS "-std=c++14")
-endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
