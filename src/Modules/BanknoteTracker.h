@@ -73,11 +73,13 @@ protected:
     void waitingForRobotInStateFunction();
     void waitingForRobotOutStateFunction();
 
-    void attemptMerge(const BanknoteDetection& newDetection, BanknoteDetection& previousDetection);
+    void setNewDetection(int detectionIndex, const BanknoteDetection& detection);
+
+    void attemptMerge(const BanknoteDetection& d1, int detectionIndex);
 
     void evaluateGraspingScore(BanknoteDetection& detection, const BanknoteModel& model, const BanknoteDetectionParameters& params);
 
-    void keepOne(const BanknoteDetection& d1, BanknoteDetection& d2);
+    void keepOne(const BanknoteDetection& d1, int detectionIndex);
 
     void drawDetections();
 

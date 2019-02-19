@@ -40,6 +40,9 @@ void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinates
         uvPoint.at<float>(0,0) = theBanknotePositionFiltered.position.translation.x();
         uvPoint.at<float>(1,0) = theBanknotePositionFiltered.position.translation.y();
 
+        float uvPointX = uvPoint.at<float>(0,0);
+        float uvPointY = uvPoint.at<float>(1,0);
+
         // Auxiliary variables
         cv::Mat tempMat, tempMat2;
         float s, zConst = 0;
@@ -53,6 +56,9 @@ void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinates
         s = zConst + tempMat2.at<float>(2,0);
         s /= tempMat.at<float>(2,0);
         cv::Mat wcPoint = rInv * (s * kInv * uvPoint - tvec);
+
+        float wcPointX = wcPoint.at<float>(0,0);
+        float wcPointY = wcPoint.at<float>(1,0);
 
         // Extrac the resulting point
         worldCoordinatesPose.translation = Vector2f(wcPoint.at<float>(0, 0), wcPoint.at<float>(1, 0));
@@ -75,6 +81,9 @@ void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinates
         s /= tempMat.at<float>(2,0);
         wcPoint = rInv * (s * kInv * uvPoint - tvec);
 
+        wcPointX = wcPoint.at<float>(0,0);
+        wcPointY = wcPoint.at<float>(1,0);
+
         // Direction of the banknote in world coordinates
         direction = Vector2f(wcPoint.at<float>(0, 0), wcPoint.at<float>(1, 0));
 
@@ -94,6 +103,9 @@ void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinates
         s = zConst + tempMat2.at<float>(2,0);
         s /= tempMat.at<float>(2,0);
         wcPoint = rInv * (s * kInv * uvPoint - tvec);
+
+        wcPointX = wcPoint.at<float>(0,0);
+        wcPointY = wcPoint.at<float>(1,0);
 
         // Offset of the gripper position in world coordinates
         worldCoordinatesPose.pickOffset = Vector2f(wcPoint.at<float>(0, 0), wcPoint.at<float>(1, 0))*1000 - worldCoordinatesPose.translation;

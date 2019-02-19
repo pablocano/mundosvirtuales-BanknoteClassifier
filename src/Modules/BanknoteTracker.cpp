@@ -83,6 +83,10 @@ void BanknoteTracker::update(BanknotePositionFiltered& position)
     case TracketState::estimating:
 
         estimatingStateFunction(position);
+
+        /* Debug Drawings */
+        drawDetections();
+
         break;
 
     case TracketState::waitingForRobotIn:
@@ -99,25 +103,26 @@ void BanknoteTracker::update(BanknotePositionFiltered& position)
         ASSERT(false);
     }
 
-
-    /* Debug Drawings */
-    drawDetections();
 }
 
 
 void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position)
 {
-    for(const BanknoteDetection& newDetection : theBanknoteDetections.detections)
+    for(int i = 0; i < theBanknoteDetections.detections.size(); i++)
     {
+        const BanknoteDetection& newDetection = theBanknoteDetections.detections[i];
+
         bool detected = false;
-        for(BanknoteDetection& previousDetection : detections)
+        for(int j = 0; j < maxDetections; j++)
         {
+            BanknoteDetection& previousDetection = detections[j];
+
             if(!previousDetection.isDetectionValid())
                 continue;
 
             if(newDetection.iou(previousDetection) > minSameDetectionIOU)
             {
-                attemptMerge(newDetection, previousDetection);
+                attemptMerge(newDetection, j);
                 detected = true;
                 break;
             }
@@ -133,35 +138,7 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
 
             if(!detection.isDetectionValid())
             {
-                detection = newDetection;
-                ASSERT(detection.layer == -1);
-
-                /* Variable Setup */
-                int height = models[detection.banknoteClass.result].image.rows;
-                int width = models[detection.banknoteClass.result].image.cols;
-
-                detection.trainKeypointStatus.resize(height, width);
-                detection.trainKeypointStatus.setZero();
-
-                detection.lastTimeDetected = theFrameInfo.time;
-                detection.firstTimeDetected = theFrameInfo.time;
-
-                for(int j = 0; j < maxDetections; j++)
-                {
-                    comparisons(i, j) = 0;
-                    comparisons(j, i) = 0;
-                }
-
-                for(const Vector3f& p : detection.trainPoints)
-                {
-                    int y = p.y();
-                    int x = p.x();
-
-                    ASSERT(x >= 0 && x < detection.trainKeypointStatus.cols());
-                    ASSERT(y >= 0 && y < detection.trainKeypointStatus.rows());
-
-                    detection.trainKeypointStatus(y, x) = 1;
-                }
+                setNewDetection(i, newDetection);
 
                 break;
             }
@@ -311,8 +288,48 @@ void BanknoteTracker::waitingForRobotOutStateFunction()
         state = TracketState::estimating;
 }
 
-void BanknoteTracker::attemptMerge(const BanknoteDetection& d1, BanknoteDetection& d2)
+void BanknoteTracker::setNewDetection(int detectionIndex, const BanknoteDetection& newDetection)
 {
+    BanknoteDetection& detection = detections[detectionIndex];
+
+    detection = newDetection;
+    ASSERT(detection.layer == -1);
+
+    /* Variable Setup */
+    int height = models[detection.banknoteClass.result].image.rows;
+    int width = models[detection.banknoteClass.result].image.cols;
+
+    ASSERT(height > 0);
+    ASSERT(width > 0);
+
+    detection.trainKeypointStatus.resize(height, width);
+    detection.trainKeypointStatus.setZero();
+
+    detection.lastTimeDetected = theFrameInfo.time;
+    detection.firstTimeDetected = theFrameInfo.time;
+
+    for(int j = 0; j < maxDetections; j++)
+    {
+        comparisons(detectionIndex, j) = 0;
+        comparisons(j, detectionIndex) = 0;
+    }
+
+    for(const Vector3f& p : detection.trainPoints)
+    {
+        int y = p.y();
+        int x = p.x();
+
+        ASSERT(x >= 0 && x < detection.trainKeypointStatus.cols());
+        ASSERT(y >= 0 && y < detection.trainKeypointStatus.rows());
+
+        detection.trainKeypointStatus(y, x) = 1;
+    }
+}
+
+void BanknoteTracker::attemptMerge(const BanknoteDetection& d1, int detectionIndex)
+{
+    BanknoteDetection& d2 = detections[detectionIndex];
+
     ASSERT(d1.isDetectionValid());
     ASSERT(d2.isDetectionValid());
     //ASSERT(d1.banknoteClass.result == d2.banknoteClass.result);
@@ -326,7 +343,7 @@ void BanknoteTracker::attemptMerge(const BanknoteDetection& d1, BanknoteDetectio
 
     if(s1 || s2 || s3)
     {
-        keepOne(d1, d2);
+        keepOne(d1, detectionIndex);
         return;
     }
 
@@ -339,10 +356,21 @@ void BanknoteTracker::attemptMerge(const BanknoteDetection& d1, BanknoteDetectio
 
     bool newPoints = false;
 
+    ASSERT(d1.banknoteClass.result == d2.banknoteClass.result);
+
     for(int i1 = 0; i1 < numberOfDetectionPoints; i1++)
-    {
+    {   
         int y = d1.trainPoints[i1].y();
         int x = d1.trainPoints[i1].x();
+
+        int cols = d2.trainKeypointStatus.cols();
+        int rows = d2.trainKeypointStatus.rows();
+
+        ASSERT(cols > 0);
+        ASSERT(rows > 0);
+
+        x = std::min(std::max(x, 0), cols - 1);
+        y = std::min(std::max(y, 0), rows - 1);
 
         ASSERT(x >= 0 && x < d2.trainKeypointStatus.cols());
         ASSERT(y >= 0 && y < d2.trainKeypointStatus.rows());
@@ -368,8 +396,10 @@ void BanknoteTracker::attemptMerge(const BanknoteDetection& d1, BanknoteDetectio
     d2.lastTimeDetected = theFrameInfo.time;
 }
 
-void BanknoteTracker::keepOne(const BanknoteDetection& d1, BanknoteDetection& d2)
+void BanknoteTracker::keepOne(const BanknoteDetection& d1, int detectionIndex)
 {
+    BanknoteDetection& d2 = detections[detectionIndex];
+
     ASSERT(d1.isDetectionValid());
     ASSERT(d2.isDetectionValid());
 
@@ -380,7 +410,7 @@ void BanknoteTracker::keepOne(const BanknoteDetection& d1, BanknoteDetection& d2
     if(seenTime < 2000)
     {
         if(d1.matches.size() > 1.2f * d2.matches.size() || d1.hull->getArea() > 1.2f * d2.hull->getArea())
-            d2 = d1;
+            setNewDetection(detectionIndex, d1);
     }
 
     d2.firstTimeDetected = theFrameInfo.time;
@@ -508,6 +538,9 @@ void BanknoteTracker::drawDetections()
     {
 
         const BanknoteDetection& detection = detections[bestDetectionIndex];
+
+        if(!detection.isDetectionValid())
+            return;
 
         ASSERT(detection.isDetectionValid());
         ASSERT(detection.banknoteClass.result >= 0 && detection.banknoteClass.result < Classification::numOfRealBanknotes);

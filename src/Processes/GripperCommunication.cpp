@@ -70,7 +70,7 @@ int GripperCommunication::main()
   else if(theDebugOut.getNumberOfMessages() == numberOfMessages + 1)
     theDebugOut.removeLastMessage();
 
-  SystemCall::sleep(50);
+  SystemCall::sleep(100);
 
   return 0;
 }

@@ -77,7 +77,7 @@ public:
    int lastTimeDetected;
    int firstTimeDetected;
 
-   /* Experimental: Mask for O(n) addition */
+   /* Experimental for O(n) addition */
    MatrixXi trainKeypointStatus;
 
   virtual void serialize(In* in, Out* out);
