@@ -35,7 +35,7 @@ bool BanknoteClassifierMessageHandler::handleMessage(InMessage &message)
     {
         PacketEthernetIPFanuc packet;
 
-        theCommOut.in.bin >> packet;
+        message.bin >> packet;
         int sizePayload = packet.getSize();
         char *buffer = new char[sizePayload];
 
