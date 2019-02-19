@@ -89,10 +89,10 @@ unsigned BanknoteClassifierMessageHandler::receive()
           int sizePayload = packet.sizePayload;
           if(sizePayload == 0 || lpSocket->receive(reinterpret_cast<char *>(packet.payload), sizePayload, false))
           {
-            theCommIn.out.bin << packet;
-            theCommIn.out.finishMessage(idEthernetIPFanuc);
             totalSize += packet.getSize();
           }
+          theCommIn.out.bin << packet;
+          theCommIn.out.finishMessage(idEthernetIPFanuc);
 	  }
 	  else
 	  {
