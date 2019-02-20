@@ -42,6 +42,8 @@ public:
     float iou(const BanknoteDetection& detection) const;
     void updateTransformation(const BanknoteModel& model, const BanknoteDetectionParameters& param);
     int compare(const BanknoteDetection& other); /* 1. this is over. -1 other is over. 0 unknown */
+    void estimateGraspPoint(const BanknoteModel& model, float graspingRadius);
+    void checkAndFixGraspPoint(const BanknoteModel& model, float graspingRadius, int iter = 0);
 
     std::vector<cv::DMatch> matches;
 
@@ -60,13 +62,14 @@ public:
    Classification banknoteClass;
    Matrix3f transform; /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
    Pose2f pose; /* 2D Pose of the hypothesis in the image space */
-   Vector3f graspPoint; /* Estimated grasping point */
+   Vector3f graspPoint; /* Estimated grasping point in query coordinates */
 
    /* Detection statistics */
    int ransacVotes;
    float graspScore;
    float maxIOU;
    int layer; /* 0 = foreground. 1,2,... represent the "depth" */
+   float areaRatio;
 
    /* Status flags */
    bool validTransform;

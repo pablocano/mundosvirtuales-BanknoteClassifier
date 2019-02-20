@@ -190,7 +190,7 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
         const BanknoteModel& model = models[detection.banknoteClass.result];
 
         if(detection.layer == -1)
-            evaluateGraspingScore(detection, model, params);
+            detection.estimateGraspPoint(model, graspRadius);
     }
 
     /* Check oclusion (comparison) */
@@ -256,7 +256,10 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
             continue;
 
         if(theFrameInfo.getTimeSince(detection.firstTimeDetected) < 500
-                || theFrameInfo.getTimeSince(detection.lastTimeDetected) > 3000)
+                || theFrameInfo.getTimeSince(detection.lastTimeDetected) > 100)
+            continue;
+
+        if(detection.areaRatio < 0.25f)
             continue;
 
         if(detection.trainPoints.size() > bestDetectionNumberOfKeypoints)
@@ -484,31 +487,7 @@ void BanknoteTracker::evaluateGraspingScore(BanknoteDetection& detection, const 
     detection.graspScore = score;
 
 
-    /*cv::Mat mask(0.5 * detection.trainKeypointStatus.rows(), 0.5 * detection.trainKeypointStatus.cols(), CV_8UC1, cv::Scalar(255));
 
-    for(unsigned int j = 0; j < detection.trainKeypointStatus.rows(); j++)
-    {
-        unsigned j2 = j >> 1;
-
-        for(unsigned int i = 0; i < detection.trainKeypointStatus.cols(); i++)
-        {
-            unsigned i2 = i >> 1;
-
-            std::cout << i << " " << i2 << std::endl;
-
-            mask.at<unsigned char>(j2, i2) = 255;
-        }
-    }
-
-    cv::Mat mask2(0.5 * detection.trainKeypointStatus.rows(), 0.5 * detection.trainKeypointStatus.cols(), CV_8UC1, cv::Scalar(255));
-    cv::Mat mask3(0.5 * detection.trainKeypointStatus.rows(), 0.5 * detection.trainKeypointStatus.cols(), CV_8UC1, cv::Scalar(255));
-
-
-    cv::distanceTransform(mask, mask2, cv::DIST_L1, 3);
-
-    cv::threshold( mask2, mask3, 40, 1, 0);
-
-    cv::imwrite("asd.jpg", mask3);*/
 }
 
 

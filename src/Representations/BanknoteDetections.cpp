@@ -1,5 +1,6 @@
 
 #include "Representations/BanknoteDetections.h"
+#include "Tools/Math/Geometry.h"
 
 #include <opencv2/calib3d.hpp>
 
@@ -13,6 +14,7 @@ BanknoteDetection::BanknoteDetection() :
     graspScore(0),
     maxIOU(0.f),
     layer(-1),
+    areaRatio(0.f),
     validTransform(false),
     validNms(true),
     validGrasp(true),
@@ -128,7 +130,9 @@ void BanknoteDetection::updateTransformation(const BanknoteModel& model, const B
         std::shared_ptr<geos::geom::Polygon> poly2 = std::shared_ptr<geos::geom::Polygon>((geos::geom::Polygon*)(factory->createPolygon(factory->createLinearRing(cl2), holes2)));
 
         hull = std::shared_ptr<geos::geom::Geometry>(poly2->convexHull());
-        ASSERT(hull->getArea());
+
+
+        areaRatio = hull->getArea() /  geometry->getArea();
     }
 }
 
@@ -149,6 +153,107 @@ int BanknoteDetection::compare(const BanknoteDetection& other)
     delete twoOverOneIntersection;
 
     return result;
+}
+
+void BanknoteDetection::estimateGraspPoint(const BanknoteModel& model, float graspRadius)
+{
+    std::vector<Vector2f> inliers;
+    inliers.reserve(matches.size());
+
+    for(const Vector3f& p : trainPoints)
+    {
+        bool s1 = p.x() < graspRadius;
+        bool s2 = p.x() > model.image.cols - graspRadius;
+        bool s3 = p.y() < graspRadius;
+        bool s4 = p.y() > model.image.rows - graspRadius;
+
+        if(s1 || s2 || s3 || s4)
+            continue;
+
+        inliers.push_back(Vector2f(p.x(), p.y()));
+    }
+
+    if(inliers.size() == 0)
+    {
+        validGrasp = false;
+        graspScore = 0;
+        return;
+    }
+
+    Vector2f median = Geometry::geometricMedian(inliers);
+
+    graspPoint = transform * Vector3f(median.x(), median.y(), 1.f);
+
+    Vector3f reprojection = transform.inverse()*graspPoint;
+
+    float score = 0.5f*std::sqrt(model.image.cols*model.image.cols + model.image.rows*model.image.rows);
+    float score1 = reprojection.x() < 0.f ? 0.f : reprojection.x();
+    float score2 = reprojection.x() > model.image.cols ? 0.f : model.image.cols - reprojection.x();
+    float score3 = reprojection.y() < 0.f ? 0.f : reprojection.y();
+    float score4 = reprojection.y() > model.image.rows ? 0.f : model.image.rows - reprojection.y();
+
+    score = std::min(score, std::min(score1, std::min(score2, std::min(score3, score4)))) - graspRadius;
+
+    graspScore = score;
+
+    //checkAndFixGraspPoint(model, graspRadius);
+}
+
+void BanknoteDetection::checkAndFixGraspPoint(const BanknoteModel& model, float graspingRadius, int iter)
+{
+    std::vector<Vector2f> points(8, Vector2f::Zero());
+    std::vector<float> radii(8, 0);
+
+    Vector3f trainGraspPoint = transform.inverse()*graspPoint;
+
+    for(const Vector3f& p : trainPoints)
+    {
+        Vector2f diff = Vector2f(p.x() - trainGraspPoint.x(), p.y() - trainGraspPoint.y());
+
+        unsigned char index = ((diff.x() > 0) << 2) | ((diff.y() > 0) << 1) | ((std::abs(diff.x()) > std::abs(diff.y())) << 0);
+        ASSERT(index >= 0 && index < 8);
+
+        Vector2f& p2 = points[index];
+        float& r = radii[index];
+
+        if(diff.norm() > r)
+        {
+            p2 = diff;
+            r = diff.norm();
+        }
+    }
+
+    int r_min_index = 0;
+    float r_min = radii[0];
+
+    for(int i = 0; i < 8; i++)
+    {
+        float& r = radii[i];
+
+        if(r < r_min)
+        {
+            r_min_index = i;
+            r_min = r;
+        }
+    }
+
+    if(r_min > graspingRadius)
+    {
+        validGrasp = true;
+        return;
+    }
+    else
+    {
+        validGrasp = false;
+
+        Vector2f& diff = points[r_min_index];
+
+        Vector2f tmp = diff.normalize(graspingRadius - r_min);
+        graspPoint = transform*(trainGraspPoint - Vector3f(diff.x(), diff.y(), 1.f));
+
+        if(iter < 2 and diff.norm() > 1.f)
+            checkAndFixGraspPoint(model, graspingRadius, iter+1);
+    }
 }
 
 void BanknoteDetection::serialize(In *in, Out *out)
