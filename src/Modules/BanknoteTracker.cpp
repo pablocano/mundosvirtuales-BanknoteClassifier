@@ -82,16 +82,38 @@ void BanknoteTracker::update(BanknotePositionFiltered& position)
     {
     case TracketState::estimating:
 
-        estimatingStateFunction(position);
-
-        /* Debug Drawings */
-        drawDetections();
+        if(!theRobotFanucStatus.visionAreaClear && useRobotStates)
+            state = TracketState::waitingForRobotOut;
 
         break;
 
     case TracketState::waitingForRobotIn:
 
-        waitingForRobotInStateFunction();
+        ASSERT(false);
+        break;
+
+    case TracketState::waitingForRobotOut:
+
+        if(theRobotFanucStatus.visionAreaClear)
+            state = TracketState::estimating;
+
+        break;
+
+    default:
+        ASSERT(false);
+    }
+
+
+    switch(state)
+    {
+    case TracketState::estimating:
+
+        estimatingStateFunction(position);
+        break;
+
+    case TracketState::waitingForRobotIn:
+
+        ASSERT(false);
         break;
 
     case TracketState::waitingForRobotOut:
@@ -103,6 +125,9 @@ void BanknoteTracker::update(BanknotePositionFiltered& position)
         ASSERT(false);
     }
 
+
+    /* Debug Drawings */
+    drawDetections();
 }
 
 
@@ -245,7 +270,7 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
     {
         BanknoteDetection& detection = detections[bestDetectionIndex];
 
-        if(theFrameInfo.getTimeSince(detection.firstTimeDetected) > 500)
+        if(theFrameInfo.getTimeSince(detection.firstTimeDetected) > 200)
         {
             position.valid = true;
             position.banknote = detection.banknoteClass.result;
@@ -269,7 +294,7 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
 
              if(useRobotStates)
              {
-                 state = TracketState::waitingForRobotIn;
+                 //state = TracketState::waitingForRobotIn;
                  detections[bestDetectionIndex] = BanknoteDetection();
              }
         }
@@ -278,14 +303,14 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
 
 void BanknoteTracker::waitingForRobotInStateFunction()
 {
-    if(!theRobotFanucStatus.visionAreaClear)
-        state = TracketState::waitingForRobotOut;
+
+
 }
 
 void BanknoteTracker::waitingForRobotOutStateFunction()
 {
-    if(theRobotFanucStatus.visionAreaClear)
-        state = TracketState::estimating;
+    //if(theRobotFanucStatus.visionAreaClear)
+    //    state = TracketState::estimating;
 }
 
 void BanknoteTracker::setNewDetection(int detectionIndex, const BanknoteDetection& newDetection)
@@ -457,6 +482,33 @@ void BanknoteTracker::evaluateGraspingScore(BanknoteDetection& detection, const 
     score = std::min(score, std::min(score1, std::min(score2, std::min(score3, score4)))) - graspRadius;
 
     detection.graspScore = score;
+
+
+    cv::Mat mask(0.5 * detection.trainKeypointStatus.rows(), 0.5 * detection.trainKeypointStatus.cols(), CV_8UC1, cv::Scalar(255));
+
+    for(unsigned int j = 0; j < detection.trainKeypointStatus.rows(); j++)
+    {
+        unsigned j2 = j >> 1;
+
+        for(unsigned int i = 0; i < detection.trainKeypointStatus.cols(); i++)
+        {
+            unsigned i2 = i >> 1;
+
+            std::cout << i << " " << i2 << std::endl;
+
+            mask.at<unsigned char>(j2, i2) = 255;
+        }
+    }
+
+    cv::Mat mask2(0.5 * detection.trainKeypointStatus.rows(), 0.5 * detection.trainKeypointStatus.cols(), CV_8UC1, cv::Scalar(255));
+    cv::Mat mask3(0.5 * detection.trainKeypointStatus.rows(), 0.5 * detection.trainKeypointStatus.cols(), CV_8UC1, cv::Scalar(255));
+
+
+    cv::distanceTransform(mask, mask2, cv::DIST_L1, 3);
+
+    cv::threshold( mask2, mask3, 40, 1, 0);
+
+    cv::imwrite("asd.jpg", mask3);
 }
 
 

@@ -2,6 +2,8 @@
 #include <opencv2/aruco.hpp>
 #include <opencv2/calib3d.hpp>
 
+#include <iostream>
+
 MAKE_MODULE(WorldCoordinatesPoseProvider, BanknoteClassifier)
 
 WorldCoordinatesPoseProvider::WorldCoordinatesPoseProvider()
@@ -126,7 +128,7 @@ void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinates
         std::stringstream ss;
 
         ss << "Banknote " << TypeRegistry::getEnumName((Classification::Banknote)theBanknotePositionFiltered.banknote) <<  " \nPos:\n\t x: " << worldCoordinatesPose.translation.x() << "\n\t y: " << worldCoordinatesPose.translation.y() << "\n\t rot: " << worldCoordinatesPose.rotation.toDegrees() << "\nOffset:\n\tx: " << worldCoordinatesPose.pickOffset.x() << "\n\ty: " << worldCoordinatesPose.pickOffset.y() << "\nDropOffset:\n\tx: " << worldCoordinatesPose.dropOffset.x() << "\n\ty: " << worldCoordinatesPose.dropOffset.y() << "\n";
-        OUTPUT_TEXT(ss.str());
+        std::cout << ss.str() << std::endl;;
 
         worldCoordinatesPose.timeStamp = theFrameInfo.time;
 
