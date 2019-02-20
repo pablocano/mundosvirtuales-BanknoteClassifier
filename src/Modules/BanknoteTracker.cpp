@@ -484,7 +484,7 @@ void BanknoteTracker::evaluateGraspingScore(BanknoteDetection& detection, const 
     detection.graspScore = score;
 
 
-    cv::Mat mask(0.5 * detection.trainKeypointStatus.rows(), 0.5 * detection.trainKeypointStatus.cols(), CV_8UC1, cv::Scalar(255));
+    /*cv::Mat mask(0.5 * detection.trainKeypointStatus.rows(), 0.5 * detection.trainKeypointStatus.cols(), CV_8UC1, cv::Scalar(255));
 
     for(unsigned int j = 0; j < detection.trainKeypointStatus.rows(); j++)
     {
@@ -508,7 +508,7 @@ void BanknoteTracker::evaluateGraspingScore(BanknoteDetection& detection, const 
 
     cv::threshold( mask2, mask3, 40, 1, 0);
 
-    cv::imwrite("asd.jpg", mask3);
+    cv::imwrite("asd.jpg", mask3);*/
 }
 
 
