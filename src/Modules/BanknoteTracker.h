@@ -34,7 +34,7 @@ MODULE(BanknoteTracker,
 {,
     REQUIRES(BanknoteDetections),
     REQUIRES(FrameInfo),
-    USES(RobotFanucStatus),
+    REQUIRES(RobotFanucStatus),
     PROVIDES(BanknotePositionFiltered),
     DEFINES_PARAMETERS(
     {,
@@ -47,7 +47,7 @@ MODULE(BanknoteTracker,
      (float)(40.f) maxSameDetectionDistance,
      (Angle)(30_deg) maxSameDetectionAngle,
      (bool)(false) resizeImage,
-     (bool)(true) useRobotStates,
+     (bool)(false) useRobotStates,
     }),
 });
 

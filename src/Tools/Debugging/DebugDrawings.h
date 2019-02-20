@@ -755,6 +755,15 @@ inline const char* DrawingManager::getTypeName(char id, char processIdentifier) 
   } \
   while(false)
 
+/**
+ * A macro that sends an custom image to be shown
+ * @param name the name of the image
+ * @param image the image to send
+ * @param timestamp the current time
+ */
+#define DRAW_IMAGE(name, image, timestamp) \
+    OUTPUT(idCustomImage, bin, name << image << timestamp);
+
 #else
 //Ignore everything
 #define DEBUG_DRAWING(id, type) if(false)

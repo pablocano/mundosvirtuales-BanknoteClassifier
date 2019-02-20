@@ -52,8 +52,18 @@ int BanknoteClassifier::main()
   char process = 'e';
   OUTPUT(idProcessBegin, bin, process);
   
+  unsigned t0 = SystemCall::getCurrentSystemTime();
+
   moduleManager.execute();
   
+  unsigned tf = SystemCall::getCurrentSystemTime();
+
+  unsigned dt = tf - t0;
+
+  if(dt < 100)
+      SystemCall::sleep(100 - dt);
+
+
   DEBUG_RESPONSE_ONCE("automated requests:DrawingManager")
   {
       OUTPUT(idDrawingManager, bin, Global::getDrawingManager());

@@ -112,7 +112,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
 
     auto end = std::chrono::system_clock::now();
 
-    std::cout << "Upload time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    //std::cout << "Upload time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
     start = end;
 
@@ -120,7 +120,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
 
     end = std::chrono::system_clock::now();
 
-    std::cout << "Descriptors + Keypoints time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    //std::cout << "Descriptors + Keypoints time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
     start = end;
 
@@ -128,7 +128,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
 
     end = std::chrono::system_clock::now();
 
-    std::cout << "Download time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    //std::cout << "Download time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
     start = end;
 
@@ -144,7 +144,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
     }
 
     end = std::chrono::system_clock::now();
-    std::cout << "KNN Matches time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Matches: " << numberOfMatches << ")" << std::endl;
+    //std::cout << "KNN Matches time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Matches: " << numberOfMatches << ")" << std::endl;
 
     start = end;
     numberOfMatches = 0;
@@ -160,7 +160,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
     }
 
     end = std::chrono::system_clock::now();
-    std::cout << "Hough Matches filter time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Matches: " << numberOfMatches << ")" << std::endl;
+    //std::cout << "Hough Matches filter time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Matches: " << numberOfMatches << ")" << std::endl;
 
     start = end;
     int numberOfHypotheses = 0;
@@ -176,7 +176,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
     }
 
     end = std::chrono::system_clock::now();
-    std::cout << "Ransac filter time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
+    //std::cout << "Ransac filter time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
 
     start = end;
     numberOfHypotheses = 0;
@@ -191,7 +191,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
     }
 
     end = std::chrono::system_clock::now();
-    std::cout << "Estimate transform time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
+    //std::cout << "Estimate transform time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
 
     start = end;
 
@@ -204,7 +204,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
     }
 
     end = std::chrono::system_clock::now();
-    std::cout << "NMS time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
+    //std::cout << "NMS time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
 
     start = end;
 
@@ -249,7 +249,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
     }*/
 
     end = std::chrono::system_clock::now();
-    std::cout << "Foreground estimation time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
+    //std::cout << "Foreground estimation time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
 
     start = end;
 
@@ -262,7 +262,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
     }
 
     end = std::chrono::system_clock::now();
-    std::cout << "Grasping Score time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
+    //std::cout << "Grasping Score time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
 
 
     repr.detections.clear();
