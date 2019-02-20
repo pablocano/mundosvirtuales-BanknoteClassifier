@@ -57,7 +57,6 @@
 MODULE(SemanticSeg,
 {,
     REQUIRES(ImageBGR),
-    REQUIRES(GrayScaleImageEq),
     REQUIRES(FrameInfo),
     PROVIDES(SegmentedImage),
 });
@@ -77,6 +76,11 @@ private:
     void update(SegmentedImage &image);
     torch::DeviceType device_type;
     at::Tensor output;
+    void transpose(cv::Mat src);
+    void colored(cv::Mat src, cv::Mat colored);
+    float* bufferImgIn;
+    double alpha = 0.3; double beta; double input;
+    cv::Mat image2(512,1024, CV_8U);
 
 
 };

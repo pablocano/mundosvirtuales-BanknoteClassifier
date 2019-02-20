@@ -248,6 +248,7 @@ set( CALIBRATOR_TOOL_SRC
   ${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.cpp
   #${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.h
   #${CALIBRATOR_SRC_DIR}/Synchronization.h
+  ${CALIBRATOR_SRC_DIR}/Representations/TimeInfo.cpp
   ${CALIBRATOR_SRC_DIR}/Views/ImageView.cpp
   #${CALIBRATOR_SRC_DIR}/Views/ImageView.h
   ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.cpp
@@ -273,6 +274,7 @@ set( CALIBRATOR_TOOL_SRC
   #${CALIBRATOR_SRC_DIR}/Views/DataView/TypeDeclarations.h
   ${CALIBRATOR_SRC_DIR}/Views/DataView/TypeDescriptor.cpp
   #${CALIBRATOR_SRC_DIR}/Views/DataView/TypeDescriptor.h
+  ${CALIBRATOR_SRC_DIR}/Views/TimeView.cpp
   ${CALIBRATOR_SRC_DIR}/Views/StatusView.cpp
   #${CALIBRATOR_SRC_DIR}/Views/StatusView.h
   ${CALIBRATOR_SRC_DIR}/Visualization/DebugDrawing.cpp
