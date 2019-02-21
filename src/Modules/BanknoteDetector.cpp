@@ -70,7 +70,7 @@ BanknoteDetector::BanknoteDetector():
         model.corners[BanknoteModel::CornerID::BottomRight] = Vector3f(image.cols, image.rows, 1);
         model.corners[BanknoteModel::CornerID::BottomLeft] = Vector3f(0, image.rows, 1);
         model.corners[BanknoteModel::CornerID::MiddleMiddle] = Vector3f(0.5f*image.cols, 0.5f*image.rows, 1);
-        model.corners[BanknoteModel::CornerID::MiddleRight] = Vector3f(0.75f*image.cols, 0.5f*image.rows, 1);
+        model.corners[BanknoteModel::CornerID::MiddleRight] = Vector3f(0.25f*image.cols, 0.5f*image.rows, 1);
     }
 
     factory = geos::geom::GeometryFactory::create();
@@ -366,8 +366,8 @@ void BanknoteDetector::hough4d(const BanknoteModel& model, const BanknoteDetecti
         if(model.mask.at<unsigned char>(pty, ptx) == 0)
             continue;
 
-        if(theSegmentedImage.at<unsigned char>(pty, ptx) != c)
-            continue;
+        //if(theSegmentedImage.at<unsigned char>(pty, ptx) != c)
+        //    continue;
 
         int i = floor(tx / params.houghXYStep + 0.5);
         int j = floor(ty / params.houghXYStep + 0.5);
