@@ -53,26 +53,22 @@ int BanknoteClassifier::main()
 
   char process = 'e';
   OUTPUT(idProcessBegin, bin, process);
-  
-//<<<<<<< HEAD
+
   unsigned t0 = SystemCall::getCurrentSystemTime();
 
-  moduleManager.execute();
-  
+  STOPWATCH("BanknoteClassifierProcess") moduleManager.execute();
+
   unsigned tf = SystemCall::getCurrentSystemTime();
 
   unsigned dt = tf - t0;
 
   if(dt < 100)
       SystemCall::sleep(100 - dt);
+  
+  DEBUG_RESPONSE_ONCE("automated requests:DrawingManager") OUTPUT(idDrawingManager, bin, Global::getDrawingManager());
 
-
-  DEBUG_RESPONSE_ONCE("automated requests:DrawingManager")
-  {
-      OUTPUT(idDrawingManager, bin, Global::getDrawingManager());
-  }
-//=======
-  STOPWATCH("BanknoteClassifierProcess") moduleManager.execute();
+  timingManager.signalProcessStop();
+  DEBUG_RESPONSE("timing") timingManager.getData().copyAllMessages(theDebugOut);
   
   DEBUG_RESPONSE_ONCE("automated requests:DrawingManager") OUTPUT(idDrawingManager, bin, Global::getDrawingManager());
 

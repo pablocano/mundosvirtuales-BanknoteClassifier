@@ -3,7 +3,7 @@
 #include "Tools/MessageQueue/MessageQueue.h"
 #include "Tools/MessageQueue/MessageIDs.h"
 #include "Tools/Comm/TcpComm.h"
-
+#include <string.h>
 #include <fstream>
 
 #define BANKNOTE_CLASSIFIER_COMM \
@@ -15,7 +15,7 @@ BanknoteClassifierMessageHandler theBanknoteClassifierCommHandler
 theBanknoteClassifierCommHandler(theCommReceiver, theCommSender)
 
 #define START_BANKNOTE_CLASSIFIER_COMM \
-theBanknoteClassifierCommHandler.start("192.168.1.33");                                                                                                                                                                                                                                                                                                                                                                                                      //("10.0.9.135");
+theBanknoteClassifierCommHandler.start();
 
 #define RECEIVE_BANKNOTE_CLASSIFIER_COMM \
 (void) theBanknoteClassifierCommHandler.receive()
@@ -46,12 +46,14 @@ public:
    * The method starts the actual communication.
    * @param ip.
    */
-  void start(const char* ip);
+  void start();
   
 private:
   
   MessageQueue &theCommIn,&theCommOut;
   
   SocketClientTcp* lpSocket;
+
+  std::string ip;
 
 };

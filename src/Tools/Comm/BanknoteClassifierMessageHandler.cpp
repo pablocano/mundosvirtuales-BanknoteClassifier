@@ -2,8 +2,7 @@
 #include "Tools/Fanuc/PacketEthernetIPFanuc.h"
 #include "Tools/Debugging/Debugging.h"
 #include "Tools/MessageQueue/MessageIDs.h"
-
-#include <string.h>
+#include "Platform/File.h"
 
 BanknoteClassifierMessageHandler* BanknoteClassifierMessageHandler::theInstance = 0;
 
@@ -14,11 +13,16 @@ theCommOut(out),
 lpSocket(nullptr)
 {
   theInstance = this;
+
+  InTextFile file(std::string(File::getBCDir()) + "/Config/comm.cfg");
+
+  file >> ip;
+
 }
 
-void BanknoteClassifierMessageHandler::start(const char* ip)
+void BanknoteClassifierMessageHandler::start()
 {
-	lpSocket = new SocketClientTcp(ip, PORT_SERVER);
+    lpSocket = new SocketClientTcp(ip.c_str(), PORT_SERVER);
 }
 
 BanknoteClassifierMessageHandler::~BanknoteClassifierMessageHandler()
