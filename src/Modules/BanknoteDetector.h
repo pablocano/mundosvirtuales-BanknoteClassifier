@@ -48,7 +48,11 @@ MODULE(BanknoteDetector,
     PROVIDES(BanknoteDetections),
     DEFINES_PARAMETERS(
     {,
-      (BanknoteDetectionParameters[Classification::numOfRealBanknotes]) parameters,
+        (BanknoteDetectionParameters[Classification::numOfRealBanknotes]) parameters,
+        (int)(320) minMaskX,
+        (int)(1600) maxMaskX,
+        (int)(140) minMaskY,
+        (int)(1900) maxMaskY,
     }),
 });
 
@@ -157,6 +161,8 @@ protected:
      */
     void evaluateGraspingScore(const BanknoteModel& model, const BanknoteDetectionParameters& params, ClassDetections& detections);
 
+    void prepareImageMask();
+
     /* Math Related */
     void resizeImage(cv::Mat& image);
 
@@ -175,6 +181,8 @@ protected:
     cv::Ptr<cv::cuda::DescriptorMatcher> matcher;
     cv::cuda::SURF_CUDA surf;
     cv::Ptr<cv::CLAHE> clahe;
+
+    cv::Mat imageMask;
 
     /** Gpu Buffers */
     cv::cuda::GpuMat gpuImage;

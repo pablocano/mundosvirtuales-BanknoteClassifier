@@ -117,6 +117,8 @@ void BanknoteDetector::update(BanknoteDetections& repr)
         }
     }
 
+    prepareImageMask();
+
     auto start = std::chrono::system_clock::now();
 
     gpuImage.upload(theGrayScaleImage);
@@ -126,6 +128,11 @@ void BanknoteDetector::update(BanknoteDetections& repr)
     std::cout << "Upload time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
     start = end;
+
+    cv::Size s1 = gpuImageMask.size();
+    cv::Size s2 = gpuImage.size();
+    ASSERT(gpuImageMask.size() == gpuImage.size());
+    ASSERT(gpuImageMask.type() == gpuImage.type());
 
     surf(gpuImage, gpuImageMask, gpuImageKeypoints, gpuImageDescriptors);
 
@@ -297,6 +304,19 @@ void BanknoteDetector::update(BanknoteDetections& repr)
     drawAcceptedHypotheses();
 }
 
+void BanknoteDetector::prepareImageMask()
+{
+    if(imageMask.cols == theGrayScaleImage.cols && imageMask.rows == theGrayScaleImage.rows && imageMask.type() == theGrayScaleImage.type())
+        return;
+
+    imageMask = cv::Mat(theGrayScaleImage.rows, theGrayScaleImage.cols, CV_8U, cv::Scalar(0));
+
+    for(int j = minMaskY; j < maxMaskY; j++)
+        for(int i = minMaskX; i < maxMaskX; i++)
+            imageMask.at<unsigned char>(j, i) = 255;
+
+    gpuImageMask.upload(imageMask);
+}
 
 void BanknoteDetector::resizeImage(cv::Mat& image)
 {
