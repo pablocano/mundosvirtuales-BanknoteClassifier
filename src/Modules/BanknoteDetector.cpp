@@ -123,7 +123,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
 
     auto end = std::chrono::system_clock::now();
 
-    //std::cout << "Upload time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    std::cout << "Upload time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
     start = end;
 
@@ -131,7 +131,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
 
     end = std::chrono::system_clock::now();
 
-    //std::cout << "Descriptors + Keypoints time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    std::cout << "Descriptors + Keypoints time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
     start = end;
 
@@ -139,7 +139,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
 
     end = std::chrono::system_clock::now();
 
-    //std::cout << "Download time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    std::cout << "Download time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
     start = end;
 
@@ -150,12 +150,13 @@ void BanknoteDetector::update(BanknoteDetections& repr)
         BanknoteModel& model = models[c];
         ClassDetections& detections = classDetections[c];
 
-        matcher->match(gpuImageDescriptors, model.features.descriptors, detections.matches);
+        //matcher->match(gpuImageDescriptors, model.features.descriptors, detections.matches);
+        matcher->knnMatch(gpuImageDescriptors, model.features.descriptors, detections.matches, 2);
         numberOfMatches += detections.matches.size();
     }
 
     end = std::chrono::system_clock::now();
-    //std::cout << "KNN Matches time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Matches: " << numberOfMatches << ")" << std::endl;
+    std::cout << "KNN Matches time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Matches: " << numberOfMatches << ")" << std::endl;
 
     start = end;
     numberOfMatches = 0;
@@ -171,7 +172,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
     }
 
     end = std::chrono::system_clock::now();
-    //std::cout << "Hough Matches filter time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Matches: " << numberOfMatches << ")" << std::endl;
+    std::cout << "Hough Matches filter time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Matches: " << numberOfMatches << ")" << std::endl;
 
     start = end;
     int numberOfHypotheses = 0;
@@ -187,7 +188,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
     }
 
     end = std::chrono::system_clock::now();
-    //std::cout << "Ransac filter time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
+    std::cout << "Ransac filter time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
 
     start = end;
     numberOfHypotheses = 0;
@@ -202,7 +203,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
     }
 
     end = std::chrono::system_clock::now();
-    //std::cout << "Estimate transform time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
+    std::cout << "Estimate transform time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
 
     start = end;
 
@@ -215,7 +216,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
     }
 
     end = std::chrono::system_clock::now();
-    //std::cout << "NMS time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
+    std::cout << "NMS time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
 
     start = end;
 
@@ -260,7 +261,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
     }*/
 
     end = std::chrono::system_clock::now();
-    //std::cout << "Foreground estimation time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
+    std::cout << "Foreground estimation time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
 
     start = end;
 
@@ -273,7 +274,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
     }
 
     end = std::chrono::system_clock::now();
-    //std::cout << "Grasping Score time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
+    std::cout << "Grasping Score time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
 
 
     repr.detections.clear();
@@ -347,7 +348,7 @@ void BanknoteDetector::getTransform(const cv::KeyPoint& src, const cv::KeyPoint&
 void BanknoteDetector::hough4d(const BanknoteModel& model, const BanknoteDetectionParameters& params,  ClassDetections& detections)
 {
     /* Handy references */
-    const std::vector<cv::DMatch> matches = detections.matches;
+    const std::vector<std::vector<cv::DMatch>> matches = detections.matches;
     const std::vector<cv::KeyPoint> modelKeypoints = model.features.keypoints;
 
     int maxVotes = 0;
@@ -358,82 +359,100 @@ void BanknoteDetector::hough4d(const BanknoteModel& model, const BanknoteDetecti
     ASSERT(model.banknoteClass >= 0 && model.banknoteClass < theSegmentedImage.map.size());
     unsigned char c = theSegmentedImage.map[model.banknoteClass];
 
-    for (int index = 0; index < matches.size(); index++)
+    int numberOfImageKeypoints = imageKeypoints.size();
+    int numberOfModelKeypoints = modelKeypoints.size();
+
+    for (int index1 = 0; index1 < matches.size(); index1++)
     {
-        float e, theta, tx, ty;
-        const cv::DMatch& match = matches[index];
-        const cv::KeyPoint& imageKeypoint = imageKeypoints[match.queryIdx];
-        const cv::KeyPoint& modelKeypoint = modelKeypoints[match.trainIdx];
+        const std::vector<cv::DMatch>& matches_aux = matches[index1];
 
-        getTransform(modelKeypoint, imageKeypoint, tx, ty, theta, e);
+        for (int index = 0; index < matches_aux.size(); index++)
+        {
+            float e, theta, tx, ty;
+            const cv::DMatch& match = matches_aux[index];
 
-        if(e < params.minAllowedScale || e > params.maxAllowedScale)
-            continue;
+            ASSERT(match.queryIdx < numberOfImageKeypoints);
+            ASSERT(match.trainIdx < numberOfModelKeypoints);
 
-        int ptx = (int) modelKeypoint.pt.x;
-        int pty = (int) modelKeypoint.pt.y;
+            const cv::KeyPoint& imageKeypoint = imageKeypoints[match.queryIdx];
+            const cv::KeyPoint& modelKeypoint = modelKeypoints[match.trainIdx];
 
-        int ptx2 = int(imageKeypoint.pt.x) >> 1;
-        int pty2 = int(imageKeypoint.pt.y) >> 2;
+            getTransform(modelKeypoint, imageKeypoint, tx, ty, theta, e);
+
+            if(e < params.minAllowedScale || e > params.maxAllowedScale)
+                continue;
+
+            int ptx = (int) modelKeypoint.pt.x;
+            int pty = (int) modelKeypoint.pt.y;
+
+            int ptx2 = int(imageKeypoint.pt.x) >> 1;
+            int pty2 = int(imageKeypoint.pt.y) >> 2;
 
 
-        //unsigned char maskValue = model.mask.at<unsigned char>(pty, ptx);
+            //unsigned char maskValue = model.mask.at<unsigned char>(pty, ptx);
 
-        //if(maskValue == 0)
-        //    continue;
+            //if(maskValue == 0)
+            //    continue;
 
-        unsigned char classValue = theSegmentedImage.at<unsigned char>(pty2, ptx2);
+            unsigned char classValue = theSegmentedImage.at<unsigned char>(pty2, ptx2);
 
-        if(classValue != c)
-            continue;
+            if(classValue != c)
+                continue;
 
-        int i = floor(tx / params.houghXYStep + 0.5);
-        int j = floor(ty / params.houghXYStep + 0.5);
-        int k = floor(theta / params.houghAngleStep + 0.5);
-        int z = floor(log(e) / log(2.0) + 0.5);
+            int i = floor(tx / params.houghXYStep + 0.5);
+            int j = floor(ty / params.houghXYStep + 0.5);
+            int k = floor(theta / params.houghAngleStep + 0.5);
+            int z = floor(log(e) / log(2.0) + 0.5);
 
-        int idx[4];
-        idx[0] = i + 500;
-        idx[1] = j + 500;
-        idx[2] = k + 500;
-        idx[3] = z + 500;
+            int idx[4];
+            idx[0] = i + 500;
+            idx[1] = j + 500;
+            idx[2] = k + 500;
+            idx[3] = z + 500;
 
-        assert(idx[0] >= 0 && idx[0] < 1000);
-        assert(idx[1] >= 0 && idx[1] < 1000);
-        assert(idx[2] >= 0 && idx[2] < 1000);
-        assert(idx[3] >= 0 && idx[3] < 1000);
-        //for (int u = 0; u < 4; u++)
-        //    if (idx[u] < 0 || idx[u] >= 1000)
-        //        continue;
+            assert(idx[0] >= 0 && idx[0] < 1000);
+            assert(idx[1] >= 0 && idx[1] < 1000);
+            assert(idx[2] >= 0 && idx[2] < 1000);
+            assert(idx[3] >= 0 && idx[3] < 1000);
+            //for (int u = 0; u < 4; u++)
+            //    if (idx[u] < 0 || idx[u] >= 1000)
+            //        continue;
 
-        sm.ref<float>(idx)++;
+            sm.ref<float>(idx)++;
+        }
+
     }
 
-    for (int index = 0; index < matches.size(); index++)
+    for (int index1 = 0; index1 < matches.size(); index1++)
     {
-        float e, theta, tx, ty;
-        const cv::DMatch& match = matches[index];
-        const cv::KeyPoint& imageKeypoint = imageKeypoints[match.queryIdx];
-        const cv::KeyPoint& modelKeypoint = modelKeypoints[match.trainIdx];
+        const std::vector<cv::DMatch>& matches_aux = matches[index1];
 
-        getTransform(modelKeypoint, imageKeypoint, tx, ty, theta, e);
+        for (int index = 0; index < matches_aux.size(); index++)
+        {
+            float e, theta, tx, ty;
+            const cv::DMatch& match = matches_aux[index];
+            const cv::KeyPoint& imageKeypoint = imageKeypoints[match.queryIdx];
+            const cv::KeyPoint& modelKeypoint = modelKeypoints[match.trainIdx];
 
-        if(e < params.minAllowedScale || e > params.maxAllowedScale)
-            continue;
+            getTransform(modelKeypoint, imageKeypoint, tx, ty, theta, e);
 
-        int i = floor(tx / params.houghXYStep + 0.5);
-        int j = floor(ty / params.houghXYStep + 0.5);
-        int k = floor(theta / params.houghAngleStep + 0.5);
-        int z = floor(log(e) / log(2.0) + 0.5);
+            if(e < params.minAllowedScale || e > params.maxAllowedScale)
+                continue;
 
-        int idx[4];
-        idx[0] = i + 500;
-        idx[1] = j + 500;
-        idx[2] = k + 500;
-        idx[3] = z + 500;
+            int i = floor(tx / params.houghXYStep + 0.5);
+            int j = floor(ty / params.houghXYStep + 0.5);
+            int k = floor(theta / params.houghAngleStep + 0.5);
+            int z = floor(log(e) / log(2.0) + 0.5);
 
-        if (sm.ref<float>(idx) >= params.houghVotesThresh)
-            detections.houghFilteredMatches.push_back(matches[index]);
+            int idx[4];
+            idx[0] = i + 500;
+            idx[1] = j + 500;
+            idx[2] = k + 500;
+            idx[3] = z + 500;
+
+            if (sm.ref<float>(idx) >= params.houghVotesThresh)
+                detections.houghFilteredMatches.push_back(matches_aux[index]);
+        }
     }
 
 }

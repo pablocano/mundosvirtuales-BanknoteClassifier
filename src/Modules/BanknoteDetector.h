@@ -59,7 +59,7 @@ class ClassDetections
     ClassDetections();
     void clear();
 
-    std::vector<cv::DMatch> matches;
+    std::vector<std::vector<cv::DMatch>> matches;
     std::vector<cv::DMatch> houghFilteredMatches;
     std::vector<BanknoteDetection> detections;
 };
