@@ -67,6 +67,15 @@ BanknoteTracker::BanknoteTracker()
     debugColors[Classification::VEINTE_C] = ColorRGBA::orange;
     debugColors[Classification::VEINTE_S] = ColorRGBA::orange;
 
+    samplePoints[0] = Vector3f(std::cos(0_deg),   std::sin(0_deg),   0.f);
+    samplePoints[1] = Vector3f(std::cos(45_deg),  std::sin(45_deg),  0.f);
+    samplePoints[2] = Vector3f(std::cos(90_deg),  std::sin(90_deg),  0.f);
+    samplePoints[3] = Vector3f(std::cos(135_deg), std::sin(135_deg), 0.f);
+    samplePoints[4] = Vector3f(std::cos(180_deg), std::sin(180_deg), 0.f);
+    samplePoints[5] = Vector3f(std::cos(225_deg), std::sin(225_deg), 0.f);
+    samplePoints[6] = Vector3f(std::cos(270_deg), std::sin(270_deg), 0.f);
+    samplePoints[7] = Vector3f(std::cos(315_deg), std::sin(315_deg), 0.f);
+
 }
 
 BanknoteTracker::~BanknoteTracker()
@@ -191,7 +200,11 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
         const BanknoteModel& model = models[detection.banknoteClass.result];
 
         if(detection.layer == -1)
+        {
             detection.estimateGraspPoint(model, graspRadius);
+            checkAndFixGraspingScore(detection, model);
+        }
+
     }
 
     /* Check oclusion (comparison) */
@@ -317,6 +330,62 @@ void BanknoteTracker::waitingForRobotOutStateFunction()
 {
     //if(theRobotFanucStatus.visionAreaClear)
     //    state = TracketState::estimating;
+}
+
+void BanknoteTracker::checkAndFixGraspingScore(BanknoteDetection& detection, const BanknoteModel& model)
+{
+
+    for(int iter = 0; iter < graspMaxIter; iter++)
+    {
+        Vector3f aux = Vector3f::Zero();
+
+        unsigned char c = theSegmentedImage.map[model.banknoteClass];
+
+        for(int i = 0; i < 8; i++)
+        {
+            Vector3f vec = graspRadius * samplePoints[i];
+
+            Vector3f queryPf = detection.graspPoint + vec;
+            Vector3i queryPi = Vector3i(queryPf.x(), queryPf.y(), 0);
+
+            Vector3f trainPf = detection.transform.inverse() * queryPf;
+            trainPf.z() = 0.f;
+
+            if(trainPf.x() < 0.f || trainPf.x() >= model.image.cols || trainPf.y() < 0.f || trainPf.y() >= model.image.rows)
+            {
+                aux -= vec;
+                continue;
+            }
+
+            int py = queryPi.y() >> 2;
+            int px = queryPi.x() >> 1;
+
+            unsigned char pixelClass = theSegmentedImage.at<unsigned char>(py, px);
+
+            if(pixelClass != c)
+            {
+                aux -= vec;
+                continue;
+            }
+
+        }
+
+        if(aux.norm() > 0.f)
+        {
+            detection.validGrasp = false;
+
+            detection.graspPoint += aux.normalize(graspStep * graspRadius);
+            detection.graspPoint.z() = 1.f;
+
+            if(iter > graspMaxIter)
+                return;
+        }
+        else
+        {
+            detection.validGrasp = true;
+            return;
+        }
+    }
 }
 
 void BanknoteTracker::setNewDetection(int detectionIndex, const BanknoteDetection& newDetection)

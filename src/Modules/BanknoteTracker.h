@@ -35,11 +35,14 @@ MODULE(BanknoteTracker,
     REQUIRES(BanknoteDetections),
     REQUIRES(FrameInfo),
     REQUIRES(RobotFanucStatus),
+    REQUIRES(SegmentedImage),
     PROVIDES(BanknotePositionFiltered),
     DEFINES_PARAMETERS(
     {,
      (BanknoteDetectionParameters[Classification::numOfRealBanknotes]) parameters,
-     (float)(60.f) graspRadius, // In pixels. This should be computed with the real grasp radius and the camera transform
+     (float)(50.f) graspRadius,
+     (float)(0.2f) graspStep,// In pixels. This should be computed with the real grasp radius and the camera transform
+     (int)(7) graspMaxIter,
      (int)(20) maxDetections,
      (int)(5000) maxNoDetectionTime,
      (float)(5.f) minDifferentPointDistance,
@@ -78,6 +81,7 @@ protected:
     void attemptMerge(const BanknoteDetection& d1, int detectionIndex);
 
     void evaluateGraspingScore(BanknoteDetection& detection, const BanknoteModel& model, const BanknoteDetectionParameters& params);
+    void checkAndFixGraspingScore(BanknoteDetection& detection, const BanknoteModel& model);
 
     void keepOne(const BanknoteDetection& d1, int detectionIndex);
 
@@ -95,4 +99,6 @@ protected:
     ColorRGBA debugColors[Classification::numOfRealBanknotes];
 
     TracketState state;
+
+    Vector3f samplePoints[8];
 };

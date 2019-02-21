@@ -195,8 +195,8 @@ void BanknoteDetection::estimateGraspPoint(const BanknoteModel& model, float gra
     score = std::min(score, std::min(score1, std::min(score2, std::min(score3, score4)))) - graspRadius;
 
     graspScore = score;
+    validGrasp = true;
 
-    //checkAndFixGraspPoint(model, graspRadius);
 }
 
 void BanknoteDetection::checkAndFixGraspPoint(const BanknoteModel& model, float graspingRadius, int iter)

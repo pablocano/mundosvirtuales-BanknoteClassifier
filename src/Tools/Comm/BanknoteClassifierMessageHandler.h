@@ -15,7 +15,7 @@ BanknoteClassifierMessageHandler theBanknoteClassifierCommHandler
 theBanknoteClassifierCommHandler(theCommReceiver, theCommSender)
 
 #define START_BANKNOTE_CLASSIFIER_COMM \
-theBanknoteClassifierCommHandler.start("127.0.0.1");                                                                                                                                                                                                                                                                                                                                                                                                      //("10.0.9.135");
+theBanknoteClassifierCommHandler.start("192.168.1.33");                                                                                                                                                                                                                                                                                                                                                                                                      //("10.0.9.135");
 
 #define RECEIVE_BANKNOTE_CLASSIFIER_COMM \
 (void) theBanknoteClassifierCommHandler.receive()
