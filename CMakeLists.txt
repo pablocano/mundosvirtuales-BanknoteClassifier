@@ -5,13 +5,20 @@ find_package(OpenCV 4 REQUIRED)
 find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
+find_package(CUDA 9.0 REQUIRED)
+message(STATUS "Found CUDA ${CUDA_VERSION_STRING} at ${CUDA_TOOLKIT_ROOT_DIR}")
+
+find_package(Torch REQUIRED PATHS Utils/libtorch/)#pytorch
+
+add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+
 if(WIN32)
         set(CMAKE_CXX_STANDARD 11)
 else()
         set(CMAKE_CXX_FLAGS "-std=c++14")
 endif()
 
-#set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 # Tell CMake to run moc when necessary:
 set(CMAKE_AUTOMOC ON)
@@ -73,6 +80,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/Segmentator.h
   src/Modules/WorldCoordinatesPoseProvider.cpp
   src/Modules/WorldCoordinatesPoseProvider.h
+  src/Modules/SemanticSeg.cpp
+  src/Modules/SemanticSeg.h
   src/Platform/BCAssert.cpp
   src/Platform/BCAssert.h
   src/Platform/File.cpp
@@ -96,6 +105,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/CameraInfo.h
   src/Representations/Classification.cpp
   src/Representations/Classification.h
+  src/Representations/SemanticSegmented.cpp
+  src/Representations/SemanticSegmented.h
   src/Representations/ColorModel/ColorCalibration.h
   src/Representations/ColorModel/ColorModel.cpp
   src/Representations/ColorModel/ColorModel.h
@@ -237,6 +248,7 @@ set( CALIBRATOR_TOOL_SRC
   ${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.cpp
   #${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.h
   #${CALIBRATOR_SRC_DIR}/Synchronization.h
+  ${CALIBRATOR_SRC_DIR}/Representations/TimeInfo.cpp
   ${CALIBRATOR_SRC_DIR}/Views/ImageView.cpp
   #${CALIBRATOR_SRC_DIR}/Views/ImageView.h
   ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.cpp
@@ -262,6 +274,7 @@ set( CALIBRATOR_TOOL_SRC
   #${CALIBRATOR_SRC_DIR}/Views/DataView/TypeDeclarations.h
   ${CALIBRATOR_SRC_DIR}/Views/DataView/TypeDescriptor.cpp
   #${CALIBRATOR_SRC_DIR}/Views/DataView/TypeDescriptor.h
+  ${CALIBRATOR_SRC_DIR}/Views/TimeView.cpp
   ${CALIBRATOR_SRC_DIR}/Views/StatusView.cpp
   #${CALIBRATOR_SRC_DIR}/Views/StatusView.h
   ${CALIBRATOR_SRC_DIR}/Visualization/DebugDrawing.cpp
@@ -398,7 +411,7 @@ add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLU
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1 geos)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1 geos)
+target_link_libraries( banknoteClassifier ${OpenCV_LIBS} "${TORCH_LIBRARIES}" Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1 geos)
 ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen PylonBase_MD_VC120_v5_1 PylonUtility_MD_VC120_v5_1 GenApi_MD_VC120_v3_0_Basler_pylon_v5_1 GCBase_MD_VC120_v3_1_Basler_pylon_v5_1 ws2_32 winmm geos)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

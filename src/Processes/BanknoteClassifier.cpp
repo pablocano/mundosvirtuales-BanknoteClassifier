@@ -47,11 +47,14 @@ int BanknoteClassifier::main()
 
   RobotFanucDataProvider::handleMessages(theCommReceiver);
   
+  timingManager.signalProcessStart();
+
   int numberOfMessages = theDebugOut.getNumberOfMessages();
-  
+
   char process = 'e';
   OUTPUT(idProcessBegin, bin, process);
   
+//<<<<<<< HEAD
   unsigned t0 = SystemCall::getCurrentSystemTime();
 
   moduleManager.execute();
@@ -68,6 +71,14 @@ int BanknoteClassifier::main()
   {
       OUTPUT(idDrawingManager, bin, Global::getDrawingManager());
   }
+//=======
+  STOPWATCH("BanknoteClassifierProcess") moduleManager.execute();
+  
+  DEBUG_RESPONSE_ONCE("automated requests:DrawingManager") OUTPUT(idDrawingManager, bin, Global::getDrawingManager());
+
+  timingManager.signalProcessStop();
+  DEBUG_RESPONSE("timing") timingManager.getData().copyAllMessages(theDebugOut);
+//>>>>>>> edbeae46d0d0d7cdf560566096822e5a2b3fe73d
   
   if(Blackboard::getInstance().exists("CameraInfo"))
   {
@@ -76,14 +87,16 @@ int BanknoteClassifier::main()
   
   if(theDebugOut.getNumberOfMessages() > numberOfMessages + 1)
   {
+      /*
     // messages were sent in this frame -> send process finished
     if(Blackboard::getInstance().exists("CameraInfo") &&
        ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).type == CameraInfo::CameraType::westCam)
-    { // lower camera -> process called 'd'
+    { // lower camera -> process called 'e'
       theDebugOut.patchMessage(numberOfMessages, 0, 'w');
       process = 'w';
     }
     else
+    */
       process = 'e';
     OUTPUT(idProcessFinished, bin, process);
     

@@ -2,3 +2,4 @@ build/*
 .DS_Store
 CMakeLists.txt.user
 CMakeLists.txt.user.*
+Utils/libtorch*

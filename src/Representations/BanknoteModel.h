@@ -23,6 +23,7 @@ STREAMABLE(BanknoteModel,
     });           
     cv::cuda::GpuMat gpuImage;
     ,
+    (Classification::Banknote) banknoteClass,
     (CvMat) image,
     (CvMat) mask,
     (Features) features,

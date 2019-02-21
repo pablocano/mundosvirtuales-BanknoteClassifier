@@ -84,6 +84,9 @@ public:
    */
   bool eof();
 
+
+
+
   /**
    * The function returns the size of the file
    * @return The size of the file in bytes
