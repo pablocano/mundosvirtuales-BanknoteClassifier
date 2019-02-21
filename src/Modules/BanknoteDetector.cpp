@@ -59,6 +59,7 @@ BanknoteDetector::BanknoteDetector():
         surf.downloadKeypoints(f.keypointsGpu, *reinterpret_cast<std::vector<cv::KeyPoint>* >(&f.keypoints));
 
         BanknoteModel& model = models[c];
+        model.banknoteClass = (Classification::Banknote)c;
         model.features = f;
         model.gpuImage = gpuImage;
         model.image = image;
@@ -344,6 +345,9 @@ void BanknoteDetector::hough4d(const BanknoteModel& model, const BanknoteDetecti
     int hsize[] = {1000, 1000, 1000, 1000};
     cv::SparseMat sm(4, hsize, CV_32F);
 
+    ASSERT(model.banknoteClass >= 0 && model.banknoteClass < theSegmentedImage.map.size());
+    unsigned char c = theSegmentedImage.map[model.banknoteClass];
+
     for (int index = 0; index < matches.size(); index++)
     {
         float e, theta, tx, ty;
@@ -360,6 +364,9 @@ void BanknoteDetector::hough4d(const BanknoteModel& model, const BanknoteDetecti
         int pty = (int) modelKeypoint.pt.y;
 
         if(model.mask.at<unsigned char>(pty, ptx) == 0)
+            continue;
+
+        if(theSegmentedImage.at<unsigned char>(pty, ptx) != c)
             continue;
 
         int i = floor(tx / params.houghXYStep + 0.5);

@@ -38,6 +38,7 @@ BanknoteTracker::BanknoteTracker()
         Features f;
 
         BanknoteModel& model = models[c];
+        model.banknoteClass = (Classification::Banknote)c;
         model.features = f;
         model.image = image;
         model.mask = binaryMask;

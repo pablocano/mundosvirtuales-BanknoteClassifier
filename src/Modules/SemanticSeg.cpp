@@ -125,8 +125,22 @@ void SemanticSeg::update(SegmentedImage &image)
     cv::Mat netOut(512,1024, CV_8U);
 
 
+    image.map.resize(Classification::numOfBanknotes);
+    image.map[Classification::NONE] = 0;
+    image.map[Classification::UNO_C] = 1;
+    image.map[Classification::UNO_S] = 1;
+    image.map[Classification::DOS_C] = 2;
+    image.map[Classification::DOS_S] = 2;
+    image.map[Classification::CINCO_C] = 3;
+    image.map[Classification::CINCO_S] = 3;
+    image.map[Classification::DIEZ_C] = 4;
+    image.map[Classification::DIEZ_S] = 4;
+    image.map[Classification::VEINTE_C] = 5;
+    image.map[Classification::VEINTE_S] = 5;
+
     // de aca en adelante todo es dibujos
     netOut.data = output.data<unsigned char>();
+    image = netOut;
 
     cv::Mat imageRGB(512,512, CV_8UC3);//(theImageBGR.rows,theImageBGR.cols, CV_8UC3);
     imageRGB=0;

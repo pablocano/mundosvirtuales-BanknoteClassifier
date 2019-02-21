@@ -43,6 +43,7 @@ MODULE(BanknoteDetector,
 {,
     REQUIRES(GrayScaleImage),
     REQUIRES(GrayScaleImageEq),
+    REQUIRES(SegmentedImage),
     REQUIRES(FrameInfo),
     PROVIDES(BanknoteDetections),
     DEFINES_PARAMETERS(

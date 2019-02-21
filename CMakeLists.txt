@@ -8,7 +8,7 @@ find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(CUDA 9.0 REQUIRED)
 message(STATUS "Found CUDA ${CUDA_VERSION_STRING} at ${CUDA_TOOLKIT_ROOT_DIR}")
 
-find_package(Torch REQUIRED PATHS /home/nicolas/segmentacionBilletes/mundosvirtuales-BanknoteClassifier/Utils/libtorch/)#pytorch
+find_package(Torch REQUIRED PATHS Utils/libtorch/)#pytorch
 
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 
