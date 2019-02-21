@@ -1,6 +1,7 @@
 #include "DummyImages.h"
 #include "Platform/File.h"
 #include "Tools/Debugging/Debugging.h"
+#include "Tools/Debugging/DebugDrawings.h"
 #include <opencv2/opencv.hpp>
 
 MAKE_MODULE(DummyImages, BanknoteClassifier);

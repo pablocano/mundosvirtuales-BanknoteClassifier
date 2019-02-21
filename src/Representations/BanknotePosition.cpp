@@ -82,6 +82,8 @@ void BanknotePositionFiltered::draw() const
             Drawings::PenStyle style;
             getColorAndStyle(color, style);
 
+            color = valid ? color : ColorRGBA::white;
+
             for(int i = 0; i < corners.size() - 1; i++)
             {
                 LINE("representation:BanknotePositionFiltered", corners[i].x(), corners[i].y() , corners[i + 1].x(), corners[i + 1].y(), 3, style, color);
