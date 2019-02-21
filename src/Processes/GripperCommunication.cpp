@@ -1,5 +1,4 @@
 #include "GripperCommunication.h"
-#include "Representations/Blobs.h"
 #include "Representations/CameraInfo.h"
 #include "Representations/Regions.h"
 #include "Modules/BanknoteClassifierConfiguration.h"
@@ -36,6 +35,8 @@ int GripperCommunication::main()
 {
   RECEIVE_BANKNOTE_CLASSIFIER_COMM;
 
+  RobotFanucDataProvider::handleMessages(theCommReceiver);
+
   int numberOfMessages = theDebugOut.getNumberOfMessages();
 
   char process = 'e';
@@ -69,7 +70,7 @@ int GripperCommunication::main()
   else if(theDebugOut.getNumberOfMessages() == numberOfMessages + 1)
     theDebugOut.removeLastMessage();
 
-  SystemCall::sleep(50);
+  SystemCall::sleep(100);
 
   return 0;
 }

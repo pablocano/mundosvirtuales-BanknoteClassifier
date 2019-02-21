@@ -11,6 +11,8 @@
 
 #include "Tools/ModuleManager/Module.h"
 #include "Representations/BanknoteDetections.h"
+#include "Representations/BanknoteDetectionParameters.h"
+#include "Representations/BanknoteModel.h"
 #include "Representations/Classification.h"
 #include "Representations/Features.h"
 #include "Representations/Image.h"
@@ -18,17 +20,24 @@
 #include "Tools/Debugging/DebugDrawings.h"
 #include "Tools/Debugging/Debugging.h"
 #include "Tools/Math/Geometry.h"
-#include "Tools/Math/iou.h"
-#include "Tools/Math/Pose2f.h"
 #include "Tools/Math/Random.h"
 
-#include "opencv2/core/cuda.hpp"
-#include "opencv2/cudaarithm.hpp"
-#include "opencv2/cudafeatures2d.hpp"
-#include "opencv2/xfeatures2d/cuda.hpp"
-#include "opencv2/highgui.hpp"
+#include <opencv2/core/cuda.hpp>
+#include <opencv2/cudaarithm.hpp>
+#include <opencv2/cudafeatures2d.hpp>
+#include <opencv2/xfeatures2d/cuda.hpp>
+#include <opencv2/highgui.hpp>
 
 #include <Eigen/Eigen>
+
+#include <geos/geom/PrecisionModel.h>
+#include <geos/geom/GeometryFactory.h>
+#include <geos/geom/Geometry.h>
+#include <geos/geom/Point.h>
+#include <geos/geom/LinearRing.h>
+#include <geos/geom/LineString.h>
+#include <geos/geom/Polygon.h>
+#include <geos/geom/CoordinateArraySequence.h>
 
 MODULE(BanknoteDetector,
 {,
@@ -38,50 +47,9 @@ MODULE(BanknoteDetector,
     PROVIDES(BanknoteDetections),
     DEFINES_PARAMETERS(
     {,
-     (float)(60.f) graspRadius, // In pixels. This should be computed with the real grasp radius and the camera transform
+      (BanknoteDetectionParameters[Classification::numOfRealBanknotes]) parameters,
     }),
 });
-
-ENUM(CornerID,
-{,
-    TopLeft,
-    TopRight,
-    BottomRight,
-    BottomLeft,
-    numOfRealCorners,
-    MiddleMiddle = numOfRealCorners,
-    MiddleRight,
-});
-
-bool compareAngle(IOU::Point p1, IOU::Point p2) { return (std::atan2(p1.y, p1.x) < std::atan2(p2.y, p2.x)); }
-
-class Model
-{
-public:
-    cv::cuda::GpuMat gpuImage;
-    cv::Mat image;
-    cv::Mat mask;
-    Features features;
-    Eigen::Vector3f corners[CornerID::numOfCornerIDs];
-};
-
-class Hypothesys
-{
-public:
-
-    Hypothesys();
-    bool isValid() const;
-
-    std::vector<cv::DMatch> matches;
-    Eigen::Matrix3f transform; /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
-    Pose2f pose;
-    Eigen::Vector3f graspPoint;
-    int ransacVotes;
-    float graspScore;
-    bool validTransform;
-    bool validNms;
-    bool validGrasp;
-};
 
 class ClassDetections
 {
@@ -92,7 +60,7 @@ class ClassDetections
 
     std::vector<cv::DMatch> matches;
     std::vector<cv::DMatch> houghFilteredMatches;
-    std::vector<Hypothesys> hypotheses;
+    std::vector<BanknoteDetection> detections;
 };
 
 
@@ -101,6 +69,7 @@ class BanknoteDetector : public BanknoteDetectorBase
 {
 public:
     BanknoteDetector();
+    ~BanknoteDetector();
 
     void update(BanknoteDetections& detections);
 
@@ -123,7 +92,7 @@ protected:
      * @param model: The BankNote model
      * @param detections: the output Detections
      */
-    void hough4d(const Model& model, ClassDetections& detections);
+    void hough4d(const BanknoteModel& model, const BanknoteDetectionParameters& parameters, ClassDetections& detections);
 
     /**
      * @brief ransac
@@ -141,7 +110,7 @@ protected:
      * @param model: The BankNote model
      * @param detections: the output Detections
      */
-    void ransac(const Model& model, ClassDetections& detections);
+    void ransac(const BanknoteModel& model, const BanknoteDetectionParameters& parameters,  ClassDetections& detections);
 
     /**
      * @brief estimateTransforms
@@ -153,7 +122,7 @@ protected:
      * @param model: The BankNote model
      * @param detections: the output Detections
      */
-    void estimateTransforms(const Model& model, ClassDetections& detections);
+    void estimateTransforms(const BanknoteModel& model, const BanknoteDetectionParameters& parameters,  ClassDetections& detections);
 
     /**
      * @brief nonMaximumSupression
@@ -164,7 +133,17 @@ protected:
      * @param model: The BankNote model
      * @param detections: the output Detections
      */
-    void nonMaximumSupression(const Model& model, ClassDetections& detections);
+    void nonMaximumSupression(const BanknoteModel& model, const BanknoteDetectionParameters& parameters, ClassDetections& detections);
+
+    /**
+     * @brief nonMaximumSupression
+     *
+     * Estimates the order based on overlapping descriptores over the hypotheses.
+     *
+     * @param model: The BankNote model
+     * @param detections: the output Detections
+     */
+    void foregroundEstimation(const BanknoteModel& model, ClassDetections& detections);
 
     /**
      * @brief evaluateGraspingScore
@@ -175,16 +154,18 @@ protected:
      * @param model: The BankNote model
      * @param detections: the output Detections
      */
-    void evaluateGraspingScore(const Model& model, ClassDetections& detections);
+    void evaluateGraspingScore(const BanknoteModel& model, const BanknoteDetectionParameters& params, ClassDetections& detections);
 
     /* Math Related */
     void resizeImage(cv::Mat& image);
 
-    Eigen::Matrix3f getTransformAsMatrix(const cv::KeyPoint& src, const cv::KeyPoint& dst);
+    Matrix3f getTransformAsMatrix(const cv::KeyPoint& src, const cv::KeyPoint& dst);
     inline void getTransform(const cv::KeyPoint& src, const cv::KeyPoint& dst, float& tx, float& ty, float& angleDegrees, float& e);
 
-    int getRansacConsensus(const Eigen::Matrix3f& transform, const std::vector<cv::DMatch>& matches, const std::vector<cv::KeyPoint>& trainKeypoints, const std::vector<cv::KeyPoint>& queryKeypoints, float maxError);
-    void getRansacInliers(const Eigen::Matrix3f& transform, const std::vector<cv::DMatch>& matches, std::vector<cv::DMatch>& acceptedMatchesfloat, const std::vector<cv::KeyPoint>& trainKeypoints, const std::vector<cv::KeyPoint>& queryKeypoints, float maxError, float maxError2, Eigen::VectorXi& acceptedStatus);
+    int getRansacConsensus(const Matrix3f& transform, const std::vector<cv::DMatch>& matches, const std::vector<cv::KeyPoint>& trainKeypoints, const std::vector<cv::KeyPoint>& queryKeypoints, float maxError, const VectorXi& acceptedStatus);
+    void getRansacInliers(const Matrix3f& transform, const std::vector<cv::DMatch>& matches, const std::vector<cv::KeyPoint>& inputTrainKeypoints, const std::vector<cv::KeyPoint>& inputQueryKeypoints, float maxError, float maxError2, VectorXi& acceptedStatus, std::vector<cv::DMatch>& acceptedMatches, std::vector<Vector3f>& outputTrainKeypoints, std::vector<Vector3f>& outputQueryKeypoints);
+
+    void compareForeground(BanknoteDetection& d1, BanknoteDetection& d2);
 
     void drawAcceptedHough();
     void drawAcceptedRansac();
@@ -204,14 +185,20 @@ protected:
     std::vector<cv::KeyPoint> imageKeypoints;
 
     /** Models */
-    Model models[Classification::numOfBanknotes - 2];
+    BanknoteModel models[Classification::numOfRealBanknotes];
 
-    /** Matches Buffer. Should really use an alias or somethin'. Shape is classes x matches x 2 (2 is the KNN criteria)*/
-    ClassDetections classDetections[Classification::numOfBanknotes - 2];
+    ClassDetections classDetections[Classification::numOfRealBanknotes];
 
     /** Global Module Parameters */
+    //ClassParameters parameters;
     bool resizeModels; /* This is a must when using scanned images */
     int trainBanknoteHeight; /* hardcoded parameter in order to resize*/
 
-    ColorRGBA debugColors[Classification::numOfBanknotes - 2];
+    /** GEOS Stuff */
+    geos::geom::GeometryFactory::Ptr factory;
+    geos::geom::Point* aux_point;
+
+    ColorRGBA debugColors[Classification::numOfRealBanknotes];
+
+    //BanknoteDetectionParameters parameters[Classification::numOfRealBanknotes];
 };

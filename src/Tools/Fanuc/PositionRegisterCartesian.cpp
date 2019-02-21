@@ -40,8 +40,19 @@ void PositionRegisterCartesian::copyFromBuffer(uint8_t *data)
 }
 
 void PositionRegisterCartesian::copyToBuffer(uint8_t *data)
-{
-	memcpy((void *) data, (void *) this, 31);
+{    
+    memcpy((void *) data, (void *) &UT, 2);
+    memcpy((void *)(data + 2), (void *) &UF, 2);
+    memcpy((void *)(data + 4), (void *) &x, 4);
+    memcpy((void *)(data + 8), (void *) &y, 4);
+    memcpy((void *)(data + 12), (void *) &z, 4);
+    memcpy((void *)(data + 16), (void *) &w, 4);
+    memcpy((void *)(data + 20), (void *) &p, 4);
+    memcpy((void *)(data + 24), (void *) &r, 4);
+    memcpy((void *)(data + 28), (void *) &Turn1, 1);
+    memcpy((void *)(data + 29), (void *) &Turn2, 1);
+    memcpy((void *)(data + 30), (void *) &Turn3, 1);
+
 	uint8_t d = (uint8_t)((uint8_t)(Front ? 0x01 : 0x00) | (uint8_t)(Up ? 0x02 : 0x00) | (uint8_t)(Left ? 0x04 : 0x00) | (uint8_t)(Flip ? 0x08 : 0x00));
 	uint8_t d1 = (uint8_t)((reserved & 0x0F) | ((d & 0x0F) << 4));
 	memcpy((void *)(data + 31), (void *) &d1, 1);

@@ -2,6 +2,11 @@
 #include "Tools/Streams/AutoStreamable.h"
 
 STREAMABLE(FrameInfo,
-{,
-  (int)(0) time,
+{
+    inline int getTimeSince(unsigned aTime) const
+    {
+     return static_cast<int>(time - aTime);
+    }
+    ,
+    (int)(0) time,
 });

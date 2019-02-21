@@ -12,8 +12,9 @@
 #include "CalibratorTool.h"
 #include "Visualization/DebugDrawing.h"
 #include "Representations/Image.h"
-#include "Representations/RobotFanuc.h"
+#include "Representations/RobotFanucRegisters.h"
 #include "Representations/Modeling/WorldCoordinatesPose.h"
+#include "Representations/TimeInfo.h"
 #include "Representations/ColorModel/ColorModel.h"
 #include "Tools/Debugging/DebugDrawings.h"
 #include "Tools/Debugging/DebugRequest.h"
@@ -59,6 +60,9 @@ private:
   using DebugDataInfos = std::unordered_map<std::string, DebugDataInfoPair>; /**< The type of the map debug data. */
   DebugDataInfos debugDataInfos; /** All debug data information. */
   std::unordered_map<std::string, unsigned char> processesOfDebugData; /**< From which process was certain debug data accepted? */
+
+  using TimeInfos = std::unordered_map<char, TimeInfo>;
+  TimeInfos timeInfos; /**< Information about the timing of modules per process. */
   
 public:
 
@@ -145,7 +149,7 @@ public:
 
   std::unordered_map<std::string,bool> customImagesViews;
 
-  RobotFanuc robot;
+  RobotFanucRegisters robot;
   WorldCoordinatesPose banknotePose;
 
   char processIdentifier;

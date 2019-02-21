@@ -11,6 +11,7 @@
 #include "Views/ColorCalibrationView/ColorCalibrationView.h"
 #include "Views/DataView/DataView.h"
 #include "Views/StatusView.h"
+#include "Views/TimeView.h"
 #include "Tools/SystemCall.h"
 #include "MainWindow.h"
 
@@ -44,6 +45,12 @@ Controller::Controller(CalibratorTool::Application& application)
   DebugRequest d("debug data:parameters:BanknoteDetector", true);
   debugOut.out.bin << d;
   debugOut.out.finishMessage(idDebugRequest);
+
+  DebugRequest timingRequest("timing", true);
+  debugOut.out.bin << timingRequest;
+  debugOut.out.finishMessage(idDebugRequest);
+
+  timeInfos['e'] = TimeInfo("BanknoteClassifier", 1);
   
   banknoteClassifierWrapper->start();
 }
@@ -66,6 +73,8 @@ void Controller::compile()
 
   dataViews["parameters:BanknoteDetector"] = new DataView("BanknotePosition.data.parameters:BanknoteDetector", "parameters:BanknoteDetector", *this, typeInfo);
   addView(dataViews["parameters:BanknoteDetector"], "GroundTruth.Data");
+
+  addView(new TimeView("GroundTruth.Timing.BanknoteClassifier", *this, timeInfos.at('e')), "GroundTruth.Timing");
 }
 
 void Controller::addView(CalibratorTool::Object* object, const CalibratorTool::Object* parent, int flags)
@@ -357,6 +366,17 @@ bool Controller::handleMessage(InMessage& message)
             }
         }
         return true;
+    }
+    case idStopwatch:
+    {
+      ASSERT(timeInfos.find(processIdentifier) != timeInfos.end());
+      timeInfos.at(processIdentifier).handleMessage(message);
+      /*if(processIdentifier != 'w')
+      {
+        message.resetReadPosition();
+        timeInfos.at('e').handleMessage(message);
+      }*/
+      return true;
     }
     default:
       return false;

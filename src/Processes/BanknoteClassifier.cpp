@@ -5,7 +5,6 @@
  */
 
 #include "BanknoteClassifier.h"
-#include "Representations/Blobs.h"
 #include "Representations/CameraInfo.h"
 #include "Representations/Regions.h"
 #include "Modules/BanknoteClassifierConfiguration.h"
@@ -48,17 +47,28 @@ int BanknoteClassifier::main()
 
   RobotFanucDataProvider::handleMessages(theCommReceiver);
   
+  timingManager.signalProcessStart();
+
   int numberOfMessages = theDebugOut.getNumberOfMessages();
-  
+
   char process = 'e';
   OUTPUT(idProcessBegin, bin, process);
+
+  unsigned t0 = SystemCall::getCurrentSystemTime();
+
+  STOPWATCH("BanknoteClassifierProcess") moduleManager.execute();
+
+  unsigned tf = SystemCall::getCurrentSystemTime();
+
+  unsigned dt = tf - t0;
+
+  if(dt < 100)
+      SystemCall::sleep(100 - dt);
   
-  moduleManager.execute();
-  
-  DEBUG_RESPONSE_ONCE("automated requests:DrawingManager")
-  {
-      OUTPUT(idDrawingManager, bin, Global::getDrawingManager());
-  }
+  DEBUG_RESPONSE_ONCE("automated requests:DrawingManager") OUTPUT(idDrawingManager, bin, Global::getDrawingManager());
+
+  timingManager.signalProcessStop();
+  DEBUG_RESPONSE("timing") timingManager.getData().copyAllMessages(theDebugOut);
   
   if(Blackboard::getInstance().exists("CameraInfo"))
   {
@@ -67,14 +77,16 @@ int BanknoteClassifier::main()
   
   if(theDebugOut.getNumberOfMessages() > numberOfMessages + 1)
   {
+      /*
     // messages were sent in this frame -> send process finished
     if(Blackboard::getInstance().exists("CameraInfo") &&
        ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).type == CameraInfo::CameraType::westCam)
-    { // lower camera -> process called 'd'
+    { // lower camera -> process called 'e'
       theDebugOut.patchMessage(numberOfMessages, 0, 'w');
       process = 'w';
     }
     else
+    */
       process = 'e';
     OUTPUT(idProcessFinished, bin, process);
     

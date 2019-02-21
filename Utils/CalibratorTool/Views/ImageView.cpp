@@ -256,7 +256,7 @@ QMenu* ImageWidget::createFileMenu() const
     std::string name;
   };
   
-  QMenu* menu = new QMenu(tr("&File"));
+  QMenu* menu = new QMenu(tr("&Debug Drawings"));
   
   std::vector<Drawing> representationDrawings;
   std::unordered_map<std::string, std::vector<Drawing> > modulesDrawings;

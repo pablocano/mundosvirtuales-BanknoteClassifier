@@ -42,6 +42,7 @@ using Vector6d = Eigen::Matrix<double, 6, 1>;
 using Vector6f = Eigen::Matrix<float, 6, 1>;
 using VectorXd = Eigen::VectorXd;
 using VectorXf = Eigen::VectorXf;
+using VectorXi = Eigen::VectorXi;
 
 using RowVector2d = Eigen::RowVector2d;
 using RowVector2f = Eigen::RowVector2f;
@@ -80,6 +81,7 @@ using MatrixXx3d = Eigen::Matrix<double, Eigen::Dynamic, 3>;
 using MatrixXx3f = Eigen::Matrix<float, Eigen::Dynamic, 3>;
 using MatrixXd = Eigen::MatrixXd;
 using MatrixXf = Eigen::MatrixXf;
+using MatrixXi = Eigen::MatrixXi;
 
 using Quaterniond = Eigen::Quaterniond;
 using Quaternionf = Eigen::Quaternionf;

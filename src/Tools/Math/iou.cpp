@@ -24,7 +24,7 @@ bool Line::isOnEdge(const Point &p) const
     Point pp1 = p - p1;
     Point pp2 = p - p2;
 
-    if (abs(pp1^pp2) < EPS &&
+    if (std::abs(pp1^pp2) < EPS &&
         pp1*pp2 < EPS)
         return true;
     else
@@ -58,7 +58,7 @@ Point Line::intersection(const Line &line, bool *bOnEdge) const
         Point a12 = p2 - p1;
         Point b12 = line.p2 - line.p1;
         double ang = angle(a12, b12);
-        if (ang < EPS || abs(3.141592653 - ang) < EPS)
+        if (ang < EPS || std::abs(3.141592653 - ang) < EPS)
             bOn = false; // Collinear!!
         else {
             // a1_x + m*a12_x = b1_x + n*b12_x
@@ -70,7 +70,7 @@ Point Line::intersection(const Line &line, bool *bOnEdge) const
             double abx = p1.x - line.p1.x;
             double aby = p1.y - line.p1.y;
             double ab = a12.x*b12.y - b12.x*a12.y;
-            assert(abs(ab)>EPS);
+            assert(std::abs(ab)>EPS);
             double n = (aby*a12.x - abx*a12.y) / ab;
             double m = (aby*b12.x - abx*b12.y) / ab;
 
@@ -155,7 +155,7 @@ double areaEx(const Vertexes &C)
             const Point &p2 = C.at(i + 1);
             Point p01 = p1 - p0;
             Point p02 = p2 - p0;
-            sArea += abs(p01^p02)*0.5;
+            sArea += std::abs(p01^p02)*0.5;
         }
     }
     return sArea;
@@ -171,7 +171,7 @@ WiseType whichWiseEx(const Vertexes &C)
         Point p2 = C.at(1);
         Point p01 = p1 - p0;
         Point p12 = p2 - p1;
-        if ((abs(p01^p12) <= EPS) && p01*p12 < 0.0)
+        if ((std::abs(p01^p12) <= EPS) && p01*p12 < 0.0)
             return NoneWise;
         else
             wiseType = (p01^p12) > 0.0 ? AntiClockWise : ClockWise;
@@ -183,8 +183,24 @@ WiseType whichWiseEx(const Vertexes &C)
             p2 = C.at((i+1)%N);
             p01 = p1 - p0;
             p12 = p2 - p1;
-            if ((p01^p12)*flip > 0.0 ||
-                ((abs(p01^p12) <= EPS) && p01*p12 < 0.0)) {
+
+            volatile Point q0 = p0;
+            volatile Point q1 = p1;
+            volatile Point q2 = p2;
+            volatile Point q01 = p01;
+            volatile Point q12 = p12;
+
+            double det = p01^p12;
+            double dot = p01*p12;
+
+            if((det)*flip > 0.0)
+                return NoneWise;
+
+            if((std::abs(det) <= EPS) && dot < 0.0)
+                return NoneWise;
+
+            if ((det)*flip > 0.0 ||
+                ((std::abs(det) <= EPS) && dot < 0.0)) {
                 return NoneWise;
             }
         }

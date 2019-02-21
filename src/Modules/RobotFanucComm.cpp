@@ -1,9 +1,10 @@
 #include "RobotFanucComm.h"
-#include "Tools/Fanuc/PacketEthernetIPFanuc.h"
-#include "Tools/Comm/Comm.h"
-#include "Tools/Math/Geometry.h"
+#include "Modules/RobotStatusProvider.h"
 #include "Representations/Classification.h"
-#include "Modules/RobotStatus.h"
+#include "Tools/Comm/Comm.h"
+#include "Tools/Fanuc/PacketEthernetIPFanuc.h"
+#include "Tools/Math/Geometry.h"
+
 
 MAKE_MODULE(RobotFanucComm, BanknoteClassifier)
 
@@ -38,7 +39,7 @@ void RobotFanucComm::update(DummyComm &dummyComm)
         pos.y = theWorldCoordinatesPose.translation.y();
         //pos.z = 0;
 
-        pos.z = 170;
+        pos.z = 250;
 
         pos.w = -180;
         pos.r = theWorldCoordinatesPose.rotation.toDegrees();
@@ -47,7 +48,7 @@ void RobotFanucComm::update(DummyComm &dummyComm)
         pos.Front = true;
 
         pos.copyToBuffer(packetWrite.payload);
-        packetWrite.sizePayload = sizeof(pos);
+        packetWrite.sizePayload = pos.getSize();
         SEND_MESSAGE(idEthernetIPFanuc, bin, packetWrite);
 
         PositionRegisterCartesian offset;
@@ -56,7 +57,7 @@ void RobotFanucComm::update(DummyComm &dummyComm)
         offset.y = theWorldCoordinatesPose.pickOffset.y();
 
         offset.copyToBuffer(offsetPick.payload);
-        offsetPick.sizePayload = sizeof(offset);
+        offsetPick.sizePayload = offset.getSize();
         SEND_MESSAGE(idEthernetIPFanuc, bin, offsetPick);
 
         PositionRegisterCartesian offset2;
@@ -65,7 +66,7 @@ void RobotFanucComm::update(DummyComm &dummyComm)
         offset2.y = theWorldCoordinatesPose.dropOffset.y();
 
         offset2.copyToBuffer(offsetDrop.payload);
-        offsetDrop.sizePayload = sizeof(offset2);
+        offsetDrop.sizePayload = offset2.getSize();
         SEND_MESSAGE(idEthernetIPFanuc, bin, offsetDrop);
 
         //Flag to indicate side of banknote
@@ -73,7 +74,7 @@ void RobotFanucComm::update(DummyComm &dummyComm)
 
         //Flag to advertise new pose
         SEND_MESSAGE(idEthernetIPFanuc, bin, statusPose);
-        RobotStatus::messageDelivered();
+        RobotStatusProvider::messageDelivered();
 
         PacketEthernetIPFanuc packetRead(READ_POS, idPacket, REG_POSITION_BANKNOTE);
         SEND_MESSAGE(idEthernetIPFanuc, bin, packetRead);

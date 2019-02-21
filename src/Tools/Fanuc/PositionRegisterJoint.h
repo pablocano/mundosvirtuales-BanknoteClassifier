@@ -5,6 +5,14 @@
 
 #define SIZE_JPOSITION_REGISTER 40
 
+#ifdef WINDOWS
+    #define STRUCT_PACKET struct
+    #pragma pack(push)
+    #pragma pack(1)
+#else
+    #define STRUCT_PACKET struct __attribute__((packed))
+#endif
+
 struct PositionRegisterJoint {
 
 	int16_t UT; // User Tool Number
@@ -21,3 +29,7 @@ struct PositionRegisterJoint {
 
 	std::string toString();
 };
+
+#ifdef WINDOWS
+    #pragma pack(pop)
+#endif

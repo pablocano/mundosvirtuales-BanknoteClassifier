@@ -2,7 +2,7 @@
 
 #include "Tools/Streams/AutoStreamable.h"
 #include <cstdint>
-#include <string>
+#include <string.h>
 
 #define SIZE_POSITION_REGISTER 44
 
@@ -36,6 +36,8 @@ struct PositionRegisterCartesian : public Streamable{
 
 	std::string toString();
 
+    int16_t getSize() {return SIZE_POSITION_REGISTER;}
+
     void serialize(In* in, Out* out) override
     {
         STREAM(UT);
@@ -64,3 +66,7 @@ struct PositionRegisterCartesian : public Streamable{
         }
     }
 };
+
+#ifdef WINDOWS
+    #pragma pack(pop)
+#endif

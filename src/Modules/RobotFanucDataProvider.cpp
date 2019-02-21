@@ -13,7 +13,7 @@ RobotFanucDataProvider::RobotFanucDataProvider() : robotModel()
 
 }
 
-void RobotFanucDataProvider::update(RobotFanuc& robotFanuc)
+void RobotFanucDataProvider::update(RobotFanucRegisters &robotFanuc)
 {
     robotFanuc.setRobotModel(this->robotModel);
 

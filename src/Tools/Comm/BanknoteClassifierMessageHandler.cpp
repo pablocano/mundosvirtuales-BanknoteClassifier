@@ -2,23 +2,27 @@
 #include "Tools/Fanuc/PacketEthernetIPFanuc.h"
 #include "Tools/Debugging/Debugging.h"
 #include "Tools/MessageQueue/MessageIDs.h"
-
-#include <string.h>
+#include "Platform/File.h"
 
 BanknoteClassifierMessageHandler* BanknoteClassifierMessageHandler::theInstance = 0;
 
 
 BanknoteClassifierMessageHandler::BanknoteClassifierMessageHandler(MessageQueue& in, MessageQueue& out) :
-in(in),
-out(out),
+theCommIn(in),
+theCommOut(out),
 lpSocket(nullptr)
 {
   theInstance = this;
+
+  InTextFile file(std::string(File::getBCDir()) + "/Config/comm.cfg");
+
+  file >> ip;
+
 }
 
-void BanknoteClassifierMessageHandler::start(const char* ip)
+void BanknoteClassifierMessageHandler::start()
 {
-	lpSocket = new SocketClientTcp(ip, PORT_SERVER);
+    lpSocket = new SocketClientTcp(ip.c_str(), PORT_SERVER);
 }
 
 BanknoteClassifierMessageHandler::~BanknoteClassifierMessageHandler()
@@ -29,71 +33,74 @@ BanknoteClassifierMessageHandler::~BanknoteClassifierMessageHandler()
   delete lpSocket;
 }
 
+bool BanknoteClassifierMessageHandler::handleMessage(InMessage &message)
+{
+    if (message.getMessageID() == idEthernetIPFanuc)
+    {
+        PacketEthernetIPFanuc packet;
+
+        message.bin >> packet;
+        int sizePayload = packet.getSize();
+        char *buffer = new char[sizePayload];
+
+        PacketEthernetIpFanucHeader header(packet);
+
+        memcpy(static_cast<void *>(buffer),reinterpret_cast<void *>(&header),
+                    SIZE_HEADER);
+        if (packet.sizePayload > 0 && packet.payload != nullptr)
+        {
+            memcpy(static_cast<void *>(buffer + SIZE_HEADER),reinterpret_cast<void *>(packet.payload),
+                   packet.sizePayload);
+        }
+
+        if (!lpSocket->send(buffer, sizePayload))
+        {
+            OUTPUT_ERROR("Could not send the message\n");
+            lpSocket->closeSocket();
+        }
+
+        delete[] buffer;
+    }
+}
+
 void BanknoteClassifierMessageHandler::send()
 {
-  if (out.isEmpty()) {
+  if (theCommOut.isEmpty()) {
     //Nothing to send
     return;
   }
 
-  for (int i = 0; i < out.getNumberOfMessages(); ++i)
-  {
-      out.queue.setSelectedMessageForReading(i);
-	  
-      if (out.queue.getMessageID() == idEthernetIPFanuc)
-	  {
-		  PacketEthernetIPFanuc packet;
+  theCommOut.handleAllMessages(*this);
 
-          out.in.bin >> packet;
-          int sizePayload = packet.getSize();
-          char *buffer = new char[sizePayload];
-          memcpy(static_cast<void *>(buffer),reinterpret_cast<void *>(&packet),
-                      SIZE_HEADER);
-          if (packet.sizePayload > 0 && packet.payload != nullptr)
-          {
-              memcpy(static_cast<void *>(buffer + SIZE_HEADER),reinterpret_cast<void *>(packet.payload),
-                     packet.sizePayload);
-          }
-
-          if (!lpSocket->send(buffer, sizePayload))
-		  {
-              printf("Could not send the message\n");
-              lpSocket->closeSocket();
-		  }
-
-          delete[] buffer;
-
-	  }
-  }
-
-  out.clear();
+  theCommOut.clear();
 }
 
 unsigned BanknoteClassifierMessageHandler::receive()
 {
 
-  in.clear();
+  theCommIn.clear();
   if(!lpSocket)
     return 0; // not started yet
 
-  PacketEthernetIPFanuc packet;
+  PacketEthernetIpFanucHeader header;
   
   unsigned totalSize = 0;
-  while(lpSocket->receive(reinterpret_cast<char *>(&packet), SIZE_HEADER, false))
+  while(lpSocket->receive(reinterpret_cast<char *>(&header), SIZE_HEADER, false))
   {
+      PacketEthernetIPFanuc packet(header);
 	  if (packet.isValid())
 	  {
           int sizePayload = packet.sizePayload;
           if(sizePayload == 0 || lpSocket->receive(reinterpret_cast<char *>(packet.payload), sizePayload, false))
           {
-            in.out.bin << packet;
-            in.queue.finishMessage(idEthernetIPFanuc);
             totalSize += packet.getSize();
           }
+          theCommIn.out.bin << packet;
+          theCommIn.out.finishMessage(idEthernetIPFanuc);
 	  }
 	  else
 	  {
-      OUTPUT_TEXT("Invalid packet");
+        OUTPUT_ERROR("Invalid packet");
 	  }
   }
 
@@ -102,5 +109,5 @@ unsigned BanknoteClassifierMessageHandler::receive()
 
 MessageQueue& BanknoteClassifierMessageHandler::getOutQueue()
 {
-  return theInstance->out;
+  return theInstance->theCommOut;
 }

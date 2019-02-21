@@ -5,7 +5,7 @@
 #include "Representations/FrameInfo.h"
 #include "Representations/Image.h"
 #include "Representations/Modeling/CameraPose.h"
-#include <opencv2/aruco/charuco.hpp>
+#include <opencv4/opencv2/aruco/charuco.hpp>
 
 MODULE(ArucoPoseEstimator,
 {,

@@ -1,9 +1,17 @@
 cmake_minimum_required(VERSION 3.1.0)
 
 PROJECT (BanknoteClassifier)
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 4 REQUIRED)
 find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+
+if(WIN32)
+        set(CMAKE_CXX_STANDARD 11)
+else()
+        set(CMAKE_CXX_FLAGS "-std=c++14")
+endif()
+
+#set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # Tell CMake to run moc when necessary:
 set(CMAKE_AUTOMOC ON)
@@ -25,24 +33,20 @@ endif(${BC_WITH_CUDA})
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 if(WINDOWS)
-	set(CMAKE_SHARED_LINKER_FLAGS "/API_EXPORT")
+    set(CMAKE_SHARED_LINKER_FLAGS "/API_EXPORT")
 endif()
 
 set( BANCKNOTECLASSIFIER_SRC
   src/Modules/ArucoPoseEstimator.cpp
   src/Modules/ArucoPoseEstimator.h
-  src/Modules/BlobProvider.cpp
-  src/Modules/BlobProvider.h
-  src/Modules/BlobFilter.cpp
-  src/Modules/BlobFilter.h
   src/Modules/BanknoteDetector.cpp
   src/Modules/BanknoteDetector.h
   src/Modules/BanknoteClassifierConfiguration.cpp
   src/Modules/BanknoteClassifierConfiguration.h
   src/Modules/BanknotePositionProvider.cpp
   src/Modules/BanknotePositionProvider.h
-  src/Modules/BanknoteClassifierProvider.cpp
-  src/Modules/BanknoteClassifierProvider.h
+  src/Modules/BanknoteTracker.cpp
+  src/Modules/BanknoteTracker.h
   src/Modules/Camera.cpp
   src/Modules/Camera.h
   src/Modules/CameraPoseFilter.cpp
@@ -57,20 +61,14 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/Equalizer.h
   src/Modules/FeaturesProvider.cpp
   src/Modules/FeaturesProvider.h
-  src/Modules/EstimatePosition.cpp
-  src/Modules/EstimatePosition.h
   src/Modules/OpencvCamera.cpp
   src/Modules/OpencvCamera.h
-  src/Modules/PreviousBanknoteCheck.cpp
-  src/Modules/PreviousBanknoteCheck.h
-  src/Modules/Regionizer.cpp
-  src/Modules/Regionizer.h
   src/Modules/RobotFanucDataProvider.cpp
   src/Modules/RobotFanucDataProvider.h
   src/Modules/RobotFanucComm.cpp
   src/Modules/RobotFanucComm.h
-  src/Modules/RobotStatus.cpp
-  src/Modules/RobotStatus.h
+  src/Modules/RobotStatusProvider.cpp
+  src/Modules/RobotStatusProvider.h
   src/Modules/Segmentator.cpp
   src/Modules/Segmentator.h
   src/Modules/WorldCoordinatesPoseProvider.cpp
@@ -87,40 +85,35 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Processes/BanknoteClassifier.h
   src/Processes/GripperCommunication.cpp
   src/Processes/GripperCommunication.h
-  src/Representations/Blobs.cpp
-  src/Representations/Blobs.h
+  src/Representations/BanknoteDetections.cpp
   src/Representations/BanknoteDetections.h
+  src/Representations/BanknoteDetectionParameters.h
+  src/Representations/BanknoteModel.cpp
+  src/Representations/BanknoteModel.h
   src/Representations/BanknotePosition.cpp
   src/Representations/BanknotePosition.h
   src/Representations/CameraInfo.cpp
   src/Representations/CameraInfo.h
   src/Representations/Classification.cpp
   src/Representations/Classification.h
-  src/Representations/ErrorInfo.cpp
-  src/Representations/ErrorInfo.h
   src/Representations/ColorModel/ColorCalibration.h
   src/Representations/ColorModel/ColorModel.cpp
   src/Representations/ColorModel/ColorModel.h
   src/Representations/Features.cpp
   src/Representations/Features.h
   src/Representations/FrameInfo.h
-  src/Representations/FieldDimensions.h
-  src/Representations/FieldDimensions.cpp
   src/Representations/GrabbingPosition.cpp
   src/Representations/GrabbingPosition.h
-  src/Representations/BanknoteClassifierMessages.h
   src/Representations/Image.cpp
   src/Representations/Image.h
   src/Representations/Modeling/WorldCoordinatesPose.cpp
   src/Representations/Modeling/WorldCoordinatesPose.h
   src/Representations/Modeling/CameraPose.cpp
   src/Representations/Modeling/CameraPose.h
-  src/Representations/Regions.cpp
-  src/Representations/Regions.h
-  src/Representations/RegState.cpp
-  src/Representations/RegState.h
-  src/Representations/RobotFanuc.cpp
-  src/Representations/RobotFanuc.h
+  src/Representations/RobotFanucStatus.cpp
+  src/Representations/RobotFanucStatus.h
+  src/Representations/RobotFanucRegisters.cpp
+  src/Representations/RobotFanucRegisters.h
   src/Tools/AlignedMemory.cpp
   src/Tools/AlignedMemory.h
   src/Tools/ColorClasses.cpp
@@ -244,6 +237,7 @@ set( CALIBRATOR_TOOL_SRC
   ${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.cpp
   #${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.h
   #${CALIBRATOR_SRC_DIR}/Synchronization.h
+  ${CALIBRATOR_SRC_DIR}/Representations/TimeInfo.cpp
   ${CALIBRATOR_SRC_DIR}/Views/ImageView.cpp
   #${CALIBRATOR_SRC_DIR}/Views/ImageView.h
   ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.cpp
@@ -269,6 +263,7 @@ set( CALIBRATOR_TOOL_SRC
   #${CALIBRATOR_SRC_DIR}/Views/DataView/TypeDeclarations.h
   ${CALIBRATOR_SRC_DIR}/Views/DataView/TypeDescriptor.cpp
   #${CALIBRATOR_SRC_DIR}/Views/DataView/TypeDescriptor.h
+  ${CALIBRATOR_SRC_DIR}/Views/TimeView.cpp
   ${CALIBRATOR_SRC_DIR}/Views/StatusView.cpp
   #${CALIBRATOR_SRC_DIR}/Views/StatusView.h
   ${CALIBRATOR_SRC_DIR}/Visualization/DebugDrawing.cpp
@@ -345,7 +340,8 @@ set( LIB_ETHERNETIP_FANUC_SRC
 
 set( LIB_ETHERNETIP_FANUC_INCLUDE
 	src/Tools/Fanuc/PositionRegisterCartesian.h
-	src/Tools/Fanuc/PositionRegisterJoint.h
+        src/Tools/Fanuc/PositionRegisterJoint.h
+        src/Tools/Fanuc/PacketEthernetIPFanuc.cpp
 	src/Tools/Fanuc/PacketEthernetIPFanuc.h
 	src/Tools/Comm/TcpComm.h
 )
@@ -367,12 +363,6 @@ source_group(Utils\\CalibratorTool\\Views\\ColorCalibrationView REGULAR_EXPRESSI
 source_group(Utils\\libqxt REGULAR_EXPRESSION "Utils/libqxt*")
 source_group(Utils\\VisionTool REGULAR_EXPRESSION "Utils/VisionTool/*")
 
-if(WIN32)
-	set(CMAKE_CXX_STANDARD 11)
-else()
-        set(CMAKE_CXX_FLAGS "-std=c++14")
-endif()
-
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 IF(WIN32)
@@ -388,31 +378,31 @@ add_definitions(-DOSX)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 add_definitions(-DLINUX)
 set(PYLON_ROOT /opt/pylon5)
-link_directories(${PYLON_ROOT}/lib64)
+link_directories(${PYLON_ROOT}/lib64 /usr/local/lib)
 ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_definitions(-DWINDOWS)
 set(PYLON_ROOT $ENV{PYLON_DEV_DIR})
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    link_directories(${PYLON_ROOT}/lib/x64)
+    link_directories(${PYLON_ROOT}/lib/x64 /usr/local/lib)
 elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    link_directories(${PYLON_ROOT}/lib/Win32)
+    link_directories(${PYLON_ROOT}/lib/Win32 /usr/local/lib)
 endif()
 
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 message(STATUS ${EIGEN3_INCLUDE_DIR})
 
-include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt)
+include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt /usr/local/incude)
 
 message(STATUS "Pylon dir find in " ${PYLON_ROOT})
 
 add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE} ${LIB_ETHERNETIP_FANUC_SRC} ${LIB_ETHERNETIP_FANUC_INCLUDE})
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1)
+target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1 geos)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1)
+target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1 geos)
 ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen PylonBase_MD_VC120_v5_1 PylonUtility_MD_VC120_v5_1 GenApi_MD_VC120_v3_0_Basler_pylon_v5_1 GCBase_MD_VC120_v3_1_Basler_pylon_v5_1 ws2_32 winmm)
+target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen PylonBase_MD_VC120_v5_1 PylonUtility_MD_VC120_v5_1 GenApi_MD_VC120_v3_0_Basler_pylon_v5_1 GCBase_MD_VC120_v3_1_Basler_pylon_v5_1 ws2_32 winmm geos)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 include_directories(${Qt5Widgets_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/Utils/qtpropertybrowser ${CMAKE_CURRENT_BINARY_DIR}/Utils/qtpropertybrowser ${CMAKE_CURRENT_SOURCE_DIR})

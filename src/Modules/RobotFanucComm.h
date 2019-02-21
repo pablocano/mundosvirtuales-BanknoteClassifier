@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Tools/ModuleManager/Module.h"
+#include "Representations/BanknotePosition.h"
 #include "Representations/FrameInfo.h"
 #include "Representations/Modeling/WorldCoordinatesPose.h"
-#include "Representations/RobotFanuc.h"
-#include "Representations/BanknotePosition.h"
+#include "Representations/RobotFanucRegisters.h"
 
 MODULE(RobotFanucComm,
 {,
