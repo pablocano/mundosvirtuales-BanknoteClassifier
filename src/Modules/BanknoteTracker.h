@@ -47,7 +47,7 @@ MODULE(BanknoteTracker,
      (float)(40.f) maxSameDetectionDistance,
      (Angle)(30_deg) maxSameDetectionAngle,
      (bool)(false) resizeImage,
-     (bool)(true) useRobotStates,
+     (bool)(false) useRobotStates,
     }),
 });
 
@@ -87,6 +87,7 @@ protected:
     BanknoteModel models[Classification::numOfRealBanknotes];
 
     std::vector<BanknoteDetection> detections;
+    BanknoteDetection lastBestDetecion;
     MatrixXi comparisons; /* current vs other. +1 current is over. -1 below. 0 unknown */
 
     int bestDetectionIndex;

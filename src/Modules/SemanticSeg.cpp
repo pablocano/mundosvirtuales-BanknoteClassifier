@@ -140,7 +140,7 @@ void SemanticSeg::update(SegmentedImage &image)
 
     // de aca en adelante todo es dibujos
     netOut.data = output.data<unsigned char>();
-    image = netOut;
+    image = netOut.clone();
 
     cv::Mat imageRGB(512,512, CV_8UC3);//(theImageBGR.rows,theImageBGR.cols, CV_8UC3);
     imageRGB=0;
@@ -152,4 +152,6 @@ void SemanticSeg::update(SegmentedImage &image)
 
     CvMat outSeg = imageRGB;
     DRAW_IMAGE("semanticSegmentation", outSeg, theFrameInfo.time);
+
+
 }

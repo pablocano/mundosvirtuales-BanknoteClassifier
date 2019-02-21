@@ -107,6 +107,16 @@ void BanknoteDetector::update(BanknoteDetections& repr)
 
     std::cout << "---------------------------" << std::endl;
 
+    for(int j = 0; j < theSegmentedImage.rows; j++)
+    {
+        for(int i = 0; i < theSegmentedImage.cols; i++)
+        {
+            unsigned char pixel = theSegmentedImage.at<unsigned char>(j, i);
+
+            ASSERT(pixel >= 0 && pixel < 6);
+        }
+    }
+
     auto start = std::chrono::system_clock::now();
 
     gpuImage.upload(theGrayScaleImage);
@@ -363,11 +373,19 @@ void BanknoteDetector::hough4d(const BanknoteModel& model, const BanknoteDetecti
         int ptx = (int) modelKeypoint.pt.x;
         int pty = (int) modelKeypoint.pt.y;
 
-        if(model.mask.at<unsigned char>(pty, ptx) == 0)
-            continue;
+        int ptx2 = int(imageKeypoint.pt.x) >> 1;
+        int pty2 = int(imageKeypoint.pt.y) >> 2;
 
-        //if(theSegmentedImage.at<unsigned char>(pty, ptx) != c)
+
+        //unsigned char maskValue = model.mask.at<unsigned char>(pty, ptx);
+
+        //if(maskValue == 0)
         //    continue;
+
+        unsigned char classValue = theSegmentedImage.at<unsigned char>(pty2, ptx2);
+
+        if(classValue != c)
+            continue;
 
         int i = floor(tx / params.houghXYStep + 0.5);
         int j = floor(ty / params.houghXYStep + 0.5);
