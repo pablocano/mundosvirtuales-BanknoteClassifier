@@ -31,6 +31,9 @@ void RobotFanucComm::update(DummyComm &dummyComm)
         //Cara o sello
         PacketEthernetIPFanuc side(WRITE_REG, idPacket, REG_STATUS_SIDE, RobotFanucComm::checkSide(theBanknotePositionFiltered.banknote));
 
+        //Zone
+        PacketEthernetIPFanuc zone(WRITE_REG, idPacket, REG_ZONE_GRIP, theWorldCoordinatesPose.zone);
+
 
         PositionRegisterCartesian pos;
 
@@ -71,6 +74,9 @@ void RobotFanucComm::update(DummyComm &dummyComm)
 
         //Flag to indicate side of banknote
         SEND_MESSAGE(idEthernetIPFanuc, bin, side);
+
+        //Flag to indicate grip zone
+        SEND_MESSAGE(idEthernetIPFanuc, bin, zone);
 
         //Flag to advertise new pose
         SEND_MESSAGE(idEthernetIPFanuc, bin, statusPose);

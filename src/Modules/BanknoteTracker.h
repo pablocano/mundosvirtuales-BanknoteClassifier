@@ -43,7 +43,7 @@ MODULE(BanknoteTracker,
      (float)(50.f) graspRadius,
      (float)(0.1f) graspStep,// In pixels. This should be computed with the real grasp radius and the camera transform
      (int)(15) graspMaxIter,
-     (float)(80) zoneLimit,
+     (float)(40) zoneLimit,
      (int)(20) maxDetections,
      (int)(5000) maxNoDetectionTime,
      (float)(5.f) minDifferentPointDistance,
