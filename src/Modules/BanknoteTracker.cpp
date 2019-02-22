@@ -263,7 +263,7 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
     {
         BanknoteDetection& detection = detections[i];
 
-        if(!detection.isDetectionValid())
+        if(!detection.isGraspingValid())
             continue;
 
         if(detection.layer != 0)
@@ -275,6 +275,12 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
 
         if(detection.areaRatio < 0.25f)
             continue;
+
+        if(basicColorTest(detection))
+        {
+            bestDetectionIndex = i;
+            break;
+        }
 
         if(detection.trainPoints.size() > bestDetectionNumberOfKeypoints)
         {
@@ -309,11 +315,15 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
              homography.at<float>(2, 2) = detection.transform(2, 2);
              position.homography = homography;
 
+             Vector3f trainGraspPoint = detection.transform.inverse() * detection.graspPoint;
+
+             float xOffset = trainGraspPoint.x() - models[detection.banknoteClass.result].corners[BanknoteModel::CornerID::MiddleMiddle].x();
+             position.zone = xOffset > zoneLimit ? BanknotePosition::GraspZone::Right : xOffset < -zoneLimit ? BanknotePosition::GraspZone::Left : BanknotePosition::GraspZone::Center;
+
              lastBestDetecion = detection;
 
              if(useRobotStates)
              {
-                 //state = TracketState::waitingForRobotIn;
                  detections[bestDetectionIndex] = BanknoteDetection();
              }
         }
@@ -562,6 +572,47 @@ void BanknoteTracker::evaluateGraspingScore(BanknoteDetection& detection, const 
 
 }
 
+bool BanknoteTracker::basicColorTest(const BanknoteDetection& detection)
+{
+    const BanknoteModel& model = models[detection.banknoteClass.result];
+
+    int hPoints = 10;
+    int vPoints = 4;
+
+    float hBorderRatio = 0.15;
+    float vBorderRatio = 0.15;
+
+    float minY = model.image.rows * vBorderRatio;
+    float minX = model.image.cols * hBorderRatio;
+
+    float yStep = model.image.rows * (1 - 2 * vBorderRatio) / vPoints;
+    float xStep = model.image.cols * (1 - 2 * hBorderRatio) / hPoints;
+
+
+    unsigned char expetectedClass = theSegmentedImage.map[detection.banknoteClass.result];
+
+    for(int j = 0; j < vPoints; j++)
+    {
+        for(int i = 0; i < hPoints; i++)
+        {
+            Vector3f p = Vector3f(minX + i*xStep, minY + j*yStep, 1.f);
+            p = detection.transform * p;
+
+            int py = int(p.y()) >> 2;
+            int px = int(p.x()) >> 1;
+
+            if(px < 0 || px > theSegmentedImage.cols || py < 0 || py > theSegmentedImage.rows)
+                return false;
+
+            unsigned char c = theSegmentedImage.at<unsigned char>(py, px);
+
+            if(c != expetectedClass)
+                return  false;
+        }
+    }
+
+    return true;
+}
 
 void BanknoteTracker::drawDetections()
 {

@@ -41,8 +41,9 @@ MODULE(BanknoteTracker,
     {,
      (BanknoteDetectionParameters[Classification::numOfRealBanknotes]) parameters,
      (float)(50.f) graspRadius,
-     (float)(0.2f) graspStep,// In pixels. This should be computed with the real grasp radius and the camera transform
-     (int)(7) graspMaxIter,
+     (float)(0.1f) graspStep,// In pixels. This should be computed with the real grasp radius and the camera transform
+     (int)(15) graspMaxIter,
+     (float)(80) zoneLimit,
      (int)(20) maxDetections,
      (int)(5000) maxNoDetectionTime,
      (float)(5.f) minDifferentPointDistance,
@@ -82,6 +83,7 @@ protected:
 
     void evaluateGraspingScore(BanknoteDetection& detection, const BanknoteModel& model, const BanknoteDetectionParameters& params);
     void checkAndFixGraspingScore(BanknoteDetection& detection, const BanknoteModel& model);
+    bool basicColorTest(const BanknoteDetection& detection);
 
     void keepOne(const BanknoteDetection& d1, int detectionIndex);
 

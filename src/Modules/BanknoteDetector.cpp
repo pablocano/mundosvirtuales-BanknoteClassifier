@@ -299,9 +299,9 @@ void BanknoteDetector::update(BanknoteDetections& repr)
         }
     }
 
-    drawAcceptedHough();
-    drawAcceptedRansac();
-    drawAcceptedHypotheses();
+    //drawAcceptedHough();
+    //drawAcceptedRansac();
+    //drawAcceptedHypotheses();
 }
 
 void BanknoteDetector::prepareImageMask()
@@ -457,6 +457,18 @@ void BanknoteDetector::hough4d(const BanknoteModel& model, const BanknoteDetecti
             getTransform(modelKeypoint, imageKeypoint, tx, ty, theta, e);
 
             if(e < params.minAllowedScale || e > params.maxAllowedScale)
+                continue;
+
+
+            int ptx = (int) modelKeypoint.pt.x;
+            int pty = (int) modelKeypoint.pt.y;
+
+            int ptx2 = int(imageKeypoint.pt.x) >> 1;
+            int pty2 = int(imageKeypoint.pt.y) >> 2;
+
+            unsigned char classValue = theSegmentedImage.at<unsigned char>(pty2, ptx2);
+
+            if(classValue != c)
                 continue;
 
             int i = floor(tx / params.houghXYStep + 0.5);
