@@ -258,6 +258,7 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
 
     /* Final decision */
     int bestDetectionNumberOfKeypoints = 0;
+    int bestDetectionLayer = maxDetections;
 
     for(int i = 0; i < maxDetections; i++)
     {
@@ -266,20 +267,24 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
         if(!detection.isGraspingValid())
             continue;
 
-        if(detection.layer != 0)
-            continue;
-
         if(theFrameInfo.getTimeSince(detection.firstTimeDetected) < 500
                 || theFrameInfo.getTimeSince(detection.lastTimeDetected) > 100)
             continue;
 
-        if(detection.areaRatio < 0.25f)
+        if(detection.areaRatio < 0.2f)
             continue;
 
         if(basicColorTest(detection))
         {
             bestDetectionIndex = i;
             break;
+        }
+
+        if(detection.layer < bestDetectionLayer)
+        {
+            bestDetectionIndex = i;
+            bestDetectionLayer = detection.layer;
+            bestDetectionNumberOfKeypoints = detection.trainPoints.size();
         }
 
         if(detection.trainPoints.size() > bestDetectionNumberOfKeypoints)
@@ -451,10 +456,16 @@ void BanknoteTracker::attemptMerge(const BanknoteDetection& d1, int detectionInd
     bool s2 = std::abs(angDiff) > std::abs(maxSameDetectionAngle);
     bool s3 = d1.banknoteClass.result != d2.banknoteClass.result;
 
-    if(s1 || s2 || s3)
+    if(s1 || s2)
     {
         keepOne(d1, detectionIndex);
         return;
+    }
+
+    if(s3)
+    {
+        OUTPUT_TEXT("Inconsisten detection. Destroying hypothesys");
+        d2 = BanknoteDetection();
     }
 
     /* This is a consistent detection. Merge points */
@@ -665,7 +676,7 @@ void BanknoteTracker::drawDetections()
         CIRCLE("module:BanknoteTracker:hypotheses_detections", detection.graspPoint.x(), detection.graspPoint.y(), graspRadius, 8, Drawings::solidPen, colorGrasp2, Drawings::noBrush, ColorRGBA::white);
         CIRCLE("module:BanknoteTracker:hypotheses_detections", detection.graspPoint.x(), detection.graspPoint.y(), graspRadius, 5, Drawings::solidPen, colorGrasp, Drawings::noBrush, color);
 
-        std::string detection_id_str = "Detection id: " + std::to_string(i);
+        std::string detection_id_str = "Detection id / class: " + std::to_string(i) + " / " + std::to_string(detection.banknoteClass.result);
         std::string hypotheses_points_str = "Points: " + std::to_string(detection.matches.size());
         std::string first_time_str = "Since first: " + std::to_string(theFrameInfo.getTimeSince(detection.firstTimeDetected));
         std::string last_time_str = "Since last: " + std::to_string(theFrameInfo.getTimeSince(detection.lastTimeDetected));

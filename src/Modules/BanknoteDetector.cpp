@@ -41,8 +41,8 @@ BanknoteDetector::BanknoteDetector():
     for(unsigned c = 0; c < Classification::numOfRealBanknotes; c++)
     {
         // Load models
-        cv::Mat image = cv::imread(std::string(File::getBCDir()) + "/Data/img_real/" + TypeRegistry::getEnumName((Classification::Banknote)c)  + ".jpg", cv::IMREAD_GRAYSCALE);
-        cv::Mat maskGrayscale = cv::imread(std::string(File::getBCDir()) + "/Data/img_real/" + TypeRegistry::getEnumName((Classification::Banknote) c) + "_mask.jpg", cv::IMREAD_GRAYSCALE);
+        cv::Mat image = cv::imread(std::string(File::getBCDir()) + "/Data/templates/" + TypeRegistry::getEnumName((Classification::Banknote)c)  + ".png", cv::IMREAD_GRAYSCALE);
+        cv::Mat maskGrayscale = cv::imread(std::string(File::getBCDir()) + "/Data/templates/" + TypeRegistry::getEnumName((Classification::Banknote) c) + "_mask.png", cv::IMREAD_GRAYSCALE);
 
         cv::Mat binaryMask(maskGrayscale.size(), CV_8U);
         cv::threshold(maskGrayscale, binaryMask, 127, 255, cv::THRESH_BINARY);
@@ -97,6 +97,7 @@ BanknoteDetector::BanknoteDetector():
 
 void BanknoteDetector::update(BanknoteDetections& repr)
 {
+    DECLARE_DEBUG_DRAWING("module:BanknoteDetections:enable", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteDetections:raw_keypoints", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteDetections:raw_detections", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteDetections:hough_keypoints", "drawingOnImage");
@@ -225,65 +226,6 @@ void BanknoteDetector::update(BanknoteDetections& repr)
     end = std::chrono::system_clock::now();
     std::cout << "NMS time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
 
-    start = end;
-
-    /*for(unsigned c1 = 0; c1 < Classification::numOfBanknotes - 2; c1++)
-    {
-        BanknoteModel& model1 = models[c1];
-        ClassDetections& detections1 = classDetections[c1];
-
-        for(int i1 = 0; i1 < detections1.detections.size(); i1++)
-        {
-            BanknoteDetection& d1 = detections1.detections[i1];
-
-            if(!d1.isDetectionValid())
-            {
-                d1.layer = -1;
-                continue;
-            }
-
-            for(unsigned c2 = 0; c2 < Classification::numOfBanknotes - 2; c2++)
-            {
-                BanknoteModel& model1 = models[c2];
-                ClassDetections& detections1 = classDetections[c2];
-
-                for(int i2 = 0; i2 < detections1.detections.size(); i2++)
-                {
-                    BanknoteDetection& d2 = detections1.detections[i2];
-
-                    if(c1 == c2 && i1 && i2)
-                        continue;
-
-                    if(!d2.isDetectionValid())
-                    {
-                        d2.layer = -1;
-                        continue;
-                    }
-
-                    compareForeground(d1, d2);
-                }
-            }
-
-        }
-    }*/
-
-    end = std::chrono::system_clock::now();
-    std::cout << "Foreground estimation time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
-
-    start = end;
-
-    for(unsigned c = 0; c < Classification::numOfBanknotes - 2; c++)
-    {
-       BanknoteModel& model = models[c];
-       ClassDetections& detections = classDetections[c];
-
-       //evaluateGraspingScore(model, parameters[c], detections);
-    }
-
-    end = std::chrono::system_clock::now();
-    std::cout << "Grasping Score time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
-
-
     repr.detections.clear();
 
     for(unsigned c = 0; c < Classification::numOfRealBanknotes; c++)
@@ -299,9 +241,13 @@ void BanknoteDetector::update(BanknoteDetections& repr)
         }
     }
 
-    //drawAcceptedHough();
-    //drawAcceptedRansac();
-    //drawAcceptedHypotheses();
+    COMPLEX_DRAWING("module:BanknoteDetections:enable")
+    {
+        drawAcceptedHough();
+        drawAcceptedRansac();
+        drawAcceptedHypotheses();
+    }
+
 }
 
 void BanknoteDetector::prepareImageMask()
@@ -409,10 +355,10 @@ void BanknoteDetector::hough4d(const BanknoteModel& model, const BanknoteDetecti
             int pty2 = int(imageKeypoint.pt.y) >> 2;
 
 
-            //unsigned char maskValue = model.mask.at<unsigned char>(pty, ptx);
+            unsigned char maskValue = model.mask.at<unsigned char>(pty, ptx);
 
-            //if(maskValue == 0)
-            //    continue;
+            if(maskValue == 0)
+                continue;
 
             unsigned char classValue = theSegmentedImage.at<unsigned char>(pty2, ptx2);
 
