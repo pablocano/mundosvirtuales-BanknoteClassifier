@@ -53,7 +53,7 @@ Camera::Camera() : cameraLoaded(false)
         // Load the persistent configuration
         //std::string nodeFile = std::string(File::getGTDir()) + "/Config/acA2040-90uc_22313646.pfs";
         //std::string nodeFile = std::string(File::getGTDir()) + "/Config/ubuntu_config.pfs";
-        std::string nodeFile = std::string(File::getBCDir()) + "/Config/prosegur_test.pfs";
+        std::string nodeFile = std::string(File::getBCDir()) + "/Config/2019-02-21.pfs";
         Pylon::CFeaturePersistence::Load(nodeFile.c_str(), &camera->GetNodeMap(), true );
 
         // Initialice the pixel converter

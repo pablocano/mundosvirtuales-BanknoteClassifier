@@ -123,6 +123,8 @@ void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinates
             return;
         }
 
+        worldCoordinatesPose.zone = theBanknotePositionFiltered.zone;
+
         worldCoordinatesPose.banknote = theBanknotePositionFiltered.banknote;
 
         std::stringstream ss;
