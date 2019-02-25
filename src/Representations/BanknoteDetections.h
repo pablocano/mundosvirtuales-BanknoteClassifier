@@ -29,7 +29,25 @@
 #include <geos/geom/Polygon.h>
 #include <geos/geom/GeometryFactory.h>
 
-
+/**
+ * @brief The BanknoteDetection class
+ *
+ * A Banknote representation is determined by a set of matches between que query image (the current image) and the train image (the template).
+ * (so we keep the matches and both the corresponding query and train keypoints).
+ *
+ * This class also contains a representation of the detection:
+ *     - The associated Banknote class
+ *     - The transformation from template to query coordinates.
+ *     - The pose of the template in query coordinates
+ *     - The grasp point in query coordinates
+ *     - The template corners in query coordinates
+ *
+ * Furthermore, this class also contains useful statistics of the detection
+ * to allow the system to choose the "best" detection at a certain point of time,
+ * a geometric representation of the detection to perform geometry analysis, and useful methods
+ * to update and compare the current detection during both detection and tracking steps
+ *
+ */
 class BanknoteDetection : public Streamable
 {
 public:
@@ -45,30 +63,29 @@ public:
     void estimateGraspPoint(const BanknoteModel& model, float graspingRadius);
     void checkAndFixGraspPoint(const BanknoteModel& model, float graspingRadius, int iter = 0);
 
-    std::vector<cv::DMatch> matches;
-
-    static geos::geom::GeometryFactory::Ptr factory;
-
-    /* Geometry objects representing the hypothesys */
-    std::shared_ptr<geos::geom::Polygon> geometry;
-    std::shared_ptr<geos::geom::Geometry> hull;
-
    /* Buffer with detection related points */
+    std::vector<cv::DMatch> matches;
    std::vector<Vector3f> queryPoints;
    std::vector<Vector3f> trainPoints;
-   Vector3f queryCorners[BanknoteModel::numOfRealCorners];
+
 
    /* Detection representation*/
    Classification banknoteClass;
    Matrix3f transform; /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
    Pose2f pose; /* 2D Pose of the hypothesis in the image space */
    Vector3f graspPoint; /* Estimated grasping point in query coordinates */
+   Vector3f queryCorners[BanknoteModel::numOfRealCorners];
+
+   /* Geometry objects representing the detection. Hopefully, all geos-related variables should be here to promove a separation of concerns */
+   static geos::geom::GeometryFactory::Ptr factory;
+   std::shared_ptr<geos::geom::Polygon> geometry; /* The template represented as a polygon in query coordinates */
+   std::shared_ptr<geos::geom::Geometry> hull; /* The convex hull of the query keypoints */
 
    /* Detection statistics */
    int ransacVotes;
    float graspScore;
    float maxIOU;
-   int layer; /* 0 = foreground. 1,2,... represent the "depth" */
+   int layer; /* -1 = invalid/non-computed, 0 = non occluded. 1,2,... represent the number of detections that occlude this detection */
    float areaRatio;
 
    /* Status flags */
@@ -80,12 +97,17 @@ public:
    int lastTimeDetected;
    int firstTimeDetected;
 
-   /* Experimental for O(n) addition */
+   /* Experimental for O(n) keypoint addition to this detection (useful during tracking) */
    MatrixXi trainKeypointStatus;
 
   virtual void serialize(In* in, Out* out);
 };
 
+/**
+ * @brief The BanknoteDetections class
+ *
+ * Just a BanknoteDetection vector
+ */
 STREAMABLE(BanknoteDetections,
 {,
     (std::vector<BanknoteDetection>) detections,

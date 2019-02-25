@@ -43,6 +43,15 @@ bool BanknoteDetection::isGraspingValid() const
     return isDetectionValid() && validGrasp;
 }
 
+/**
+ * @brief BanknoteDetection::iou
+ *
+ * This method calculates the Intersection Over Union (IOU) between this and other detection
+ * using the geos library.
+ *
+ * @param detection: The detection to which the current detection will be compared for IOU
+ * @return The IOU between this detection and the other detection
+ */
 float BanknoteDetection::iou(const BanknoteDetection& detection) const
 {
     if(!this->validTransform || !detection.validTransform || !this->geometry->intersects(detection.geometry.get()))
@@ -56,6 +65,14 @@ float BanknoteDetection::iou(const BanknoteDetection& detection) const
     return iou;
 }
 
+/**
+ * @brief BanknoteDetection::updateTransformation
+ *
+ * This method calculates the transform, the pose, the query corners, the geometry, and the hull of the detection
+ *
+ * @param model: The Banknote model
+ * @param params: The BanknoteDetectionParameters
+ */
 void BanknoteDetection::updateTransformation(const BanknoteModel& model, const BanknoteDetectionParameters& params)
 {
     static std::vector<cv::Point2f> query;
@@ -136,6 +153,19 @@ void BanknoteDetection::updateTransformation(const BanknoteModel& model, const B
     }
 }
 
+/**
+ * @brief BanknoteDetection::compare
+ *
+ * This method defines a relation between detections:
+ *
+ * This method returns:
+ * +1: This keypoint convex hull intersects with the other detection's geometry (template polygon). This is considered as 'this detection overlaps the other'
+ * -1: The other detection's keypoint convex hull intersects with the this detection's geometry (template polygon). This is considered as 'the other detection overlaps this'
+ * 0: Either a detection is invalid, they do not intersect, do not overlap, or both overlap.
+ *
+ * @param other: The detection to which this detection should be compared
+ * @return
+ */
 int BanknoteDetection::compare(const BanknoteDetection& other)
 {
     if(!geometry->intersects(other.geometry.get()))
@@ -155,6 +185,16 @@ int BanknoteDetection::compare(const BanknoteDetection& other)
     return result;
 }
 
+/**
+ * @brief BanknoteDetection::estimateGraspPoint:
+ *
+ * This method estimates the grasping point using the 2D median filter over the keypoints.
+ * It only uses keypoints that are valid to grasp (points which they grasping area is completely inside the template)
+ * so that the grasping point is valid.
+ *
+ * @param model: The banknote model
+ * @param graspRadius: the grasping radius
+ */
 void BanknoteDetection::estimateGraspPoint(const BanknoteModel& model, float graspRadius)
 {
     std::vector<Vector2f> inliers;
