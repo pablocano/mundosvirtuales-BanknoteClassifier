@@ -73,13 +73,17 @@ float BanknoteDetection::iou(const BanknoteDetection& detection) const
  * @param model: The Banknote model
  * @param params: The BanknoteDetectionParameters
  */
-void BanknoteDetection::updateTransformation(const BanknoteModel& model, const BanknoteDetectionParameters& params)
+void BanknoteDetection::updateTransformation(const BanknoteModel& model, const BanknoteDetectionParameters& params, bool useIntegrated)
 {
     static std::vector<cv::Point2f> query;
     static std::vector<cv::Point2f> train;
 
     query.reserve(1000);
     train.reserve(1000);
+
+    const std::vector<cv::DMatch>& matches = useIntegrated ? integratedMatches : currentMatches;
+    const std::vector<Vector3f>& queryPoints = useIntegrated ? integratedQueryPoints : currentQueryPoints;
+    const std::vector<Vector3f>& trainPoints = useIntegrated ? integratedTrainPoints : currentTrainPoints;
 
     query.resize(matches.size());
     train.resize(matches.size());
@@ -198,9 +202,9 @@ int BanknoteDetection::compare(const BanknoteDetection& other)
 void BanknoteDetection::estimateGraspPoint(const BanknoteModel& model, float graspRadius)
 {
     std::vector<Vector2f> inliers;
-    inliers.reserve(matches.size());
+    inliers.reserve(currentMatches.size());
 
-    for(const Vector3f& p : trainPoints)
+    for(const Vector3f& p : currentTrainPoints)
     {
         bool s1 = p.x() < graspRadius;
         bool s2 = p.x() > model.image.cols - graspRadius;
@@ -246,7 +250,7 @@ void BanknoteDetection::checkAndFixGraspPoint(const BanknoteModel& model, float 
 
     Vector3f trainGraspPoint = transform.inverse()*graspPoint;
 
-    for(const Vector3f& p : trainPoints)
+    for(const Vector3f& p : currentTrainPoints)
     {
         Vector2f diff = Vector2f(p.x() - trainGraspPoint.x(), p.y() - trainGraspPoint.y());
 
@@ -298,8 +302,10 @@ void BanknoteDetection::checkAndFixGraspPoint(const BanknoteModel& model, float 
 
 void BanknoteDetection::serialize(In *in, Out *out)
 {
-    STREAM(queryPoints);
-    STREAM(trainPoints);
+    STREAM(currentQueryPoints);
+    STREAM(currentTrainPoints);
+    STREAM(integratedQueryPoints);
+    STREAM(integratedTrainPoints);
     STREAM(queryCorners);
 
     /* Detection representation*/
