@@ -51,7 +51,7 @@ MODULE(BanknoteTracker,
      (float)(20.f) maxSameDetectionDistance,
      (Angle)(30_deg) maxSameDetectionAngle,
      (bool)(false) resizeImage,
-     (bool)(false) useRobotStates,
+     (bool)(true) useRobotStates,
     }),
 });
 

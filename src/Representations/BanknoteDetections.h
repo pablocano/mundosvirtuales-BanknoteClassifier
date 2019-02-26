@@ -58,15 +58,19 @@ public:
     bool isDetectionValid() const;
     bool isGraspingValid() const;
     float iou(const BanknoteDetection& detection) const;
-    void updateTransformation(const BanknoteModel& model, const BanknoteDetectionParameters& param);
+    void updateTransformation(const BanknoteModel& model, const BanknoteDetectionParameters& param, bool useIntegrated);
     int compare(const BanknoteDetection& other); /* 1. this is over. -1 other is over. 0 unknown */
     void estimateGraspPoint(const BanknoteModel& model, float graspingRadius);
     void checkAndFixGraspPoint(const BanknoteModel& model, float graspingRadius, int iter = 0);
 
-   /* Buffer with detection related points */
-    std::vector<cv::DMatch> matches;
-   std::vector<Vector3f> queryPoints;
-   std::vector<Vector3f> trainPoints;
+    /* Buffer with detection related points */
+    std::vector<cv::DMatch> currentMatches;
+    std::vector<Vector3f> currentQueryPoints;
+    std::vector<Vector3f> currentTrainPoints;
+
+    std::vector<cv::DMatch> integratedMatches;
+    std::vector<Vector3f> integratedQueryPoints;
+    std::vector<Vector3f> integratedTrainPoints;
 
 
    /* Detection representation*/
