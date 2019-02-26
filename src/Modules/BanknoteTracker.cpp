@@ -85,6 +85,8 @@ BanknoteTracker::~BanknoteTracker()
 
 void BanknoteTracker::update(BanknotePositionFiltered& position)
 {
+    DECLARE_DEBUG_DRAWING("module:BanknoteTracker:enable", "drawingOnImage");
+
     position.valid = false;
     bestDetectionIndex = -1;
 
@@ -137,7 +139,10 @@ void BanknoteTracker::update(BanknotePositionFiltered& position)
 
 
     /* Debug Drawings */
-    drawDetections();
+    COMPLEX_DRAWING("module:BanknoteTracker:enable")
+    {
+        drawDetections();
+    }
 }
 
 

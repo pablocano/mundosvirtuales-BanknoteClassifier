@@ -112,7 +112,7 @@ void SemanticSeg::colored(cv::Mat src, cv::Mat colored) //Obtener colores en RGB
 
 void SemanticSeg::update(SegmentedImage &image)
 {
-
+    DECLARE_DEBUG_DRAWING("module:SemanticSeg:enable", "drawingOnImage");
 
     cv::Mat netInput;
     cv::Mat resized;
@@ -143,16 +143,18 @@ void SemanticSeg::update(SegmentedImage &image)
     netOut.data = output.data<unsigned char>();
     image = netOut.clone();
 
-    cv::Mat imageRGB(512,512, CV_8UC3);//(theImageBGR.rows,theImageBGR.cols, CV_8UC3);
-    imageRGB=0;
-    cv::resize(netOut, netOut,  cv::Size(512,512), 0, 0, cv::INTER_NEAREST);//nearest para no perder la clase
-    colored(netOut,imageRGB);//obtener imagen coloreada
-    cv::Mat BGRResized;
-    cv::resize(theImageBGR, BGRResized,  cv::Size(512,512), 0, 0);
-    addWeighted( imageRGB, alpha, BGRResized, beta, 0.0, imageRGB);//superponer imagenes
+    COMPLEX_DRAWING("module:SemanticSeg:enable")
+    {
+        cv::Mat imageRGB(512,512, CV_8UC3);//(theImageBGR.rows,theImageBGR.cols, CV_8UC3);
+        imageRGB=0;
+        cv::resize(netOut, netOut,  cv::Size(512,512), 0, 0, cv::INTER_NEAREST);//nearest para no perder la clase
+        colored(netOut,imageRGB);//obtener imagen coloreada
+        cv::Mat BGRResized;
+        cv::resize(theImageBGR, BGRResized,  cv::Size(512,512), 0, 0);
+        addWeighted( imageRGB, alpha, BGRResized, beta, 0.0, imageRGB);//superponer imagenes
 
-    CvMat outSeg = imageRGB;
-    DRAW_IMAGE("semanticSegmentation", outSeg, theFrameInfo.time);
-
+        CvMat outSeg = imageRGB;
+        DRAW_IMAGE("semanticSegmentation", outSeg, theFrameInfo.time);
+    }
 
 }
