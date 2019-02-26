@@ -258,6 +258,7 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
 
     /* Final decision */
     int bestDetectionNumberOfKeypoints = 0;
+    int bestDetectionLayer = maxDetections;
 
     for(int i = 0; i < maxDetections; i++)
     {
@@ -266,14 +267,11 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
         if(!detection.isGraspingValid())
             continue;
 
-        if(detection.layer != 0)
-            continue;
-
         if(theFrameInfo.getTimeSince(detection.firstTimeDetected) < 500
-                || theFrameInfo.getTimeSince(detection.lastTimeDetected) > 100)
+                || theFrameInfo.getTimeSince(detection.lastTimeDetected) > 50)
             continue;
 
-        if(detection.areaRatio < 0.25f)
+        if(detection.areaRatio < 0.2f)
             continue;
 
         if(basicColorTest(detection))
@@ -282,10 +280,17 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
             break;
         }
 
-        if(detection.trainPoints.size() > bestDetectionNumberOfKeypoints)
+        if(detection.layer < bestDetectionLayer)
         {
             bestDetectionIndex = i;
-            bestDetectionNumberOfKeypoints = detection.trainPoints.size();
+            bestDetectionLayer = detection.layer;
+            bestDetectionNumberOfKeypoints = detection.integratedTrainPoints.size();
+        }
+
+        if(detection.integratedTrainPoints.size() > bestDetectionNumberOfKeypoints)
+        {
+            bestDetectionIndex = i;
+            bestDetectionNumberOfKeypoints = detection.integratedTrainPoints.size();
         }
     }
 
@@ -424,7 +429,11 @@ void BanknoteTracker::setNewDetection(int detectionIndex, const BanknoteDetectio
         comparisons(j, detectionIndex) = 0;
     }
 
-    for(const Vector3f& p : detection.trainPoints)
+    detection.integratedMatches = newDetection.currentMatches;
+    detection.integratedTrainPoints = newDetection.currentTrainPoints;
+    detection.integratedQueryPoints = newDetection.currentQueryPoints;
+
+    for(const Vector3f& p : detection.integratedTrainPoints)
     {
         int y = p.y();
         int x = p.x();
@@ -451,18 +460,29 @@ void BanknoteTracker::attemptMerge(const BanknoteDetection& d1, int detectionInd
     bool s2 = std::abs(angDiff) > std::abs(maxSameDetectionAngle);
     bool s3 = d1.banknoteClass.result != d2.banknoteClass.result;
 
-    if(s1 || s2 || s3)
+    if(s1 || s2)
     {
         keepOne(d1, detectionIndex);
         return;
     }
 
-    /* This is a consistent detection. Merge points */
-    int numberOfOldPoints = d2.matches.size();
-    int numberOfDetectionPoints = d1.matches.size();
-    d2.matches.reserve(numberOfDetectionPoints + numberOfOldPoints);
-    d2.queryPoints.reserve(numberOfDetectionPoints + numberOfOldPoints);
-    d2.trainPoints.reserve(numberOfDetectionPoints + numberOfOldPoints);
+    if(s3)
+    {
+        OUTPUT_TEXT("Inconsisten detection. Destroying hypothesys");
+        d2 = BanknoteDetection();
+        return;
+    }
+
+    /* This is a consistent detection. Merge new current points into the old integrated */
+    int numberOfOldPoints = d2.integratedMatches.size();
+    int numberOfDetectionPoints = d1.currentMatches.size();
+    d2.integratedMatches.reserve(numberOfDetectionPoints + numberOfOldPoints);
+    d2.integratedQueryPoints.reserve(numberOfDetectionPoints + numberOfOldPoints);
+    d2.integratedTrainPoints.reserve(numberOfDetectionPoints + numberOfOldPoints);
+
+    d2.currentMatches = d1.currentMatches;
+    d2.currentQueryPoints = d1.currentQueryPoints;
+    d2.currentTrainPoints = d1.currentTrainPoints;
 
     bool newPoints = false;
 
@@ -470,8 +490,8 @@ void BanknoteTracker::attemptMerge(const BanknoteDetection& d1, int detectionInd
 
     for(int i1 = 0; i1 < numberOfDetectionPoints; i1++)
     {   
-        int y = d1.trainPoints[i1].y();
-        int x = d1.trainPoints[i1].x();
+        int y = d1.currentTrainPoints[i1].y();
+        int x = d1.currentTrainPoints[i1].x();
 
         int cols = d2.trainKeypointStatus.cols();
         int rows = d2.trainKeypointStatus.rows();
@@ -487,9 +507,9 @@ void BanknoteTracker::attemptMerge(const BanknoteDetection& d1, int detectionInd
 
         if(d2.trainKeypointStatus(y, x) == 0)
         {
-            d2.matches.push_back(d1.matches[i1]);
-            d2.queryPoints.push_back(d1.queryPoints[i1]);
-            d2.trainPoints.push_back(d1.trainPoints[i1]);
+            d2.integratedMatches.push_back(d1.currentMatches[i1]);
+            d2.integratedQueryPoints.push_back(d1.currentQueryPoints[i1]);
+            d2.integratedTrainPoints.push_back(d1.currentTrainPoints[i1]);
 
             d2.trainKeypointStatus(y, x) = 1;
 
@@ -500,7 +520,7 @@ void BanknoteTracker::attemptMerge(const BanknoteDetection& d1, int detectionInd
     if(newPoints)
     {
         d2.layer = -1; // we need to calculate the layer again an also the grasping point
-        d2.updateTransformation(models[d2.banknoteClass.result], parameters[d2.banknoteClass.result]);
+        d2.updateTransformation(models[d2.banknoteClass.result], parameters[d2.banknoteClass.result], true);
     }
 
     d2.lastTimeDetected = theFrameInfo.time;
@@ -517,11 +537,13 @@ void BanknoteTracker::keepOne(const BanknoteDetection& d1, int detectionIndex)
     int seenTime = d2.lastTimeDetected - d2.firstTimeDetected;
     ASSERT(seenTime >= 0);
 
-    if(seenTime < 2000)
+    /*if(seenTime < 2000) --> currently we only keep the newest no matter what
     {
-        if(d1.matches.size() > 1.2f * d2.matches.size() || d1.hull->getArea() > 1.2f * d2.hull->getArea())
+        if(d1.currentMatches.size() > 0.6f * d2.integratedMatches.size() || d1.hull->getArea() > 1.2f * d2.hull->getArea())
             setNewDetection(detectionIndex, d1);
-    }
+    }*/
+
+    setNewDetection(detectionIndex, d1);
 
     d2.firstTimeDetected = theFrameInfo.time;
     d2.lastTimeDetected = theFrameInfo.time;
@@ -530,9 +552,9 @@ void BanknoteTracker::keepOne(const BanknoteDetection& d1, int detectionIndex)
 void BanknoteTracker::evaluateGraspingScore(BanknoteDetection& detection, const BanknoteModel& model, const BanknoteDetectionParameters& params)
 {
     std::vector<Vector2f> inliers;
-    inliers.reserve(detection.matches.size());
+    inliers.reserve(detection.currentMatches.size());
 
-    for(const Vector3f& p : detection.trainPoints)
+    for(const Vector3f& p : detection.currentTrainPoints)
     {
         bool s1 = p.x() < graspRadius;
         bool s2 = p.x() > model.image.cols - graspRadius;
@@ -634,7 +656,7 @@ void BanknoteTracker::drawDetections()
         ColorRGBA color = debugColors[detection.banknoteClass.result];
         const Vector3f (&corners)[BanknoteModel::CornerID::numOfCornerIDs] = model.corners;
 
-        for(const Vector3f& p : detection.queryPoints)
+        for(const Vector3f& p : detection.integratedQueryPoints)
         {
             CIRCLE("module:BanknoteTracker:hypotheses_detections", p.x(), p.y(), 8, 1, Drawings::solidPen, ColorRGBA::white, Drawings::solidBrush, ColorRGBA::white);
             CIRCLE("module:BanknoteTracker:hypotheses_detections", p.x(), p.y(), 5, 1, Drawings::solidPen, color, Drawings::solidBrush, color);
@@ -665,8 +687,8 @@ void BanknoteTracker::drawDetections()
         CIRCLE("module:BanknoteTracker:hypotheses_detections", detection.graspPoint.x(), detection.graspPoint.y(), graspRadius, 8, Drawings::solidPen, colorGrasp2, Drawings::noBrush, ColorRGBA::white);
         CIRCLE("module:BanknoteTracker:hypotheses_detections", detection.graspPoint.x(), detection.graspPoint.y(), graspRadius, 5, Drawings::solidPen, colorGrasp, Drawings::noBrush, color);
 
-        std::string detection_id_str = "Detection id: " + std::to_string(i);
-        std::string hypotheses_points_str = "Points: " + std::to_string(detection.matches.size());
+        std::string detection_id_str = "Detection id / class: " + std::to_string(i) + " / " + std::to_string(detection.banknoteClass.result);
+        std::string hypotheses_points_str = "Points: " + std::to_string(detection.integratedMatches.size());
         std::string first_time_str = "Since first: " + std::to_string(theFrameInfo.getTimeSince(detection.firstTimeDetected));
         std::string last_time_str = "Since last: " + std::to_string(theFrameInfo.getTimeSince(detection.lastTimeDetected));
         std::string grasp_str = "Grasp: " + std::to_string(detection.validGrasp);
@@ -703,7 +725,7 @@ void BanknoteTracker::drawDetections()
     ColorRGBA color = debugColors[detection.banknoteClass.result];
     const Vector3f (&corners)[BanknoteModel::CornerID::numOfCornerIDs] = model.corners;
 
-    for(const Vector3f& p : detection.queryPoints)
+    for(const Vector3f& p : detection.integratedQueryPoints)
     {
         CIRCLE("module:BanknoteTracker:best_detections", p.x(), p.y(), 8, 1, Drawings::solidPen, ColorRGBA::white, Drawings::solidBrush, ColorRGBA::white);
         CIRCLE("module:BanknoteTracker:best_detections", p.x(), p.y(), 5, 1, Drawings::solidPen, color, Drawings::solidBrush, color);

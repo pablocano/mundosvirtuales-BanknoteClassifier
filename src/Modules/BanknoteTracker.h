@@ -40,15 +40,15 @@ MODULE(BanknoteTracker,
     DEFINES_PARAMETERS(
     {,
      (BanknoteDetectionParameters[Classification::numOfRealBanknotes]) parameters,
-     (float)(50.f) graspRadius,
+     (float)(50.f) graspRadius, /* the smaller coso is exactly 40 pixels */
      (float)(0.1f) graspStep,// In pixels. This should be computed with the real grasp radius and the camera transform
-     (int)(15) graspMaxIter,
+     (int)(10) graspMaxIter,
      (float)(40) zoneLimit,
      (int)(20) maxDetections,
      (int)(5000) maxNoDetectionTime,
      (float)(5.f) minDifferentPointDistance,
      (float)(0.7f) minSameDetectionIOU,
-     (float)(40.f) maxSameDetectionDistance,
+     (float)(20.f) maxSameDetectionDistance,
      (Angle)(30_deg) maxSameDetectionAngle,
      (bool)(false) resizeImage,
      (bool)(true) useRobotStates,

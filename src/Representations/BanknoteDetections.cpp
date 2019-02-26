@@ -43,6 +43,15 @@ bool BanknoteDetection::isGraspingValid() const
     return isDetectionValid() && validGrasp;
 }
 
+/**
+ * @brief BanknoteDetection::iou
+ *
+ * This method calculates the Intersection Over Union (IOU) between this and other detection
+ * using the geos library.
+ *
+ * @param detection: The detection to which the current detection will be compared for IOU
+ * @return The IOU between this detection and the other detection
+ */
 float BanknoteDetection::iou(const BanknoteDetection& detection) const
 {
     if(!this->validTransform || !detection.validTransform || !this->geometry->intersects(detection.geometry.get()))
@@ -56,13 +65,25 @@ float BanknoteDetection::iou(const BanknoteDetection& detection) const
     return iou;
 }
 
-void BanknoteDetection::updateTransformation(const BanknoteModel& model, const BanknoteDetectionParameters& params)
+/**
+ * @brief BanknoteDetection::updateTransformation
+ *
+ * This method calculates the transform, the pose, the query corners, the geometry, and the hull of the detection
+ *
+ * @param model: The Banknote model
+ * @param params: The BanknoteDetectionParameters
+ */
+void BanknoteDetection::updateTransformation(const BanknoteModel& model, const BanknoteDetectionParameters& params, bool useIntegrated)
 {
     static std::vector<cv::Point2f> query;
     static std::vector<cv::Point2f> train;
 
     query.reserve(1000);
     train.reserve(1000);
+
+    const std::vector<cv::DMatch>& matches = useIntegrated ? integratedMatches : currentMatches;
+    const std::vector<Vector3f>& queryPoints = useIntegrated ? integratedQueryPoints : currentQueryPoints;
+    const std::vector<Vector3f>& trainPoints = useIntegrated ? integratedTrainPoints : currentTrainPoints;
 
     query.resize(matches.size());
     train.resize(matches.size());
@@ -136,6 +157,19 @@ void BanknoteDetection::updateTransformation(const BanknoteModel& model, const B
     }
 }
 
+/**
+ * @brief BanknoteDetection::compare
+ *
+ * This method defines a relation between detections:
+ *
+ * This method returns:
+ * +1: This keypoint convex hull intersects with the other detection's geometry (template polygon). This is considered as 'this detection overlaps the other'
+ * -1: The other detection's keypoint convex hull intersects with the this detection's geometry (template polygon). This is considered as 'the other detection overlaps this'
+ * 0: Either a detection is invalid, they do not intersect, do not overlap, or both overlap.
+ *
+ * @param other: The detection to which this detection should be compared
+ * @return
+ */
 int BanknoteDetection::compare(const BanknoteDetection& other)
 {
     if(!geometry->intersects(other.geometry.get()))
@@ -155,12 +189,22 @@ int BanknoteDetection::compare(const BanknoteDetection& other)
     return result;
 }
 
+/**
+ * @brief BanknoteDetection::estimateGraspPoint:
+ *
+ * This method estimates the grasping point using the 2D median filter over the keypoints.
+ * It only uses keypoints that are valid to grasp (points which they grasping area is completely inside the template)
+ * so that the grasping point is valid.
+ *
+ * @param model: The banknote model
+ * @param graspRadius: the grasping radius
+ */
 void BanknoteDetection::estimateGraspPoint(const BanknoteModel& model, float graspRadius)
 {
     std::vector<Vector2f> inliers;
-    inliers.reserve(matches.size());
+    inliers.reserve(currentMatches.size());
 
-    for(const Vector3f& p : trainPoints)
+    for(const Vector3f& p : currentTrainPoints)
     {
         bool s1 = p.x() < graspRadius;
         bool s2 = p.x() > model.image.cols - graspRadius;
@@ -206,7 +250,7 @@ void BanknoteDetection::checkAndFixGraspPoint(const BanknoteModel& model, float 
 
     Vector3f trainGraspPoint = transform.inverse()*graspPoint;
 
-    for(const Vector3f& p : trainPoints)
+    for(const Vector3f& p : currentTrainPoints)
     {
         Vector2f diff = Vector2f(p.x() - trainGraspPoint.x(), p.y() - trainGraspPoint.y());
 
@@ -258,8 +302,10 @@ void BanknoteDetection::checkAndFixGraspPoint(const BanknoteModel& model, float 
 
 void BanknoteDetection::serialize(In *in, Out *out)
 {
-    STREAM(queryPoints);
-    STREAM(trainPoints);
+    STREAM(currentQueryPoints);
+    STREAM(currentTrainPoints);
+    STREAM(integratedQueryPoints);
+    STREAM(integratedTrainPoints);
     STREAM(queryCorners);
 
     /* Detection representation*/

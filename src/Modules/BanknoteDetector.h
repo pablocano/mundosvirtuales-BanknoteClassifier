@@ -48,14 +48,20 @@ MODULE(BanknoteDetector,
     PROVIDES(BanknoteDetections),
     DEFINES_PARAMETERS(
     {,
-        (BanknoteDetectionParameters[Classification::numOfRealBanknotes]) parameters,
-        (int)(320) minMaskX,
+        (BanknoteDetectionParameters[Classification::numOfRealBanknotes]) parameters, /* Just in case, each class has its own set of parameters. This should allow a fine-grained  tuning capability */
+        (int)(320) minMaskX, /* These hardcoded mask coordinates indicate where in the image, processing should be perfomed. Ideally, the FOV of the camera should match the working area, but untill that happens, please cope up with the masks */
         (int)(1600) maxMaskX,
         (int)(140) minMaskY,
         (int)(1900) maxMaskY,
     }),
 });
 
+
+/**
+ * @brief The ClassDetections class
+ *
+ * This class represents a buffer for partial detections of a particular Banknote class
+ */
 class ClassDetections
 {
   public:
@@ -69,7 +75,9 @@ class ClassDetections
 };
 
 
-
+/**
+ * @brief The BanknoteDetector class
+ */
 class BanknoteDetector : public BanknoteDetectorBase
 {
 public:

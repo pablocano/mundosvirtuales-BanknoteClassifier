@@ -41,8 +41,8 @@ BanknoteDetector::BanknoteDetector():
     for(unsigned c = 0; c < Classification::numOfRealBanknotes; c++)
     {
         // Load models
-        cv::Mat image = cv::imread(std::string(File::getBCDir()) + "/Data/img_real/" + TypeRegistry::getEnumName((Classification::Banknote)c)  + ".jpg", cv::IMREAD_GRAYSCALE);
-        cv::Mat maskGrayscale = cv::imread(std::string(File::getBCDir()) + "/Data/img_real/" + TypeRegistry::getEnumName((Classification::Banknote) c) + "_mask.jpg", cv::IMREAD_GRAYSCALE);
+        cv::Mat image = cv::imread(std::string(File::getBCDir()) + "/Data/templates/" + TypeRegistry::getEnumName((Classification::Banknote)c)  + ".png", cv::IMREAD_GRAYSCALE);
+        cv::Mat maskGrayscale = cv::imread(std::string(File::getBCDir()) + "/Data/templates/" + TypeRegistry::getEnumName((Classification::Banknote) c) + "_mask.png", cv::IMREAD_GRAYSCALE);
 
         cv::Mat binaryMask(maskGrayscale.size(), CV_8U);
         cv::threshold(maskGrayscale, binaryMask, 127, 255, cv::THRESH_BINARY);
@@ -97,6 +97,7 @@ BanknoteDetector::BanknoteDetector():
 
 void BanknoteDetector::update(BanknoteDetections& repr)
 {
+    DECLARE_DEBUG_DRAWING("module:BanknoteDetections:enable", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteDetections:raw_keypoints", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteDetections:raw_detections", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteDetections:hough_keypoints", "drawingOnImage");
@@ -225,65 +226,6 @@ void BanknoteDetector::update(BanknoteDetections& repr)
     end = std::chrono::system_clock::now();
     std::cout << "NMS time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
 
-    start = end;
-
-    /*for(unsigned c1 = 0; c1 < Classification::numOfBanknotes - 2; c1++)
-    {
-        BanknoteModel& model1 = models[c1];
-        ClassDetections& detections1 = classDetections[c1];
-
-        for(int i1 = 0; i1 < detections1.detections.size(); i1++)
-        {
-            BanknoteDetection& d1 = detections1.detections[i1];
-
-            if(!d1.isDetectionValid())
-            {
-                d1.layer = -1;
-                continue;
-            }
-
-            for(unsigned c2 = 0; c2 < Classification::numOfBanknotes - 2; c2++)
-            {
-                BanknoteModel& model1 = models[c2];
-                ClassDetections& detections1 = classDetections[c2];
-
-                for(int i2 = 0; i2 < detections1.detections.size(); i2++)
-                {
-                    BanknoteDetection& d2 = detections1.detections[i2];
-
-                    if(c1 == c2 && i1 && i2)
-                        continue;
-
-                    if(!d2.isDetectionValid())
-                    {
-                        d2.layer = -1;
-                        continue;
-                    }
-
-                    compareForeground(d1, d2);
-                }
-            }
-
-        }
-    }*/
-
-    end = std::chrono::system_clock::now();
-    std::cout << "Foreground estimation time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
-
-    start = end;
-
-    for(unsigned c = 0; c < Classification::numOfBanknotes - 2; c++)
-    {
-       BanknoteModel& model = models[c];
-       ClassDetections& detections = classDetections[c];
-
-       //evaluateGraspingScore(model, parameters[c], detections);
-    }
-
-    end = std::chrono::system_clock::now();
-    std::cout << "Grasping Score time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
-
-
     repr.detections.clear();
 
     for(unsigned c = 0; c < Classification::numOfRealBanknotes; c++)
@@ -299,9 +241,13 @@ void BanknoteDetector::update(BanknoteDetections& repr)
         }
     }
 
-    //drawAcceptedHough();
-    //drawAcceptedRansac();
-    //drawAcceptedHypotheses();
+    COMPLEX_DRAWING("module:BanknoteDetections:enable")
+    {
+        drawAcceptedHough();
+        drawAcceptedRansac();
+        drawAcceptedHypotheses();
+    }
+
 }
 
 void BanknoteDetector::prepareImageMask()
@@ -409,10 +355,10 @@ void BanknoteDetector::hough4d(const BanknoteModel& model, const BanknoteDetecti
             int pty2 = int(imageKeypoint.pt.y) >> 2;
 
 
-            //unsigned char maskValue = model.mask.at<unsigned char>(pty, ptx);
+            unsigned char maskValue = model.mask.at<unsigned char>(pty, ptx);
 
-            //if(maskValue == 0)
-            //    continue;
+            if(maskValue == 0)
+                continue;
 
             unsigned char classValue = theSegmentedImage.at<unsigned char>(pty2, ptx2);
 
@@ -529,15 +475,15 @@ void BanknoteDetector::ransac(
             detections.detections.push_back(BanknoteDetection());
 
             BanknoteDetection& newDetection = detections.detections.back();
-            newDetection.matches.reserve(consensus);
-            newDetection.queryPoints.reserve(consensus);
-            newDetection.trainPoints.reserve(consensus);
+            newDetection.currentMatches.reserve(consensus);
+            newDetection.currentQueryPoints.reserve(consensus);
+            newDetection.currentTrainPoints.reserve(consensus);
 
 
-            getRansacInliers(transform, detections.houghFilteredMatches, model.features.keypoints, imageKeypoints, params.ransacMaxError, params.ransacMaxError2, acceptedStatus, newDetection.matches, newDetection.trainPoints, newDetection.queryPoints);
+            getRansacInliers(transform, detections.houghFilteredMatches, model.features.keypoints, imageKeypoints, params.ransacMaxError, params.ransacMaxError2, acceptedStatus, newDetection.currentMatches, newDetection.currentTrainPoints, newDetection.currentQueryPoints);
             newDetection.ransacVotes = consensus;
 
-            assert(newDetection.ransacVotes == newDetection.matches.size());
+            assert(newDetection.ransacVotes == newDetection.currentMatches.size());
         }
     }
 }
@@ -641,7 +587,7 @@ void BanknoteDetector::estimateTransforms(const BanknoteModel& model, const Bank
 {
     for(BanknoteDetection& d : detections.detections)
     {
-        d.updateTransformation(model, params);
+        d.updateTransformation(model, params, false);
     }
 }
 
@@ -685,66 +631,6 @@ void BanknoteDetector::nonMaximumSupression(const BanknoteModel& model, const Ba
         }
     }
 }
-
-void BanknoteDetector::compareForeground(BanknoteDetection& d1, BanknoteDetection& d2)
-{
-    if(!d1.geometry->intersects(d2.geometry.get()))
-        return;
-
-    bool oneOverTwo = false;
-    bool twoOverOne = false;
-
-    int oneOverTwoPoints = 0;
-    int twoOverOnePoints = 0;
-
-
-    for(const cv::DMatch& match : d1.matches)
-    {
-        const cv::Point2d& p = imageKeypoints[match.queryIdx].pt;
-
-        geos::geom::Coordinate coordinate(p.x, p.y);
-        aux_point = factory->createPoint(coordinate);
-
-        if(d2.geometry->contains(aux_point))
-        {
-            oneOverTwo = true;
-            oneOverTwoPoints++;
-
-            d2.layer++;
-            delete aux_point;
-            return;
-        }
-
-        delete aux_point;
-    }
-
-    for(const cv::DMatch& match : d2.matches)
-    {
-        const cv::Point2d& p = imageKeypoints[match.queryIdx].pt;
-
-        geos::geom::Coordinate coordinate(p.x, p.y);
-        aux_point = factory->createPoint(coordinate);
-
-        if(d1.geometry->contains(aux_point))
-        {
-            twoOverOne = true;
-            twoOverOnePoints++;
-
-            d1.layer++;
-            delete aux_point;
-            return;
-        }
-
-        delete aux_point;
-    }
-
-    if(oneOverTwo && oneOverTwoPoints > twoOverOnePoints)
-        d2.layer++;
-    else if(twoOverOne && twoOverOnePoints > oneOverTwoPoints)
-        d1.layer++;
-
-}
-
 
 void BanknoteDetector::drawAcceptedHough()
 {
@@ -805,7 +691,7 @@ void BanknoteDetector::drawAcceptedRansac()
 
         for(BanknoteDetection& h : detections.detections)
         {
-            for(const cv::DMatch& match : h.matches)
+            for(const cv::DMatch& match : h.currentMatches)
             {
                 cv::KeyPoint queryKeypoint = imageKeypoints[match.queryIdx];
                 cv::KeyPoint trainKeypoint = model.features.keypoints[match.trainIdx];
@@ -857,7 +743,7 @@ void BanknoteDetector::drawAcceptedHypotheses()
             //if(!h.isValid())
             //    continue;
 
-            for(const Vector3f& p : h.queryPoints)
+            for(const Vector3f& p : h.currentQueryPoints)
             {
                 CIRCLE("module:BanknoteDetections:hypotheses_detections", p.x(), p.y(), 8, 1, Drawings::solidPen, ColorRGBA::white, Drawings::solidBrush, ColorRGBA::white);
                 CIRCLE("module:BanknoteDetections:hypotheses_detections", p.x(), p.y(), 5, 1, Drawings::solidPen, color, Drawings::solidBrush, color);
@@ -889,7 +775,7 @@ void BanknoteDetector::drawAcceptedHypotheses()
             //CIRCLE("module:BanknoteDetections:hypotheses_detections", h.graspPoint.x(), h.graspPoint.y(), params.graspRadius, 5, Drawings::solidPen, colorGrasp, Drawings::noBrush, color);
 
             std::string ransac_votes_str = "RANSAC Votes: " + std::to_string(h.ransacVotes);
-            std::string hypotheses_points_str = "Points: " + std::to_string(h.matches.size());
+            std::string hypotheses_points_str = "Points: " + std::to_string(h.currentMatches.size());
             std::string transform_str = "Transform: " + std::to_string(h.validTransform);
             std::string nms_str = "NMS: " + std::to_string(h.validNms) + " | Max IOU: " + std::to_string(h.maxIOU);
             std::string grasp_str = "Grasp: " + std::to_string(h.validGrasp);
