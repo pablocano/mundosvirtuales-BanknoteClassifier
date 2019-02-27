@@ -1,8 +1,17 @@
 /**
  * @file BanknoteDetector.h
  *
- * Declaration of module BanknoteDetector
- * A CUDA + local descriptor strategy to detect stuff
+ * Implementation of module BanknoteDetector
+ * A CUDA + local descriptor strategy to detect banknotes
+ *
+ * This module excecutes the following steps:
+ *  - Calculates keypoints and descriptors over the working area (in GPU)
+ *  - Calculates matches between the query image (from the camera)  to each of the banknote templates (in GPU)
+ *  - Uses the Hough transform to discard false-positive hypotheses
+ *  - Uses RANSAC to group matches into hypotheses and also discard false positives
+ *  - Calculates the transform for each hypothesys (currently using RANSAC again, although at this point least squares or any other method can be used)
+ *  - Uses Non maximum supression to avoid duplicated detection
+ *  - Format hypotheses into BanknoteDetection format
  *
  * @author Keno
  */
@@ -108,48 +117,18 @@ void BanknoteDetector::update(BanknoteDetections& repr)
 
     std::cout << "---------------------------" << std::endl;
 
-    for(int j = 0; j < theSegmentedImage.rows; j++)
-    {
-        for(int i = 0; i < theSegmentedImage.cols; i++)
-        {
-            unsigned char pixel = theSegmentedImage.at<unsigned char>(j, i);
-
-            ASSERT(pixel >= 0 && pixel < 6);
-        }
-    }
-
     prepareImageMask();
 
     auto start = std::chrono::system_clock::now();
 
     gpuImage.upload(theGrayScaleImage);
 
-    auto end = std::chrono::system_clock::now();
-
-    std::cout << "Upload time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
-
-    start = end;
-
-    cv::Size s1 = gpuImageMask.size();
-    cv::Size s2 = gpuImage.size();
-    ASSERT(gpuImageMask.size() == gpuImage.size());
-    ASSERT(gpuImageMask.type() == gpuImage.type());
 
     surf(gpuImage, gpuImageMask, gpuImageKeypoints, gpuImageDescriptors);
 
-    end = std::chrono::system_clock::now();
-
-    std::cout << "Descriptors + Keypoints time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
-
-    start = end;
 
     surf.downloadKeypoints(gpuImageKeypoints, imageKeypoints);
 
-    end = std::chrono::system_clock::now();
-
-    std::cout << "Download time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
-
-    start = end;
 
     int numberOfMatches = 0;
 
@@ -163,10 +142,6 @@ void BanknoteDetector::update(BanknoteDetections& repr)
         numberOfMatches += detections.matches.size();
     }
 
-    end = std::chrono::system_clock::now();
-    std::cout << "KNN Matches time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Matches: " << numberOfMatches << ")" << std::endl;
-
-    start = end;
     numberOfMatches = 0;
 
     for(unsigned c = 0; c < Classification::numOfBanknotes - 2; c++)
@@ -179,10 +154,6 @@ void BanknoteDetector::update(BanknoteDetections& repr)
         numberOfMatches += detections.houghFilteredMatches.size();
     }
 
-    end = std::chrono::system_clock::now();
-    std::cout << "Hough Matches filter time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Matches: " << numberOfMatches << ")" << std::endl;
-
-    start = end;
     int numberOfHypotheses = 0;
 
     for(unsigned c = 0; c < Classification::numOfBanknotes - 2; c++)
@@ -195,10 +166,6 @@ void BanknoteDetector::update(BanknoteDetections& repr)
         numberOfHypotheses += detections.detections.size();
     }
 
-    end = std::chrono::system_clock::now();
-    std::cout << "Ransac filter time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
-
-    start = end;
     numberOfHypotheses = 0;
 
     for(unsigned c = 0; c < Classification::numOfBanknotes - 2; c++)
@@ -210,10 +177,6 @@ void BanknoteDetector::update(BanknoteDetections& repr)
         numberOfHypotheses += detections.detections.size();
     }
 
-    end = std::chrono::system_clock::now();
-    std::cout << "Estimate transform time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
-
-    start = end;
 
     for(unsigned c = 0; c < Classification::numOfRealBanknotes; c++)
     {
@@ -223,8 +186,6 @@ void BanknoteDetector::update(BanknoteDetections& repr)
         nonMaximumSupression(model, parameters[c], detections);
     }
 
-    end = std::chrono::system_clock::now();
-    std::cout << "NMS time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms (Hypothesys: " << numberOfHypotheses << ")" << std::endl;
 
     repr.detections.clear();
 
@@ -250,6 +211,12 @@ void BanknoteDetector::update(BanknoteDetections& repr)
 
 }
 
+/**
+ * @brief BanknoteDetector::prepareImageMask
+ *
+ * To calculate keypoints and descriptors in a ROI a mask must be used.
+ * Since this mask may not be created at constructor time, it is called in the main update method
+ */
 void BanknoteDetector::prepareImageMask()
 {
     if(imageMask.cols == theGrayScaleImage.cols && imageMask.rows == theGrayScaleImage.rows && imageMask.type() == theGrayScaleImage.type())
@@ -266,6 +233,8 @@ void BanknoteDetector::prepareImageMask()
 
 void BanknoteDetector::resizeImage(cv::Mat& image)
 {
+    ASSERT(false); /* This should not be used anymore */
+
     //resize
     float scale = trainBanknoteHeight/(float)image.rows;
     cv::resize(image,image,cv::Size(), scale, scale, cv::INTER_AREA);
@@ -275,6 +244,12 @@ void BanknoteDetector::resizeImage(cv::Mat& image)
     clahe->apply(image,image);
 }
 
+/**
+ * @brief BanknoteDetector::getTransformAsMatrix
+ * @param src: The train (template) keypoint
+ * @param dst: The query (camera image) keypoint
+ * @return The simmilitude transform from the train to the query keypoints
+ */
 Matrix3f BanknoteDetector::getTransformAsMatrix(const cv::KeyPoint& src, const cv::KeyPoint& dst)
 {
     float e = dst.size / src.size;
@@ -297,6 +272,20 @@ Matrix3f BanknoteDetector::getTransformAsMatrix(const cv::KeyPoint& src, const c
     return transform;
 }
 
+/**
+ * @brief BanknoteDetector::getTransform
+ *
+ * Same as getTransformAsMatrix, but outputs the transform
+ * using references to the parameters. It is faster, and more useful if the
+ * scalar components will be used directly
+ *
+ * @param src
+ * @param dst
+ * @param tx
+ * @param ty
+ * @param angleDegrees
+ * @param e
+ */
 void BanknoteDetector::getTransform(const cv::KeyPoint& src, const cv::KeyPoint& dst, float& tx, float& ty, float& angleDegrees, float& e)
 {
     e = dst.size / src.size;
@@ -310,7 +299,31 @@ void BanknoteDetector::getTransform(const cv::KeyPoint& src, const cv::KeyPoint&
     ty = dst.pt.y - e*(src.pt.x*sintheta + src.pt.y*costheta);
 }
 
-// Hough Based Matching
+/**
+ * @brief hough4d
+ *
+ * 1st filter in the pipeline (after keypoint and matching)
+ *
+ * Consistent matches should indicate similar transforms.
+ * We use hough4d to make matches vote in the transform space and
+ * select only those who seem consistent
+ *
+ * If set too strict, only valid matches will remain, but may be too few.
+ * If set too lose, falses will remain, but it still may be  possible to filter them with ransac or other methods
+ *
+ * Also, the following measures are implemented to avoid false positives (mostly inter class):
+ *
+ *  - Since templates should be at the same scale that the banknotes in que query image, we filter transformations
+ *    that have a scale to different from 1
+ *  - Banknotes have elements that are symmetric to certain axes, so those may result in false detections (e.g a banknote rotated int 180 degrees due to digits).
+ *    in this case, keypoints that are computed in zones where these simmetries exist do not vote in the hough space, but are selected if their cell is selected
+ *    (usually these keypoints are frecuent and quite useful, so it is not convenient to discard them)
+ *  - Different banknotes have simmilar textures in certain areas, which easily generates inter class false positives (in certain cases, the detection will even be perfect, besides from a different class).
+ *    to avoid this problem, transforms only vote (and are selected) if the query keypont has the same class (using the segmented image) as the train keypoint
+ *
+ * @param model: The BankNote model
+ * @param detections: the output Detections
+ */
 void BanknoteDetector::hough4d(const BanknoteModel& model, const BanknoteDetectionParameters& params,  ClassDetections& detections)
 {
     /* Handy references */
@@ -435,7 +448,27 @@ void BanknoteDetector::hough4d(const BanknoteModel& model, const BanknoteDetecti
 
 }
 
-
+/**
+ * @brief ransac
+ *
+ * 2nd filter in the pipeline (after keypoint and matching)
+ *
+ * Consistent matches should indicate similar transforms.
+ * We expect a high ratio of inliers vs outliers.
+ * We use a transform model for the ransac hypothesis and use the reprojection
+ * error from query (video) to train (banknote model) to calculate consensus.
+ *
+ * If set too lose, ransac will only cluster hypotheses, and may cause duplicates.
+ * It set tight, this will also filter false positives, but if set too tight, will also filter true positives.
+ *
+ * To diminish the chances that ransac hypotheses produce multiple hypotheses for any true banknote (this can happen due to the threshold parameters),
+ * when removing already accepted points, we also remove points that produce similar transforms that the once accepted.
+ * In practive, this also removes true positives, but these are mostly in cases when two banknotes are overlapped with only slight
+ * differentes (in these cases, it is better to only detect the upper one, so this method helps that way too).
+ *
+ * @param model: The BankNote model
+ * @param detections: the output Detections
+ */
 void BanknoteDetector::ransac(
         const BanknoteModel& model,
         const BanknoteDetectionParameters& params,
@@ -488,6 +521,20 @@ void BanknoteDetector::ransac(
     }
 }
 
+
+/**
+ * @brief BanknoteDetector::getRansacConsensus
+ *
+ * Computes the ransac concencus using the L2 reprojection error
+ *
+ * @param transform: The ransac hypothesys
+ * @param matches: The matches
+ * @param trainKeypoints: The keypoint vector of the template
+ * @param queryKeypoints: The keypoint vector of the query image
+ * @param maxError: The max allowed reprojection error to consider an accepted point
+ * @param acceptedStatus: Wether or not a certain point was already accepted
+ * @return The ransac concensus for the hypothesis
+ */
 int BanknoteDetector::getRansacConsensus(
         const Matrix3f& transform,
         const std::vector<cv::DMatch>& matches,
@@ -529,6 +576,20 @@ int BanknoteDetector::getRansacConsensus(
     return concensus;
 }
 
+/**
+ * @brief BanknoteDetector::getRansacInliers
+ *
+ * @param transform: The accepted transform
+ * @param matches: The input matches vector
+ * @param inputTrainKeypoints: The input vector of training keypoints
+ * @param inputQueryKeypoints: The input vector of query keypoints
+ * @param maxError: The max error for a match to form part of the hypothesys
+ * @param maxError2: maxError2 > maxError. The max error to delete matches close to the hypothesys, but not part of it.
+ * @param acceptedStatus: The vector containing which matches are already accepted
+ * @param acceptedMatches: The output vector of accepted matches
+ * @param outputTrainKeypoints: The output vector of training keypoints
+ * @param outputQueryKeypoints: The output vector of query keyponts
+ */
 void BanknoteDetector::getRansacInliers(
         const Matrix3f& transform,
         const std::vector<cv::DMatch>& matches,
@@ -583,6 +644,15 @@ void BanknoteDetector::getRansacInliers(
     return;
 }
 
+/**
+ * @brief estimateTransforms
+ *
+ * For each hypothesys, we calculate the proper transform (3x3 matrix. Affine or similitude).
+ * This can also filter false positives, since the transform calculation fails when hypotheses are too far from a simmilitude transform.
+ *
+ * @param model: The BankNote model
+ * @param detections: the output Detections
+ */
 void BanknoteDetector::estimateTransforms(const BanknoteModel& model, const BanknoteDetectionParameters& params,  ClassDetections& detections)
 {
     for(BanknoteDetection& d : detections.detections)
@@ -591,6 +661,15 @@ void BanknoteDetector::estimateTransforms(const BanknoteModel& model, const Bank
     }
 }
 
+/**
+ * @brief nonMaximumSupression
+ *
+ * Removes duplicates between the same class using an IOU criteria,
+ * and the decision is made using the ransac votes as a score.
+ *
+ * @param model: The BankNote model
+ * @param detections: the output Detections
+ */
 void BanknoteDetector::nonMaximumSupression(const BanknoteModel& model, const BanknoteDetectionParameters& params, ClassDetections& detections)
 { 
     for(int index1 = 0; index1 < detections.detections.size(); index1++)

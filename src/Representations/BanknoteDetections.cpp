@@ -152,7 +152,6 @@ void BanknoteDetection::updateTransformation(const BanknoteModel& model, const B
 
         hull = std::shared_ptr<geos::geom::Geometry>(poly2->convexHull());
 
-
         areaRatio = hull->getArea() /  geometry->getArea();
     }
 }

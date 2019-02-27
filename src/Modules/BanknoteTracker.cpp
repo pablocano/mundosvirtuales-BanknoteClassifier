@@ -11,6 +11,7 @@
 #include "Platform/File.h"
 
 #include <cmath>
+#include <fstream>
 
 MAKE_MODULE(BanknoteTracker, BanknoteClassifier)
 
@@ -25,6 +26,9 @@ BanknoteTracker::BanknoteTracker()
 
     for(unsigned c = 0; c < Classification::numOfRealBanknotes; c++)
     {
+        saveDetectionImagesIndex[c] = 0;
+        saveRandomDetectionImagesIndex[c] = 0;
+
         // Load models
         cv::Mat image = cv::imread(std::string(File::getBCDir()) + "/Data/img_real/" + TypeRegistry::getEnumName((Classification::Banknote)c)  + ".jpg", cv::IMREAD_GRAYSCALE);
         cv::Mat maskGrayscale = cv::imread(std::string(File::getBCDir()) + "/Data/img_real/" + TypeRegistry::getEnumName((Classification::Banknote) c) + "_mask.jpg", cv::IMREAD_GRAYSCALE);
@@ -83,6 +87,16 @@ BanknoteTracker::~BanknoteTracker()
 
 }
 
+/**
+ * @brief BanknoteTracker::update
+ *
+ * update method of the module.
+ *
+ * It follows a simple state-machine formulation (2 states for now...)
+ * to avoid estimating when the robot is in the working area, and only
+ *
+ * @param position
+ */
 void BanknoteTracker::update(BanknotePositionFiltered& position)
 {
     DECLARE_DEBUG_DRAWING("module:BanknoteTracker:enable", "drawingOnImage");
@@ -315,35 +329,40 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
             position.position = detection.pose;
             position.grabPos = Vector2f(detection.graspPoint.x(), detection.graspPoint.y());
 
-             cv::Mat homography(3, 3, CV_32F, cv::Scalar(0));
-             homography.at<float>(0, 0) = detection.transform(0, 0);
-             homography.at<float>(0, 1) = detection.transform(0, 1);
-             homography.at<float>(1, 0) = detection.transform(1, 0);
-             homography.at<float>(1, 1) = detection.transform(1, 1);
-             homography.at<float>(0, 2) = detection.transform(0, 2);
-             homography.at<float>(1, 2) = detection.transform(1, 2);
-             homography.at<float>(2, 2) = detection.transform(2, 2);
-             position.homography = homography;
+            cv::Mat homography(3, 3, CV_32F, cv::Scalar(0));
+            homography.at<float>(0, 0) = detection.transform(0, 0);
+            homography.at<float>(0, 1) = detection.transform(0, 1);
+            homography.at<float>(1, 0) = detection.transform(1, 0);
+            homography.at<float>(1, 1) = detection.transform(1, 1);
+            homography.at<float>(0, 2) = detection.transform(0, 2);
+            homography.at<float>(1, 2) = detection.transform(1, 2);
+            homography.at<float>(2, 2) = detection.transform(2, 2);
+            position.homography = homography;
 
-             Vector3f trainGraspPoint = detection.transform.inverse() * detection.graspPoint;
+            Vector3f trainGraspPoint = detection.transform.inverse() * detection.graspPoint;
 
-             float xOffset = trainGraspPoint.x() - models[detection.banknoteClass.result].corners[BanknoteModel::CornerID::MiddleMiddle].x();
-             position.zone = xOffset > zoneLimit ? BanknotePosition::GraspZone::Right : xOffset < -zoneLimit ? BanknotePosition::GraspZone::Left : BanknotePosition::GraspZone::Center;
+            float xOffset = trainGraspPoint.x() - models[detection.banknoteClass.result].corners[BanknoteModel::CornerID::MiddleMiddle].x();
+            position.zone = xOffset > zoneLimit ? BanknotePosition::GraspZone::Right : xOffset < -zoneLimit ? BanknotePosition::GraspZone::Left : BanknotePosition::GraspZone::Center;
 
-             lastBestDetecion = detection;
+            lastBestDetecion = detection;
 
-             if(useRobotStates)
-             {
-                 detections[bestDetectionIndex] = BanknoteDetection();
-             }
+            if(useRobotStates || saveDetectionImages)
+            {
+                if(saveDetectionImages)
+                {
+                    saveDetectionImage(detection);
+                    saveRandomDetectionImage(detection);
+                }
+
+                detections[bestDetectionIndex] = BanknoteDetection();
+            }
         }
     }
 }
 
 void BanknoteTracker::waitingForRobotInStateFunction()
 {
-
-
+    ASSERT(false); /* something like this may be used once the framework does not depend on a single bool */
 }
 
 void BanknoteTracker::waitingForRobotOutStateFunction()
@@ -352,6 +371,99 @@ void BanknoteTracker::waitingForRobotOutStateFunction()
     //    state = TracketState::estimating;
 }
 
+/**
+ * @brief BanknoteTracker::saveDetectionImage
+ *
+ * This method saves the detection image reprojected into the teemplate coordinate system.
+ * It includes a little of context (area besides just the banknote)
+ *
+ * @param detection: The detection to save
+ */
+void BanknoteTracker::saveDetectionImage(const BanknoteDetection& detection)
+{
+    cv::Mat M, rotated, cropped;
+
+    ASSERT(detection.banknoteClass.result >= 0 && detection.banknoteClass.result < Classification::numOfRealBanknotes);
+    const BanknoteModel& model = models[detection.banknoteClass.result];
+
+    cv::Size rect_size = cv::Size(model.image.cols*(1.f + saveDetectionBorderRatio), model.image.rows*(1.f + saveDetectionBorderRatio));
+
+    M = cv::getRotationMatrix2D(cv::Point2f(detection.pose.translation.x(), detection.pose.translation.y()), Angle(180_deg + detection.pose.rotation).toDegrees(),  1.0);
+
+    cv::warpAffine(theImageBGR, rotated, M, theImageBGR.size(), cv::INTER_CUBIC);
+
+    cv::getRectSubPix(rotated, rect_size, cv::Point2f(detection.pose.translation.x(), detection.pose.translation.y()), cropped);
+
+    std::string name;
+
+    for(;;)
+    {
+        name = std::string(File::getBCDir()) + "/Data/database/" + std::string(TypeRegistry::getEnumName(detection.banknoteClass.result)) + "/" + std::to_string(saveDetectionImagesIndex[detection.banknoteClass.result]) + ".png";
+
+        std::ifstream f(name.c_str());
+
+        if(f.good())
+            saveDetectionImagesIndex[detection.banknoteClass.result]++;
+        else
+            break;
+    }
+
+    imwrite(name, cropped);
+}
+
+/**
+ * @brief BanknoteTracker::saveDetectionImage
+ *
+ * This method saves a random image with the dimensions as it it was a real detection
+ *
+ * @param detection: The detection to save
+ */
+void BanknoteTracker::saveRandomDetectionImage(const BanknoteDetection& detection)
+{
+    cv::Mat M, rotated, cropped;
+
+    ASSERT(detection.banknoteClass.result >= 0 && detection.banknoteClass.result < Classification::numOfRealBanknotes);
+    const BanknoteModel& model = models[detection.banknoteClass.result];
+
+    cv::Size rect_size = cv::Size(model.image.cols*(1.f + saveDetectionBorderRatio), model.image.rows*(1.f + saveDetectionBorderRatio));
+
+    cv::Point2f p;
+    p.x = Random::uniform<float>(0.3f*theImageBGR.cols, 0.7f*theImageBGR.cols);
+    p.y = Random::uniform<float>(0.3f*theImageBGR.rows, 0.7f*theImageBGR.rows);
+    float angle = Random::uniform<float>(0.f, 360.f);
+
+    M = cv::getRotationMatrix2D(p, angle,  1.0);
+
+    cv::warpAffine(theImageBGR, rotated, M, theImageBGR.size(), cv::INTER_CUBIC);
+
+    cv::getRectSubPix(rotated, rect_size, p, cropped);
+
+    std::string name;
+
+    for(;;)
+    {
+        name = std::string(File::getBCDir()) + "/Data/database/" + std::string(TypeRegistry::getEnumName(detection.banknoteClass.result)) + "_RANDOM/" + std::to_string(saveRandomDetectionImagesIndex[detection.banknoteClass.result]) + ".png";
+
+        std::ifstream f(name.c_str());
+
+        if(f.good())
+            saveRandomDetectionImagesIndex[detection.banknoteClass.result]++;
+        else
+            break;
+    }
+
+    imwrite(name, cropped);
+}
+
+/**
+ * @brief BanknoteTracker::checkAndFixGraspingScore
+ *
+ * Given a precalculated grasp point, we  evaluate if it is valid using the segmented image via sampling points.
+ * If the point is deemed invalid, an iterative approach is used in an attempt of finding a new valid grasping point
+ *
+ * @param detection
+ * @param model
+ */
 void BanknoteTracker::checkAndFixGraspingScore(BanknoteDetection& detection, const BanknoteModel& model)
 {
 
@@ -408,6 +520,16 @@ void BanknoteTracker::checkAndFixGraspingScore(BanknoteDetection& detection, con
     }
 }
 
+/**
+ * @brief BanknoteTracker::setNewDetection
+ *
+ * This methods sets a new detection
+ *
+ * The assignment operator should not be used !!!
+ *
+ * @param detectionIndex
+ * @param newDetection
+ */
 void BanknoteTracker::setNewDetection(int detectionIndex, const BanknoteDetection& newDetection)
 {
     BanknoteDetection& detection = detections[detectionIndex];
@@ -450,6 +572,14 @@ void BanknoteTracker::setNewDetection(int detectionIndex, const BanknoteDetectio
     }
 }
 
+/**
+ * @brief BanknoteTracker::attemptMerge
+ *
+ *
+ *
+ * @param d1
+ * @param detectionIndex
+ */
 void BanknoteTracker::attemptMerge(const BanknoteDetection& d1, int detectionIndex)
 {
     BanknoteDetection& d2 = detections[detectionIndex];
@@ -531,6 +661,15 @@ void BanknoteTracker::attemptMerge(const BanknoteDetection& d1, int detectionInd
     d2.lastTimeDetected = theFrameInfo.time;
 }
 
+
+/**
+ * @brief BanknoteTracker::keepOne
+ *
+ * Actually, this method keeps the newest one (the one currently being detected).
+ *
+ * @param d1
+ * @param detectionIndex
+ */
 void BanknoteTracker::keepOne(const BanknoteDetection& d1, int detectionIndex)
 {
     BanknoteDetection& d2 = detections[detectionIndex];
@@ -554,51 +693,16 @@ void BanknoteTracker::keepOne(const BanknoteDetection& d1, int detectionIndex)
     d2.lastTimeDetected = theFrameInfo.time;
 }
 
-void BanknoteTracker::evaluateGraspingScore(BanknoteDetection& detection, const BanknoteModel& model, const BanknoteDetectionParameters& params)
-{
-    std::vector<Vector2f> inliers;
-    inliers.reserve(detection.currentMatches.size());
-
-    for(const Vector3f& p : detection.currentTrainPoints)
-    {
-        bool s1 = p.x() < graspRadius;
-        bool s2 = p.x() > model.image.cols - graspRadius;
-        bool s3 = p.y() < graspRadius;
-        bool s4 = p.y() > model.image.rows - graspRadius;
-
-        if(s1 || s2 || s3 || s4)
-            continue;
-
-        inliers.push_back(Vector2f(p.x(), p.y()));
-    }
-
-    if(inliers.size() == 0)
-    {
-        detection.validGrasp = false;
-        detection.graspScore = 0;
-        return;
-    }
-
-    Vector2f median = Geometry::geometricMedian(inliers);
-
-    detection.graspPoint = detection.transform * Vector3f(median.x(), median.y(), 1.f);
-
-    Vector3f reprojection = detection.transform.inverse()*detection.graspPoint;
-
-    float score = 0.5f*std::sqrt(model.image.cols*model.image.cols + model.image.rows*model.image.rows);
-    float score1 = reprojection.x() < 0.f ? 0.f : reprojection.x();
-    float score2 = reprojection.x() > model.image.cols ? 0.f : model.image.cols - reprojection.x();
-    float score3 = reprojection.y() < 0.f ? 0.f : reprojection.y();
-    float score4 = reprojection.y() > model.image.rows ? 0.f : model.image.rows - reprojection.y();
-
-    score = std::min(score, std::min(score1, std::min(score2, std::min(score3, score4)))) - graspRadius;
-
-    detection.graspScore = score;
-
-
-
-}
-
+/**
+ * @brief BanknoteTracker::basicColorTest
+ *
+ * This method performs a basic color test over the detection.
+ * It samples the image in a uniform fashion. If all points correspond to the right class
+ * the detection passes the test
+ *
+ * @param detection: the detection being tested
+ * @return: wether or not the detecion passes the test
+ */
 bool BanknoteTracker::basicColorTest(const BanknoteDetection& detection)
 {
     const BanknoteModel& model = models[detection.banknoteClass.result];
