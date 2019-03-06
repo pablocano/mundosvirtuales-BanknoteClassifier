@@ -91,6 +91,7 @@ public:
    float maxIOU;
    int layer; /* -1 = invalid/non-computed, 0 = non occluded. 1,2,... represent the number of detections that occlude this detection */
    float areaRatio;
+   float area;
 
    /* Status flags */
    bool validTransform;

@@ -38,6 +38,13 @@
 #include <geos/geom/Polygon.h>
 #include <geos/geom/CoordinateArraySequence.h>
 
+//pytorch
+#include <torch/script.h>
+#include <torch/csrc/jit/import.h>
+#include <torch/torch.h>
+#include <torch/csrc/api/include/torch/jit.h>
+//pytorchEnd
+
 MODULE(BanknoteTracker,
 {,
     REQUIRES(BanknoteDetections),
@@ -60,7 +67,7 @@ MODULE(BanknoteTracker,
      (Angle)(30_deg) maxSameDetectionAngle, /* Max rotation error for two detection to be merged */
      (bool)(false) resizeImage, /* let this one be false pls */
      (bool)(true) useRobotStates, /* when using the robot, this must always be true. However, when using databses or real images without the robot, use this as false */
-     (bool)(true) saveDetectionImages, /* wether or not save images of the best detection */
+     (bool)(false) saveDetectionImages, /* wether or not save images of the best detection */
      (float)(0.1f) saveDetectionBorderRatio, /* how much context must be kept when saving the best detection */
     }),
 });
@@ -88,6 +95,9 @@ protected:
     void waitingForRobotOutStateFunction();
 
     void saveDetectionImage(const BanknoteDetection& detection);
+    void transpose(cv::Mat src);
+    float checkDetectionArea(const BanknoteDetection& detection);
+
     void saveRandomDetectionImage(const BanknoteDetection& detection);
     void setNewDetection(int detectionIndex, const BanknoteDetection& detection);
 
@@ -120,4 +130,9 @@ protected:
     ColorRGBA debugColors[Classification::numOfRealBanknotes];
     int saveDetectionImagesIndex[Classification::numOfRealBanknotes];
     int saveRandomDetectionImagesIndex[Classification::numOfRealBanknotes];
+
+    std::shared_ptr<torch::jit::script::Module> moduleTorch;
+    torch::DeviceType device_type;
+    float* bufferImgIn;
+    at::Tensor output;
 };

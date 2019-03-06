@@ -54,9 +54,9 @@ void SemanticSeg::transpose(cv::Mat src)//de (W,H,C)->(C,W,H)
             unsigned char g = src.at<cv::Vec3b>(j, i)[1];
             unsigned char r = src.at<cv::Vec3b>(j, i)[2];
 
-            bufferImgIn[0*w*h + j*w + i] = (b-111.467575f)/(255.f*52.213707f);//noramlizacion (valor-media)/(std*255) y transposicion
-            bufferImgIn[1*w*h + j*w + i] = (g-116.11815f)/(255.f*47.367764f);
-            bufferImgIn[2*w*h + j*w + i] = (r-116.60477f)/(255.f*49.892235f);
+            bufferImgIn[0*w*h + j*w + i] = (b-113.8041f)/(255.f*52.70879f);//noramlizacion (valor-media)/(std*255) y transposicion
+            bufferImgIn[1*w*h + j*w + i] = (g-118.58932f)/(255.f*44.97723f);
+            bufferImgIn[2*w*h + j*w + i] = (r-119.293884f)/(255.f*46.73076f);
         }
     }
 

@@ -3,7 +3,7 @@
  *
  * Implementation0 of my attempt of a tracking algorithm
  *
- * @author Keno
+ * @author Keno ft darkNicolas
  */
 
 #include "Modules/BanknoteTracker.h"
@@ -23,6 +23,29 @@ BanknoteTracker::BanknoteTracker()
 
     bestDetectionIndex = -1;
     state = TracketState::estimating;
+    if (torch::cuda::is_available())//hay gpu
+    {
+        string darknetFolder = string(File::getBCDir()) + "/Config/LibTorch/";
+        const string traceFile = darknetFolder + "areaNet.pt";
+        device_type = torch::kCUDA;
+        torch::Device device(device_type);
+        moduleTorch = torch::jit::load(traceFile);//parseo
+        moduleTorch->to(at::kCUDA);//modelo a cuda
+
+        bufferImgIn= (float *)malloc(50*110*3 * sizeof(float));//espacio de entrada
+
+    }
+    else
+    {
+        ASSERT(false);
+    }
+
+    ASSERT(moduleTorch != nullptr);
+
+
+
+
+
 
     for(unsigned c = 0; c < Classification::numOfRealBanknotes; c++)
     {
@@ -100,7 +123,9 @@ BanknoteTracker::~BanknoteTracker()
 void BanknoteTracker::update(BanknotePositionFiltered& position)
 {
     DECLARE_DEBUG_DRAWING("module:BanknoteTracker:enable", "drawingOnImage");
-
+    DECLARE_DEBUG_DRAWING("module:BanknoteTracker:hypotheses_detections", "drawingOnImage");
+    DECLARE_DEBUG_DRAWING("module:BanknoteTracker:hypotheses_info", "drawingOnImage");
+    DECLARE_DEBUG_DRAWING("module:BanknoteTracker:best_detections", "drawingOnImage");
     position.valid = false;
     bestDetectionIndex = -1;
 
@@ -278,7 +303,8 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
     /* Final decision */
     int bestDetectionNumberOfKeypoints = 0;
     int bestDetectionLayer = maxDetections;
-
+    float bestArea=0.6f;
+    int tempDetectionIndex=-1;
     for(int i = 0; i < maxDetections; i++)
     {
         BanknoteDetection& detection = detections[i];
@@ -293,23 +319,53 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
         if(detection.areaRatio < 0.2f)
             continue;
 
-        if(basicColorTest(detection))
+
+        if(basicColorTest(detection)) //billete encontrado con descriptores es consistente con la segmentacion semantica
         {
-            bestDetectionIndex = i;
-            break;
+            tempDetectionIndex=i;
+            float area=checkDetectionArea(detection);//area del billete es correcta
+            if(area>bestArea)
+            {
+                bestDetectionIndex = i;
+                bestArea=area;
+                //break;
+            }
+
         }
 
-        if(detection.layer < bestDetectionLayer)
-        {
-            bestDetectionIndex = i;
-            bestDetectionLayer = detection.layer;
-            bestDetectionNumberOfKeypoints = detection.integratedTrainPoints.size();
-        }
+    }
+    if(bestDetectionIndex==-1)
+        bestDetectionIndex=tempDetectionIndex;
 
-        if(detection.integratedTrainPoints.size() > bestDetectionNumberOfKeypoints)
+    if(bestDetectionIndex == -1)
+    {
+        for(int i = 0; i < maxDetections; i++)
         {
-            bestDetectionIndex = i;
-            bestDetectionNumberOfKeypoints = detection.integratedTrainPoints.size();
+            BanknoteDetection& detection = detections[i];
+
+            if(!detection.isGraspingValid())
+                continue;
+
+            if(theFrameInfo.getTimeSince(detection.firstTimeDetected) < 500
+                    || theFrameInfo.getTimeSince(detection.lastTimeDetected) > 50)
+                continue;
+
+            if(detection.areaRatio < 0.2f)
+                continue;
+
+
+            if(detection.layer < bestDetectionLayer)
+            {
+                bestDetectionIndex = i;
+                bestDetectionLayer = detection.layer;
+                bestDetectionNumberOfKeypoints = detection.integratedTrainPoints.size();
+            }
+
+            if(detection.integratedTrainPoints.size() > bestDetectionNumberOfKeypoints)
+            {
+                bestDetectionIndex = i;
+                bestDetectionNumberOfKeypoints = detection.integratedTrainPoints.size();
+            }
         }
     }
 
@@ -370,6 +426,71 @@ void BanknoteTracker::waitingForRobotOutStateFunction()
     //if(theRobotFanucStatus.visionAreaClear)
     //    state = TracketState::estimating;
 }
+
+void BanknoteTracker::transpose(cv::Mat src)//de (W,H,C)->(C,W,H)
+{
+    int h = src.rows;
+    int w = src.cols;
+
+    for(int j = 0; j < h; j++)
+    {
+        for(int i = 0; i < w; i++)
+        {
+            unsigned char b = src.at<cv::Vec3b>(j, i)[0];
+            unsigned char g = src.at<cv::Vec3b>(j, i)[1];
+            unsigned char r = src.at<cv::Vec3b>(j, i)[2];
+            float bn=b/255.f;
+            float gn=g/255.f;
+            float rn=r/255.f;
+
+            bufferImgIn[0*w*h + j*w + i] = bn;//noramlizacion (valor-media)/(std*255) y transposicion
+            bufferImgIn[1*w*h + j*w + i] = gn;
+            bufferImgIn[2*w*h + j*w + i] = rn;
+        }
+    }
+
+    return;
+}
+
+/**
+ * @brief BanknoteTracker::checkDetectionArea
+ *
+ * This method checks the aproximate area of the detections
+ *
+ *
+ * @param detection: The detection
+ */
+float BanknoteTracker::checkDetectionArea(const BanknoteDetection& detection)
+{
+    cv::Mat M, rotated, cropped;
+
+    ASSERT(detection.banknoteClass.result >= 0 && detection.banknoteClass.result < Classification::numOfRealBanknotes);
+    const BanknoteModel& model = models[detection.banknoteClass.result];
+
+    cv::Size rect_size = cv::Size(model.image.cols, model.image.rows);
+
+    M = cv::getRotationMatrix2D(cv::Point2f(detection.pose.translation.x(), detection.pose.translation.y()), Angle(180_deg + detection.pose.rotation).toDegrees(),  1.0);
+
+    cv::warpAffine(theImageBGR, rotated, M, theImageBGR.size(), cv::INTER_CUBIC);
+
+    cv::getRectSubPix(rotated, rect_size, cv::Point2f(detection.pose.translation.x(), detection.pose.translation.y()), cropped);
+
+    cv::Mat netInput;
+    cv::Mat resized;
+
+    cv::resize(cropped, resized, cv::Size(110,50), 0, 0);
+
+    transpose(resized);
+
+    auto output = (moduleTorch->forward({torch::from_blob(bufferImgIn, {1,3, 50, 110}, at::kFloat).to(at::kCUDA)}).toTensor());//inferencia de la red en cuda
+    float area= (output.data<float>())[0];
+
+    //if(area>0.8f)
+    //imwrite("background.png",resized);
+    return area;
+
+}
+
 
 /**
  * @brief BanknoteTracker::saveDetectionImage
@@ -747,12 +868,10 @@ bool BanknoteTracker::basicColorTest(const BanknoteDetection& detection)
 
 void BanknoteTracker::drawDetections()
 {
-    DECLARE_DEBUG_DRAWING("module:BanknoteTracker:hypotheses_detections", "drawingOnImage");
-    DECLARE_DEBUG_DRAWING("module:BanknoteTracker:hypotheses_info", "drawingOnImage");
-    DECLARE_DEBUG_DRAWING("module:BanknoteTracker:best_detections", "drawingOnImage");
 
 
-    for(int i = 0; i < detections.size(); i++)
+
+    /*for(int i = 0; i < detections.size(); i++)
     {
         const BanknoteDetection& detection = detections[i];
 
@@ -818,7 +937,7 @@ void BanknoteTracker::drawDetections()
 
 
 
-    }
+    }*/
 
 
 
