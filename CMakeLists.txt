@@ -227,6 +227,7 @@ set( CALIBRATOR_TOOL_SRC
   #${CALIBRATOR_SRC_DIR}/CalibratorTool.h
   ${CALIBRATOR_SRC_DIR}/Controller.cpp
   #${CALIBRATOR_SRC_DIR}/Controller.h
+  ${CALIBRATOR_SRC_DIR}/ConsoleController.cpp
   ${CALIBRATOR_SRC_DIR}/BanknoteClassifierWrapper.cpp
   #${CALIBRATOR_SRC_DIR}/BanknoteClassifierWrapper.h
   ${CALIBRATOR_SRC_DIR}/ListViewsDockWidget.cpp
@@ -238,6 +239,7 @@ set( CALIBRATOR_TOOL_SRC
   #${CALIBRATOR_SRC_DIR}/RegisteredDockWidget.h
   #${CALIBRATOR_SRC_DIR}/Synchronization.h
   ${CALIBRATOR_SRC_DIR}/Representations/TimeInfo.cpp
+  ${CALIBRATOR_SRC_DIR}/Representations/ModuleInfo.cpp
   ${CALIBRATOR_SRC_DIR}/Views/ImageView.cpp
   #${CALIBRATOR_SRC_DIR}/Views/ImageView.h
   ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.cpp
@@ -245,6 +247,7 @@ set( CALIBRATOR_TOOL_SRC
   ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.cpp
   #${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.h
   ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.cpp
+  ${CALIBRATOR_SRC_DIR}/Views/ConsoleView.cpp
   #${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.h
   ${CALIBRATOR_SRC_DIR}/Views/DataView/DataView.cpp
   #${CALIBRATOR_SRC_DIR}/Views/DataView/DataView.h

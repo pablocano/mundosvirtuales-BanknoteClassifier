@@ -30,7 +30,7 @@ protected:
   int main();
   
   ModuleManager moduleManager;
-  
+  int numberOfMessages;
   bool pause;
   
 public:

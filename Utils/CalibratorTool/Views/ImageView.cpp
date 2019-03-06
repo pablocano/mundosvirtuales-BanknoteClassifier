@@ -20,19 +20,17 @@
 
 #include "Visualization/PaintMethods.h"
 
-ImageView::ImageView(const QString& fullName, Controller& controller, const std::string& name, bool segmented, bool eastCam, bool custom) :
-eastCam(eastCam), fullName(fullName), icon(":/Icons/tag_green.png"),
-controller(controller),
-name(name),
-segmented(segmented),
-custom(custom)
+ImageView::ImageView(const QString& fullName, Controller& controller, const std::string& name) :
+  fullName(fullName),
+  icon(":/Icons/tag_green.png"),
+  controller(controller),
+  name(name)
 {}
 
 CalibratorTool::Widget* ImageView::createWidget()
 {
-    controller.debugOut.out.bin << DebugRequest("representation:ImageBGR");
-    controller.debugOut.out.finishMessage(idDebugRequest);
-    return new ImageWidget(*this);
+  controller.toggleImageView(name);
+  return new ImageWidget(*this);
 }
 
 ImageWidget::ImageWidget(ImageView& imageView)
@@ -42,7 +40,7 @@ ImageWidget::ImageWidget(ImageView& imageView)
   offset(0, 0),
   lastImageTimeStamp(0),
   lastDrawingsTimeStamp(0),
-  lastColorTableTimeStamp(0),
+  processIdentifier(0),
   drawnColor(ColorClasses::none)
 {
   setFocusPolicy(Qt::StrongFocus);
@@ -51,13 +49,10 @@ ImageWidget::ImageWidget(ImageView& imageView)
 
 ImageWidget::~ImageWidget()
 {
-    if(!imageView.segmented)
-    {
-        imageView.controller.debugOut.out.bin << DebugRequest("representation:ImageBGR",false);
-        imageView.controller.debugOut.out.finishMessage(idDebugRequest);
-    }
-    if(imageData)
-        delete imageData;
+  imageView.controller.toggleImageView(imageView.name,false);
+
+  if(imageData)
+    delete imageData;
 }
 
 void ImageWidget::paintEvent(QPaintEvent* event)
@@ -71,18 +66,18 @@ void ImageWidget::paint(QPainter& painter)
 {
   SYNC_WITH(imageView.controller);
   
-  const ImageBGR* image;
+  const Controller::ImagePtr* imagePtr;
 
-  if(!imageView.custom)
-      image = imageView.eastCam ? &imageView.controller.eastImage : &imageView.controller.westmage;
-  else if(imageView.controller.customImages.count(imageView.name) > 0)
-      image = &imageView.controller.customImages[imageView.name];
+  if(imageView.controller.debugImages.count(imageView.name) > 0)
+    imagePtr = &imageView.controller.debugImages[imageView.name];
   else
-      return;
+    return;
+
+  processIdentifier = imagePtr->processIdentifier;
   
-  if (!image->empty()) {
-    imageHeight = image->rows;
-    imageWidth = image->cols;
+  if (!imagePtr->image->empty()) {
+    imageHeight = imagePtr->image->rows;
+    imageWidth = imagePtr->image->cols;
   }
   
   const QSize& size = painter.window().size();
@@ -95,8 +90,8 @@ void ImageWidget::paint(QPainter& painter)
   
   painter.setTransform(QTransform(scale, 0, 0, scale, imageXOffset, imageYOffset));
   
-  if (!image->empty()) {
-    paintImage(painter, *image);
+  if (!imagePtr->image->empty()) {
+    paintImage(painter, *imagePtr->image);
   }
   else
     lastImageTimeStamp = 0;
@@ -106,10 +101,11 @@ void ImageWidget::paint(QPainter& painter)
 
 void ImageWidget::paintDrawings(QPainter& painter)
 {
-  if(imageView.segmented)
+  if(processIdentifier == 0)
     return;
+
   const QTransform baseTrans(painter.transform());
-  const  std::unordered_map<std::string, DebugDrawing>&debugDrawings = imageView.eastCam ? imageView.controller.eastCamImageDrawings : imageView.controller.westCamImageDrawings;
+  const  std::unordered_map<std::string, DebugDrawing>&debugDrawings = imageView.controller.debugDrawings[processIdentifier];
   for (const auto &debugDrawing : debugDrawings) {
     PaintMethods::paintDebugDrawing(painter, debugDrawing.second, baseTrans);
     if(debugDrawing.second.timeStamp > lastDrawingsTimeStamp)
@@ -121,14 +117,15 @@ void ImageWidget::paintDrawings(QPainter& painter)
 bool ImageWidget::needsRepaint() const
 {
   SYNC_WITH(imageView.controller);
-  const ImageBGR* image;
-  if (!imageView.custom)
-	  image = imageView.eastCam ? &imageView.controller.eastImage : &imageView.controller.westmage;
-  else if (imageView.controller.customImages.count(imageView.name) > 0)
-	  image = &imageView.controller.customImages[imageView.name];
 
-  if (!image->empty()) {
-    return image->timeStamp != lastImageTimeStamp || (imageView.segmented && imageView.controller.colorTableTimeStamp != lastColorTableTimeStamp);
+  const Controller::ImagePtr* imagePtr;
+  if(imageView.controller.debugImages.count(imageView.name) > 0)
+    imagePtr = &imageView.controller.debugImages[imageView.name];
+  else
+    return false;
+
+  if (!imagePtr->image->empty()) {
+    return imagePtr->image->timeStamp != lastImageTimeStamp;
   }
   else
     return false;
@@ -227,6 +224,7 @@ QMenu* ImageWidget::createUserMenu() const
   
   menu->addSeparator();
   
+  /*
   QActionGroup* colorGroup = new QActionGroup(menu);
   QSignalMapper* signalMapper = new QSignalMapper(const_cast<ImageWidget*>(this));
   connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(colorAct(int)));
@@ -242,6 +240,7 @@ QMenu* ImageWidget::createUserMenu() const
   }
   
   menu->addSeparator();
+  */
   
   return menu;
 }
@@ -336,7 +335,7 @@ void ImageWidget::drDebugDrawing(const QString &debug)
   imageView.controller.drDebugDrawing(debug.toStdString());
 }
 
-void ImageWidget::paintImage(QPainter &painter, const ImageBGR &srcImage)
+void ImageWidget::paintImage(QPainter &painter, const DebugImage &srcImage)
 {
   // make sure we have a buffer
   if(!imageData || imageWidth != imageData->width() || imageHeight != imageData->height())
@@ -346,22 +345,16 @@ void ImageWidget::paintImage(QPainter &painter, const ImageBGR &srcImage)
     imageData = new QImage(imageWidth, imageHeight, QImage::Format_RGB32);
   }
   
-  if(srcImage.timeStamp != lastImageTimeStamp || imageView.segmented)
+  if(srcImage.timeStamp != lastImageTimeStamp )
   {
-    if(imageView.segmented)
-      copyImageSegmented(srcImage);
-    else
-      copyImage(srcImage);
-    
+    copyImage(srcImage);
     lastImageTimeStamp = srcImage.timeStamp;
-    if(imageView.segmented)
-      lastColorTableTimeStamp = imageView.controller.colorTableTimeStamp;
   }
   
   painter.drawImage(QRectF(0, 0, imageWidth, imageHeight), *imageData);
 }
 
-void ImageWidget::copyImage(const ImageBGR &srcImage)
+void ImageWidget::copyImage(const DebugImage &srcImage)
 {
   unsigned* p = (unsigned*) imageData->bits();
 
@@ -386,70 +379,6 @@ void ImageWidget::copyImage(const ImageBGR &srcImage)
         int r = *rgb++;
         *p++ = r << 16 | g << 8 | b | 0xff000000;
       }
-  }
-  lastImageTimeStamp = srcImage.timeStamp;
-}
-
-void ImageWidget::copyImageSegmented(const ImageBGR &srcImage)
-{
-  static const unsigned baseColors[] =
-  {
-    0xffffffff, //white
-    0xff00ff00, //green
-    0xff0000ff, //blue
-    0xffff0000, //red
-    0xffff7f00, //orange
-    0xffffff00, //yellow
-    0xff000000  //black
-  };
-  
-  static unsigned displayColors[1 << (ColorClasses::numOfColors - 1)];
-  if(!displayColors[0])
-  {
-    union
-    {
-      unsigned color;
-      unsigned char channels[4];
-    } baseColor;
-    
-    displayColors[0] = 0xff7f7f7f; //grey
-    for(int colors = 1; colors < 1 << (ColorClasses::numOfColors - 1); ++colors)
-    {
-      int count = 0;
-      for(int i = 0; i < ColorClasses::numOfColors - 1; ++i)
-        if(colors & 1 << i)
-          ++count;
-      unsigned mixed = 0;
-      for(int i = 0; i < ColorClasses::numOfColors - 1; ++i)
-        if(colors & 1 << i)
-        {
-          baseColor.color = baseColors[i];
-          for(int j = 0; j < 4; ++j)
-            baseColor.channels[j] /= count;
-          mixed += baseColor.color;
-        }
-      displayColors[colors] = mixed;
-    }
-  }
-  unsigned* p = (unsigned*) imageData->bits();
-  const unsigned char drawnColors = (unsigned char) (drawnColor == ColorClasses::none ? ~0 : 1 << (drawnColor - 1));
-  const unsigned char* rgb = srcImage.data;
-  for(int i = 0; i < srcImage.rows*srcImage.cols; i++)
-  {
-    int b = *rgb++;
-    int g = *rgb++;
-    int r = *rgb++;
-    int y = (int)(0.2990 * r + 0.5870 * g + 0.1140 * b),
-    cr = 127 + (int)(-0.1687 * r - 0.3313 * g + 0.5000 * b),
-    cb = 127 + (int)(0.5000 * r - 0.4187 * g - 0.0813 * b);
-    if(y < 0) y = 0;
-    else if(y > 255) y = 255;
-    if(cb < 0) cb = 0;
-    else if(cb > 255) cb = 255;
-    if(cr < 0) cr = 0;
-    else if(cr > 255) cr = 255;
-    cv::Vec3b pixel = cv::Vec3b((unsigned char)y,(unsigned char)cb,(unsigned char)cr);
-    *p++ = displayColors[imageView.controller.colorModel.getColor(pixel).colors & drawnColors];
   }
   lastImageTimeStamp = srcImage.timeStamp;
 }

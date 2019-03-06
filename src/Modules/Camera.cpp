@@ -122,11 +122,6 @@ void Camera::update(Image& image)
     currentImage.timeStamp = theFrameInfo.time;
 
     cv::cvtColor(currentImage, image, cv::COLOR_BGR2YCrCb);
-
-    DEBUG_RESPONSE("representation:ImageBGR")
-    {
-        OUTPUT(idImage,bin,currentImage);
-    };
   
 }
 

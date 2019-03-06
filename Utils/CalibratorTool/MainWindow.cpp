@@ -92,7 +92,6 @@ void MainWindow::open()
   {
     QStringList openedObjects = openedObjectsVar.toStringList();
     foreach(QString object, openedObjects)
-      //if(!object.contains("CustomImages"))
         openObject(object, 0, 0);
   }
   
@@ -231,6 +230,11 @@ bool MainWindow::registerObject(CalibratorTool::Object &object, const Calibrator
     }
   }
   return true;
+}
+
+bool MainWindow::unregisterObject(const CalibratorTool::Object& object)
+{
+  return listViewsDockWidget ? listViewsDockWidget->unregisterObject(&object) : false;
 }
 
 CalibratorTool::Object* MainWindow::resolveObject(const QString& fullName, int kind)
