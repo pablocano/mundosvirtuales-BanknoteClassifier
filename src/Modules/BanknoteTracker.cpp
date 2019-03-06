@@ -303,8 +303,7 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
     /* Final decision */
     int bestDetectionNumberOfKeypoints = 0;
     int bestDetectionLayer = maxDetections;
-    float bestArea=0.6f;
-    int tempDetectionIndex=-1;
+    float bestArea=0.7f;
     for(int i = 0; i < maxDetections; i++)
     {
         BanknoteDetection& detection = detections[i];
@@ -322,23 +321,27 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
 
         if(basicColorTest(detection)) //billete encontrado con descriptores es consistente con la segmentacion semantica
         {
-            tempDetectionIndex=i;
             float area=checkDetectionArea(detection);//area del billete es correcta
             if(area>bestArea)
             {
                 bestDetectionIndex = i;
                 bestArea=area;
+                std::cout << "used area claculation" << std::endl;
                 //break;
             }
 
         }
 
     }
-    if(bestDetectionIndex==-1)
-        bestDetectionIndex=tempDetectionIndex;
+    //if(bestDetectionIndex==-1)
+    //{
+        //bestDetectionIndex=tempDetectionIndex;
+        //std::cout << "used color claculation" << std::endl;
+    //}
 
     if(bestDetectionIndex == -1)
     {
+        std::cout << "used descriptors" << std::endl;
         for(int i = 0; i < maxDetections; i++)
         {
             BanknoteDetection& detection = detections[i];
