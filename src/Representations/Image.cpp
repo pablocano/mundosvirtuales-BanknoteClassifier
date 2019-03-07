@@ -10,14 +10,14 @@
 #include "Tools/Debugging/DebugImages.h"
 
 
-ImageBGR::ImageBGR(const cv::Mat& other) : CvMat(other) {}
+Image::Image(const cv::Mat& other) : CvMat(other) {}
 
-void GrayScaleImageEq::draw() const
+void Image::draw() const
 {
-  SEND_DEBUG_IMAGE("EqualizedImage", *this);
+  SEND_DEBUG_IMAGE("Image",*this);
 }
 
-void ImageBGR::draw() const
+void GrayScaleImage::draw() const
 {
-  SEND_DEBUG_IMAGE("ImageBGR",*this);
+  SEND_DEBUG_IMAGE("GrayScaleImage", *this);
 }

@@ -15,7 +15,6 @@
 #include "Representations/BanknoteModel.h"
 #include "Representations/Classification.h"
 #include "Representations/Features.h"
-#include "Representations/Image.h"
 #include "Representations/FrameInfo.h"
 #include "Tools/Debugging/DebugDrawings.h"
 #include "Tools/Debugging/Debugging.h"
@@ -41,8 +40,7 @@
 
 MODULE(BanknoteDetector,
 {,
-    REQUIRES(GrayScaleImage),
-    REQUIRES(GrayScaleImageEq),
+    REQUIRES(Features),
     REQUIRES(FrameInfo),
     PROVIDES(BanknoteDetections),
     DEFINES_PARAMETERS(
@@ -178,11 +176,11 @@ protected:
     /** Gpu Buffers */
     cv::cuda::GpuMat gpuImage;
     cv::cuda::GpuMat gpuImageKeypoints;
-    cv::cuda::GpuMat gpuImageDescriptors;
+    //CvGpuMat& gpuImageDescriptors;
     cv::cuda::GpuMat gpuImageMask;
 
     /** RAM Buffers */
-    std::vector<cv::KeyPoint> imageKeypoints;
+    //std::vector<cv::KeyPoint>& imageKeypoints;
 
     /** Models */
     BanknoteModel models[Classification::numOfRealBanknotes];

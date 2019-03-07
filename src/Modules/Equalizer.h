@@ -1,14 +1,19 @@
 #pragma once
 
 #include "Tools/ModuleManager/Module.h"
-#include "Representations/Image.h"
-#include <opencv2/imgproc.hpp>
+#include "Representations/GpuImage.h"
+#include <opencv2/cudaimgproc.hpp>
 #include "Representations/FrameInfo.h"
 MODULE(Equalizer,
 {,
- REQUIRES(GrayScaleImage),
+ REQUIRES(GpuGrayImage),
  REQUIRES(FrameInfo),
- PROVIDES(GrayScaleImageEq),
+ PROVIDES(GpuGrayImageEq),
+ DEFINES_PARAMETERS(
+ {,
+  (double)(2.0) clipLimit,
+  (int)(6) sizeWindows,
+ }),
 });
 
 class Equalizer : public EqualizerBase
@@ -23,12 +28,12 @@ public:
      * @brief update
      * @param grayscaleimage
      */
-    void update(GrayScaleImageEq& grayscaleimageEq);
+    void update(GpuGrayImageEq &image);
 
     /**
      * @brief Contrast Local Adaptive Histogram Equalization
      */
-    cv::Ptr<cv::CLAHE> clahe_;
+    cv::Ptr<cv::cuda::CLAHE> clahe;
 
 };
 

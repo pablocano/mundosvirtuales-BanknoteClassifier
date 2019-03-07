@@ -6,13 +6,25 @@ MAKE_MODULE(FeaturesProvider, BanknoteClassifier)
 
 FeaturesProvider::FeaturesProvider()
 {
-#ifndef BC_WITH_CUDA
-    surf_ = cv::xfeatures2d::SURF::create(400,4,3,true,false);
-#else
-    surf_ = cv::cuda::SURF_CUDA(600,4,4,true);
-#endif
+  surf = cv::cuda::SURF_CUDA(hessianThreshold, nOctaves, nOctaveLayers, extended);
 }
 
 void FeaturesProvider::update(Features &features)
 {
+  if(mask.empty())
+  {
+    cv::Mat temp = cv::Mat::zeros(theGpuGrayImageEq.rows,theGpuGrayImageEq.cols,CV_8U);
+    temp(cv::Rect(maskX,maskY,maskWidth,maskHeight)) = 1;
+    mask.upload(temp);
+  }
+
+#ifdef CALIBRATION_TOOL
+  cv::Mat temp = cv::Mat::zeros(theGpuGrayImageEq.rows,theGpuGrayImageEq.cols,CV_8U);
+  temp(cv::Rect(maskX,maskY,maskWidth,maskHeight)) = 1;
+  mask.upload(temp);
+#endif
+
+  surf(theGpuGrayImageEq,mask,features.keypointsGpu,features.descriptors);
+
+  surf.downloadKeypoints(features.keypointsGpu, features.keypoints);
 }

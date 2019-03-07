@@ -7,7 +7,6 @@
 
 MODULE(Segmentator,
 {,
-  REQUIRES(Image),
   REQUIRES(ColorModel),
   REQUIRES(FrameInfo),
   PROVIDES(SegmentedImage),

@@ -78,6 +78,12 @@ void BanknoteTracker::update(BanknotePositionFiltered& position)
     position.valid = false;
     bestDetectionIndex = -1;
 
+    DEBUG_RESPONSE_ONCE("module:BanknoteTracker:resetHypothesis")
+    {
+      detections.clear();
+      detections.resize(maxDetections);
+    }
+
     switch(state)
     {
     case TracketState::estimating:

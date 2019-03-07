@@ -105,11 +105,18 @@ void ImageWidget::paintDrawings(QPainter& painter)
     return;
 
   const QTransform baseTrans(painter.transform());
-  const  std::unordered_map<std::string, DebugDrawing>&debugDrawings = imageView.controller.debugDrawings[processIdentifier];
-  for (const auto &debugDrawing : debugDrawings) {
-    PaintMethods::paintDebugDrawing(painter, debugDrawing.second, baseTrans);
-    if(debugDrawing.second.timeStamp > lastDrawingsTimeStamp)
-      lastDrawingsTimeStamp = debugDrawing.second.timeStamp;
+
+  const std::list<std::string>& drawings = imageView.controller.imageViews[imageView.name];
+  for(const std::string& drawing : drawings)
+  {
+    auto& camDrawings = imageView.controller.debugDrawings[processIdentifier];
+    auto debugDrawing = camDrawings.find(drawing);
+    if(debugDrawing != camDrawings.end())
+    {
+      PaintMethods::paintDebugDrawing(painter, debugDrawing->second, baseTrans);
+      if(debugDrawing->second.timeStamp > lastDrawingsTimeStamp)
+        lastDrawingsTimeStamp = debugDrawing->second.timeStamp;
+    }
   }
   painter.setTransform(baseTrans);
 }
