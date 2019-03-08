@@ -240,7 +240,7 @@ public:
   DrawingManager& getDrawingManager() {return drawingManager;}
   DebugRequestTable& getDebugRequestTable() {return debugRequestTable;}
   
-  void drDebugDrawing(const std::string& request);
+  void drDebugDrawing(const std::string& request, const std::string &imageView);
   
   MessageQueue debugIn;
   MessageQueue debugOut; /**< The outgoing debug queue. */

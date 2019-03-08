@@ -339,7 +339,7 @@ QMenu* ImageWidget::createFileMenu() const
 
 void ImageWidget::drDebugDrawing(const QString &debug)
 {
-  imageView.controller.drDebugDrawing(debug.toStdString());
+  imageView.controller.drDebugDrawing(debug.toStdString(), imageView.name);
 }
 
 void ImageWidget::paintImage(QPainter &painter, const DebugImage &srcImage)

@@ -11,8 +11,8 @@ MODULE(Equalizer,
  PROVIDES(GpuGrayImageEq),
  DEFINES_PARAMETERS(
  {,
-  (double)(2.0) clipLimit,
-  (int)(6) sizeWindows,
+  (double)(5.0) clipLimit,
+  (int)(30) sizeWindows,
  }),
 });
 

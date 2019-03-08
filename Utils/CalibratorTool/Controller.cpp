@@ -455,9 +455,11 @@ void Controller::toggleImageView(const std::string &name, bool activate)
   }
 }
 
-void Controller::drDebugDrawing(const std::string &request)
+void Controller::drDebugDrawing(const std::string &request, const std::string& imageView)
 {
-  std::string debugRequest = std::string("debug drawing:") + request;
+  handleConsole("vid " + imageView + " " + request);
+
+  /*std::string debugRequest = std::string("debug drawing:") + request;
 
   for(const auto& i : debugRequestTable.slowIndex)
       if(i.first == debugRequest)
@@ -471,9 +473,7 @@ void Controller::drDebugDrawing(const std::string &request)
         debugOut.out.bin << DebugRequest(i.first, debugRequestTable.enabled[i.second]);
         debugOut.out.finishMessage(idDebugRequest);
         return;
-      }
-
-  return;
+      }*/
 }
 
 void Controller::sendDebugMessage(InMessage& msg)
