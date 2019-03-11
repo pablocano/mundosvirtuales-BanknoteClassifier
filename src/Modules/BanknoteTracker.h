@@ -51,7 +51,7 @@ MODULE(BanknoteTracker,
     REQUIRES(FrameInfo),
     REQUIRES(RobotFanucStatus),
     REQUIRES(SegmentedImage),
-    REQUIRES(ImageBGR),
+    REQUIRES(Image),
     PROVIDES(BanknotePositionFiltered),
     DEFINES_PARAMETERS(
     {,
@@ -66,7 +66,7 @@ MODULE(BanknoteTracker,
      (float)(20.f) maxSameDetectionDistance, /* Max translation error for two detection to be merged */
      (Angle)(30_deg) maxSameDetectionAngle, /* Max rotation error for two detection to be merged */
      (bool)(false) resizeImage, /* let this one be false pls */
-     (bool)(true) useRobotStates, /* when using the robot, this must always be true. However, when using databses or real images without the robot, use this as false */
+     (bool)(false) useRobotStates, /* when using the robot, this must always be true. However, when using databses or real images without the robot, use this as false */
      (bool)(false) saveDetectionImages, /* wether or not save images of the best detection */
      (float)(0.1f) saveDetectionBorderRatio, /* how much context must be kept when saving the best detection */
     }),

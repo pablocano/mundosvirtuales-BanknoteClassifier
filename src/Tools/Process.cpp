@@ -42,11 +42,6 @@ int Process::procesMain()
 
   int result = main();
   
-#ifndef RELEASE
-  if(Global::getDebugRequestTable().pollCounter > 0 && --Global::getDebugRequestTable().pollCounter == 0)
-      OUTPUT(idDebugResponse, text, "pollingFinished");
-#endif
-  
   return result;
 }
 

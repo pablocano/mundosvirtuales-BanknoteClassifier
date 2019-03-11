@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include "SemanticSeg.h"
 #include "Tools/Debugging/Debugging.h"
-#include "Tools/Debugging/DebugDrawings.h"
+#include "Tools/Debugging/DebugImages.h".h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include "Platform/File.h"
@@ -114,11 +114,14 @@ void SemanticSeg::update(SegmentedImage &image)
 {
     DECLARE_DEBUG_DRAWING("module:SemanticSeg:enable", "drawingOnImage");
 
+    if(theImage.empty())
+      return;
+
     cv::Mat netInput;
     cv::Mat resized;
 
-    cv::resize(theImageBGR, resized, cv::Size(1024,512), 0, 0);
-    //imwrite("background.png",theImageBGR);
+    cv::resize(theImage, resized, cv::Size(1024,512), 0, 0);
+    //imwrite("background.png",theImage);
     transpose(resized);
 
     auto output = (moduleTorch->forward({torch::from_blob(bufferImgIn, {1,3, 512, 1024}, at::kFloat).to(at::kCUDA)}).toTensor());//inferencia de la red en cuda
@@ -143,18 +146,17 @@ void SemanticSeg::update(SegmentedImage &image)
     netOut.data = output.data<unsigned char>();
     image = netOut.clone();
 
-    COMPLEX_DRAWING("module:SemanticSeg:enable")
+    COMPLEX_IMAGE("semanticSegmentation")
     {
-        cv::Mat imageRGB(512,512, CV_8UC3);//(theImageBGR.rows,theImageBGR.cols, CV_8UC3);
+        cv::Mat imageRGB(512,512, CV_8UC3);//(theImage.rows,theImage.cols, CV_8UC3);
         imageRGB=0;
         cv::resize(netOut, netOut,  cv::Size(512,512), 0, 0, cv::INTER_NEAREST);//nearest para no perder la clase
         colored(netOut,imageRGB);//obtener imagen coloreada
         cv::Mat BGRResized;
-        cv::resize(theImageBGR, BGRResized,  cv::Size(512,512), 0, 0);
+        cv::resize(theImage, BGRResized,  cv::Size(512,512), 0, 0);
         addWeighted( imageRGB, alpha, BGRResized, beta, 0.0, imageRGB);//superponer imagenes
 
-        CvMat outSeg = imageRGB;
-        DRAW_IMAGE("semanticSegmentation", outSeg, theFrameInfo.time);
+        SEND_DEBUG_IMAGE("semanticSegmentation", imageRGB);
     }
 
 }

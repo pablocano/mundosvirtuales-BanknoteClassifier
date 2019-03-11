@@ -56,7 +56,7 @@
 
 MODULE(SemanticSeg,
 {,
-    REQUIRES(ImageBGR),
+    REQUIRES(Image),
     REQUIRES(FrameInfo),
     PROVIDES(SegmentedImage),
 });

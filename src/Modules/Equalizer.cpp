@@ -1,15 +1,26 @@
 #include "Equalizer.h"
-#include "Tools/Debugging/DebugDrawings.h"
+#include "Tools/Debugging/DebugImages.h"
 
 MAKE_MODULE(Equalizer, BaslerCamera)
 
 Equalizer::Equalizer()
 {
-    clahe_ = cv::createCLAHE(2.0, cv::Size(6,6));
+  clahe = cv::cuda::createCLAHE(clipLimit, cv::Size(sizeWindows,sizeWindows));
 }
 
-void Equalizer::update(GrayScaleImageEq& grayscaleimageEq)
+void Equalizer::update(GpuGrayImageEq& image)
 {
-    clahe_->apply(theGrayScaleImage,grayscaleimageEq);
-    //DRAW_IMAGE("equalizer", (cv::Mat) grayscaleimageEq, theFrameInfo.time);
+
+#ifdef CALIBRATION_TOOL
+  clahe = cv::cuda::createCLAHE(clipLimit, cv::Size(sizeWindows,sizeWindows));
+#endif
+
+  clahe->apply(theGpuGrayImage,image);
+
+  COMPLEX_IMAGE("EqualizedImage")
+  {
+    CvMat debugImage;
+    image.download(debugImage);
+    SEND_DEBUG_IMAGE("EqualizedImage",debugImage);
+  }
 }

@@ -129,6 +129,12 @@ void BanknoteTracker::update(BanknotePositionFiltered& position)
     position.valid = false;
     bestDetectionIndex = -1;
 
+    DEBUG_RESPONSE_ONCE("module:BanknoteTracker:resetHypothesis")
+    {
+      detections.clear();
+      detections.resize(maxDetections);
+    }
+
     switch(state)
     {
     case TracketState::estimating:
@@ -474,7 +480,7 @@ float BanknoteTracker::checkDetectionArea(const BanknoteDetection& detection)
 
     M = cv::getRotationMatrix2D(cv::Point2f(detection.pose.translation.x(), detection.pose.translation.y()), Angle(180_deg + detection.pose.rotation).toDegrees(),  1.0);
 
-    cv::warpAffine(theImageBGR, rotated, M, theImageBGR.size(), cv::INTER_CUBIC);
+    cv::warpAffine(theImage, rotated, M, theImage.size(), cv::INTER_CUBIC);
 
     cv::getRectSubPix(rotated, rect_size, cv::Point2f(detection.pose.translation.x(), detection.pose.translation.y()), cropped);
 
@@ -514,7 +520,7 @@ void BanknoteTracker::saveDetectionImage(const BanknoteDetection& detection)
 
     M = cv::getRotationMatrix2D(cv::Point2f(detection.pose.translation.x(), detection.pose.translation.y()), Angle(180_deg + detection.pose.rotation).toDegrees(),  1.0);
 
-    cv::warpAffine(theImageBGR, rotated, M, theImageBGR.size(), cv::INTER_CUBIC);
+    cv::warpAffine(theImage, rotated, M, theImage.size(), cv::INTER_CUBIC);
 
     cv::getRectSubPix(rotated, rect_size, cv::Point2f(detection.pose.translation.x(), detection.pose.translation.y()), cropped);
 
@@ -552,13 +558,13 @@ void BanknoteTracker::saveRandomDetectionImage(const BanknoteDetection& detectio
     cv::Size rect_size = cv::Size(model.image.cols*(1.f + saveDetectionBorderRatio), model.image.rows*(1.f + saveDetectionBorderRatio));
 
     cv::Point2f p;
-    p.x = Random::uniform<float>(0.3f*theImageBGR.cols, 0.7f*theImageBGR.cols);
-    p.y = Random::uniform<float>(0.3f*theImageBGR.rows, 0.7f*theImageBGR.rows);
+    p.x = Random::uniform<float>(0.3f*theImage.cols, 0.7f*theImage.cols);
+    p.y = Random::uniform<float>(0.3f*theImage.rows, 0.7f*theImage.rows);
     float angle = Random::uniform<float>(0.f, 360.f);
 
     M = cv::getRotationMatrix2D(p, angle,  1.0);
 
-    cv::warpAffine(theImageBGR, rotated, M, theImageBGR.size(), cv::INTER_CUBIC);
+    cv::warpAffine(theImage, rotated, M, theImage.size(), cv::INTER_CUBIC);
 
     cv::getRectSubPix(rotated, rect_size, p, cropped);
 
@@ -871,10 +877,7 @@ bool BanknoteTracker::basicColorTest(const BanknoteDetection& detection)
 
 void BanknoteTracker::drawDetections()
 {
-
-
-
-    /*for(int i = 0; i < detections.size(); i++)
+    for(int i = 0; i < detections.size(); i++)
     {
         const BanknoteDetection& detection = detections[i];
 
@@ -940,7 +943,7 @@ void BanknoteTracker::drawDetections()
 
 
 
-    }*/
+    }
 
 
 

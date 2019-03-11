@@ -22,6 +22,7 @@
 #include <chrono>
 #include <iostream>
 #include <cmath>
+#include "Tools/SystemCall.h"
 
 MAKE_MODULE(BanknoteDetector, BanknoteClassifier)
 
@@ -43,9 +44,9 @@ BanknoteDetector::BanknoteDetector():
     /* Initialize CUDA + SURF + Matcher */
     matcher = cv::cuda::DescriptorMatcher::createBFMatcher();
     surf = cv::cuda::SURF_CUDA(100, 4, 4, true);
-    clahe = cv::createCLAHE(2.0, cv::Size(7, 7));
+    clahe = cv::createCLAHE(5.0, cv::Size(30, 30));
 
-    imageKeypoints.resize(10000);
+    //imageKeypoints.resize(10000);
 
     for(unsigned c = 0; c < Classification::numOfRealBanknotes; c++)
     {
@@ -56,7 +57,7 @@ BanknoteDetector::BanknoteDetector():
         cv::Mat binaryMask(maskGrayscale.size(), CV_8U);
         cv::threshold(maskGrayscale, binaryMask, 127, 255, cv::THRESH_BINARY);
 
-        if(resizeModels)
+        //if(resizeModels)
             resizeImage(image);
 
         // Calculate the features of the image
@@ -117,17 +118,15 @@ void BanknoteDetector::update(BanknoteDetections& repr)
 
     std::cout << "---------------------------" << std::endl;
 
-    prepareImageMask();
-
     auto start = std::chrono::system_clock::now();
 
-    gpuImage.upload(theGrayScaleImage);
+    //gpuImage.upload(theGrayScaleImage);
 
 
-    surf(gpuImage, gpuImageMask, gpuImageKeypoints, gpuImageDescriptors);
+    //surf(gpuImage, gpuImageMask, gpuImageKeypoints, gpuImageDescriptors);
 
 
-    surf.downloadKeypoints(gpuImageKeypoints, imageKeypoints);
+    //surf.downloadKeypoints(gpuImageKeypoints, imageKeypoints);
 
 
     int numberOfMatches = 0;
@@ -138,7 +137,7 @@ void BanknoteDetector::update(BanknoteDetections& repr)
         ClassDetections& detections = classDetections[c];
 
         //matcher->match(gpuImageDescriptors, model.features.descriptors, detections.matches);
-        matcher->knnMatch(gpuImageDescriptors, model.features.descriptors, detections.matches, 2);
+        matcher->knnMatch(theFeatures.descriptors, model.features.descriptors, detections.matches, 2);
         numberOfMatches += detections.matches.size();
     }
 
@@ -211,33 +210,13 @@ void BanknoteDetector::update(BanknoteDetections& repr)
 
 }
 
-/**
- * @brief BanknoteDetector::prepareImageMask
- *
- * To calculate keypoints and descriptors in a ROI a mask must be used.
- * Since this mask may not be created at constructor time, it is called in the main update method
- */
-void BanknoteDetector::prepareImageMask()
-{
-    if(imageMask.cols == theGrayScaleImage.cols && imageMask.rows == theGrayScaleImage.rows && imageMask.type() == theGrayScaleImage.type())
-        return;
-
-    imageMask = cv::Mat(theGrayScaleImage.rows, theGrayScaleImage.cols, CV_8U, cv::Scalar(0));
-
-    for(int j = minMaskY; j < maxMaskY; j++)
-        for(int i = minMaskX; i < maxMaskX; i++)
-            imageMask.at<unsigned char>(j, i) = 255;
-
-    gpuImageMask.upload(imageMask);
-}
-
 void BanknoteDetector::resizeImage(cv::Mat& image)
 {
-    ASSERT(false); /* This should not be used anymore */
+    //ASSERT(false); /* This should not be used anymore */
 
     //resize
-    float scale = trainBanknoteHeight/(float)image.rows;
-    cv::resize(image,image,cv::Size(), scale, scale, cv::INTER_AREA);
+    //float scale = trainBanknoteHeight/(float)image.rows;
+    //cv::resize(image,image,cv::Size(), scale, scale, cv::INTER_AREA);
     //cv::resize(image, image, cv::Size(trainBanknoteWidth, trainBanknoteHeight), 0, 0, cv::INTER_AREA);
 
     //Equalize histogram
@@ -338,7 +317,7 @@ void BanknoteDetector::hough4d(const BanknoteModel& model, const BanknoteDetecti
     ASSERT(model.banknoteClass >= 0 && model.banknoteClass < theSegmentedImage.map.size());
     unsigned char c = theSegmentedImage.map[model.banknoteClass];
 
-    int numberOfImageKeypoints = imageKeypoints.size();
+    int numberOfImageKeypoints = theFeatures.keypoints.size();
     int numberOfModelKeypoints = modelKeypoints.size();
 
     for (int index1 = 0; index1 < matches.size(); index1++)
@@ -353,7 +332,7 @@ void BanknoteDetector::hough4d(const BanknoteModel& model, const BanknoteDetecti
             ASSERT(match.queryIdx < numberOfImageKeypoints);
             ASSERT(match.trainIdx < numberOfModelKeypoints);
 
-            const cv::KeyPoint& imageKeypoint = imageKeypoints[match.queryIdx];
+            const cv::KeyPoint& imageKeypoint = theFeatures.keypoints[match.queryIdx];
             const cv::KeyPoint& modelKeypoint = modelKeypoints[match.trainIdx];
 
             getTransform(modelKeypoint, imageKeypoint, tx, ty, theta, e);
@@ -410,7 +389,7 @@ void BanknoteDetector::hough4d(const BanknoteModel& model, const BanknoteDetecti
         {
             float e, theta, tx, ty;
             const cv::DMatch& match = matches_aux[index];
-            const cv::KeyPoint& imageKeypoint = imageKeypoints[match.queryIdx];
+            const cv::KeyPoint& imageKeypoint = theFeatures.keypoints[match.queryIdx];
             const cv::KeyPoint& modelKeypoint = modelKeypoints[match.trainIdx];
 
             getTransform(modelKeypoint, imageKeypoint, tx, ty, theta, e);
@@ -496,12 +475,12 @@ void BanknoteDetector::ransac(
 
         const cv::DMatch& match = detections.houghFilteredMatches[index];
 
-        const cv::KeyPoint& imageKeypoint = imageKeypoints[match.queryIdx];
+        const cv::KeyPoint& imageKeypoint = theFeatures.keypoints[match.queryIdx];
         const cv::KeyPoint& modelKeypoint = model.features.keypoints[match.trainIdx];
 
         const Matrix3f transform = getTransformAsMatrix(imageKeypoint, modelKeypoint);
 
-        int consensus = getRansacConsensus(transform, detections.houghFilteredMatches, model.features.keypoints, imageKeypoints, params.ransacMaxError, acceptedStatus);
+        int consensus = getRansacConsensus(transform, detections.houghFilteredMatches, model.features.keypoints, theFeatures.keypoints, params.ransacMaxError, acceptedStatus);
 
         if(consensus > params.ransacMinConsensus)
         {
@@ -513,7 +492,7 @@ void BanknoteDetector::ransac(
             newDetection.currentTrainPoints.reserve(consensus);
 
 
-            getRansacInliers(transform, detections.houghFilteredMatches, model.features.keypoints, imageKeypoints, params.ransacMaxError, params.ransacMaxError2, acceptedStatus, newDetection.currentMatches, newDetection.currentTrainPoints, newDetection.currentQueryPoints);
+            getRansacInliers(transform, detections.houghFilteredMatches, model.features.keypoints, theFeatures.keypoints, params.ransacMaxError, params.ransacMaxError2, acceptedStatus, newDetection.currentMatches, newDetection.currentTrainPoints, newDetection.currentQueryPoints);
             newDetection.ransacVotes = consensus;
 
             assert(newDetection.ransacVotes == newDetection.currentMatches.size());
@@ -720,14 +699,14 @@ void BanknoteDetector::drawAcceptedHough()
         ClassDetections& detections = classDetections[c];
 
         //cv::Mat img_accepted;
-        //cv::drawMatches(theGrayScaleImageEq, imageKeypoints, model.image, model.features.keypoints, detections.houghFilteredMatches, img_accepted);
+        //cv::drawMatches(theGrayScaleImageEq, theFeatures.keypoints, model.image, model.features.keypoints, detections.houghFilteredMatches, img_accepted);
 
         ColorRGBA color = debugColors[c];
         const Vector3f (&corners)[BanknoteModel::CornerID::numOfCornerIDs] = model.corners;
 
         for(const cv::DMatch& match : detections.houghFilteredMatches)
         {
-            const cv::KeyPoint& queryKeypoint = imageKeypoints[match.queryIdx];
+            const cv::KeyPoint& queryKeypoint = theFeatures.keypoints[match.queryIdx];
             const cv::KeyPoint& trainKeypoint = model.features.keypoints[match.trainIdx];
 
             Matrix3f transform = getTransformAsMatrix(trainKeypoint, queryKeypoint);
@@ -772,7 +751,7 @@ void BanknoteDetector::drawAcceptedRansac()
         {
             for(const cv::DMatch& match : h.currentMatches)
             {
-                cv::KeyPoint queryKeypoint = imageKeypoints[match.queryIdx];
+                cv::KeyPoint queryKeypoint = theFeatures.keypoints[match.queryIdx];
                 cv::KeyPoint trainKeypoint = model.features.keypoints[match.trainIdx];
 
                 Matrix3f transform = getTransformAsMatrix(trainKeypoint, queryKeypoint);

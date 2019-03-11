@@ -15,6 +15,7 @@
 #include "Representations/Image.h"
 #include "Tools/Math/Vector2.h"
 #include "Tools/ColorClasses.h"
+#include "Tools/Debugging/DebugImages.h"
 
 class Controller;
 
@@ -30,17 +31,13 @@ public:
    * @param segmented The image will be segmented.
    * @param gain The intensity is multiplied with this factor.
    */
-  ImageView(const QString& fullName, Controller& controller, const std::string& name, bool segmented, bool eastCam, bool custom = false);
-  
-  bool eastCam; /**< Show east cam image in this view. */
+  ImageView(const QString& fullName, Controller& controller, const std::string& name);
   
 private:
   const QString fullName; /**< The path to this view in the scene graph */
   const QIcon icon; /**< The icon used for listing this view in the scene graph */
   Controller& controller; /**< A reference to the console object. */
   const std::string name; /**< The name of the view. */
-  bool segmented;  /**< The image will be segmented. */
-  bool custom; /**< The image will be a custom image */
   
   /**
    * The method returns a new instance of a widget for this direct view.
@@ -71,10 +68,11 @@ private:
   
   float zoom;
   QPoint offset;
+
+  char processIdentifier;
   
   unsigned lastImageTimeStamp;
   unsigned lastDrawingsTimeStamp;
-  unsigned lastColorTableTimeStamp;
   
   // which classified should be drawn?
   ColorClasses::Color drawnColor; /**< "none" means all. */
@@ -82,9 +80,8 @@ private:
   void paintEvent(QPaintEvent* event);
   virtual void paint(QPainter& painter);
   void paintDrawings(QPainter& painter);
-  void copyImage(const ImageBGR& srcImage);
-  void copyImageSegmented(const ImageBGR& srcImage);
-  void paintImage(QPainter& painter, const ImageBGR& srcImage);
+  void copyImage(const DebugImage& srcImage);
+  void paintImage(QPainter& painter, const DebugImage& srcImage);
   void window2viewport(QPoint& point);
   void keyPressEvent(QKeyEvent* event);
   void wheelEvent(QWheelEvent* event);
@@ -108,7 +105,7 @@ private:
 private slots:
   
   void colorAct(int color) {drawnColor = (ColorClasses::Color) color;}
-  
+
   void drDebugDrawing(const QString &debug);
 
 };

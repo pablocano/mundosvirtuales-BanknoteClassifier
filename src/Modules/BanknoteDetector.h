@@ -24,7 +24,6 @@
 #include "Representations/BanknoteModel.h"
 #include "Representations/Classification.h"
 #include "Representations/Features.h"
-#include "Representations/Image.h"
 #include "Representations/FrameInfo.h"
 #include "Tools/Debugging/DebugDrawings.h"
 #include "Tools/Debugging/Debugging.h"
@@ -50,18 +49,13 @@
 
 MODULE(BanknoteDetector,
 {,
-    REQUIRES(GrayScaleImage),
-    REQUIRES(GrayScaleImageEq),
-    REQUIRES(SegmentedImage),
+    REQUIRES(Features),
     REQUIRES(FrameInfo),
+    REQUIRES(SegmentedImage),
     PROVIDES(BanknoteDetections),
     DEFINES_PARAMETERS(
     {,
         (BanknoteDetectionParameters[Classification::numOfRealBanknotes]) parameters, /* Just in case, each class has its own set of parameters. This should allow a fine-grained  tuning capability */
-        (int)(320) minMaskX, /* These hardcoded mask coordinates indicate where in the image, processing should be perfomed. Ideally, the FOV of the camera should match the working area, but untill that happens, please cope up with the masks */
-        (int)(1600) maxMaskX,
-        (int)(140) minMaskY,
-        (int)(1900) maxMaskY,
     }),
 });
 
@@ -103,8 +97,6 @@ protected:
     void estimateTransforms(const BanknoteModel& model, const BanknoteDetectionParameters& parameters,  ClassDetections& detections);
     void nonMaximumSupression(const BanknoteModel& model, const BanknoteDetectionParameters& parameters, ClassDetections& detections);
 
-    void prepareImageMask();
-
     /* Math Related */
     void resizeImage(cv::Mat& image);
 
@@ -127,11 +119,11 @@ protected:
     /** Gpu Buffers */
     cv::cuda::GpuMat gpuImage;
     cv::cuda::GpuMat gpuImageKeypoints;
-    cv::cuda::GpuMat gpuImageDescriptors;
+    //CvGpuMat& gpuImageDescriptors;
     cv::cuda::GpuMat gpuImageMask;
 
     /** RAM Buffers */
-    std::vector<cv::KeyPoint> imageKeypoints;
+    //std::vector<cv::KeyPoint>& imageKeypoints;
 
     /** Models */
     BanknoteModel models[Classification::numOfRealBanknotes];

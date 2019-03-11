@@ -8,9 +8,6 @@ MODULE(DummyImages,
 {,
  REQUIRES(FrameInfo),
  PROVIDES(Image),
- REQUIRES(Image),
- PROVIDES(GrayScaleImage),
- PROVIDES(ImageBGR),
 });
 
 class DummyImages : public DummyImagesBase
@@ -21,12 +18,8 @@ public:
 
     void update(Image& image);
 
-    void update(GrayScaleImage& grayScaleImage);
-
-    void update(ImageBGR& imageBGR);
-
     /**
      * @brief currentImage
      */
-    ImageBGR currentImage;
+    Image currentImage;
 };
