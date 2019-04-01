@@ -10,7 +10,8 @@ Equalizer::Equalizer()
 
 void Equalizer::update(GpuGrayImageEq& image)
 {
-
+  if(theGpuGrayImage.empty())
+    return;
 #ifdef CALIBRATION_TOOL
   clahe = cv::cuda::createCLAHE(clipLimit, cv::Size(sizeWindows,sizeWindows));
 #endif

@@ -11,6 +11,9 @@ FeaturesProvider::FeaturesProvider()
 
 void FeaturesProvider::update(Features &features)
 {
+  if(theGpuGrayImageEq.empty())
+    return;
+
   if(mask.empty())
   {
     cv::Mat temp = cv::Mat::zeros(theGpuGrayImageEq.rows,theGpuGrayImageEq.cols,CV_8U);

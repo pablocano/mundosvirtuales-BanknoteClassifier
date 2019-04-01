@@ -44,7 +44,7 @@ BanknoteDetector::BanknoteDetector():
     /* Initialize CUDA + SURF + Matcher */
     matcher = cv::cuda::DescriptorMatcher::createBFMatcher();
     surf = cv::cuda::SURF_CUDA(100, 4, 4, true);
-    clahe = cv::createCLAHE(5.0, cv::Size(30, 30));
+    clahe = cv::createCLAHE(2.0, cv::Size(20, 20));
 
     //imageKeypoints.resize(10000);
 

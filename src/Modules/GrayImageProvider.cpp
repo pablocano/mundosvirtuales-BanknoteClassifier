@@ -5,10 +5,13 @@ MAKE_MODULE(GrayImageProvider, BaslerCamera)
 
 void GrayImageProvider::update(GpuGrayImage &image)
 {
-  if(lastImageRecived == image.timeStamp)
+  if(theImage.empty())
     return;
 
-  lastImageRecived = image.timeStamp;
+  if(lastImageRecived == theImage.timeStamp)
+    return;
+
+  lastImageRecived = theImage.timeStamp;
 
   cv::cuda::GpuMat gpuImage;
   gpuImage.upload(theImage);

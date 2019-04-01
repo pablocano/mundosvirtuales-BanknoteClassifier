@@ -69,7 +69,7 @@ Controller::~Controller()
 void Controller::compile()
 {
   addCategory("GroundTruth", 0, ":/Icons/GroundTruth.png");
-  //addView(new StatusView("GroundTruth.Status.Status",*this,"RobotStatus"),"GroundTruth.Status");
+  addView(new StatusView("GroundTruth.Status.Status",*this,"RobotStatus"),"GroundTruth.Status");
 
   console->consoleView = new ConsoleView("GroundTruth.Console.Console",*console);
 
