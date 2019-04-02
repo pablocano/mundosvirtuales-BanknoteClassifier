@@ -15,7 +15,7 @@ void BanknoteClassifierWrapper::run()
 
   banknoteClassifier.setGlobals();
 
-  while (!shouldStop) {
+  while (!shouldStop and !isInterruptionRequested()) {
     send();
     banknoteClassifier.procesMain();
     receive();

@@ -35,6 +35,8 @@ class FeaturesProvider : public FeaturesProviderBase
 public:
     FeaturesProvider();
 
+    ~FeaturesProvider();
+
     cv::cuda::SURF_CUDA surf;
 
     cv::cuda::GpuMat mask;

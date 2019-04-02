@@ -9,6 +9,11 @@ FeaturesProvider::FeaturesProvider()
   surf = cv::cuda::SURF_CUDA(hessianThreshold, nOctaves, nOctaveLayers, extended);
 }
 
+FeaturesProvider::~FeaturesProvider()
+{
+  surf.releaseMemory();
+}
+
 void FeaturesProvider::update(Features &features)
 {
   if(theGpuGrayImageEq.empty())

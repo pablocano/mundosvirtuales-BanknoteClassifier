@@ -122,10 +122,10 @@ BanknoteTracker::~BanknoteTracker()
  */
 void BanknoteTracker::update(BanknotePositionFiltered& position)
 {
-    DECLARE_DEBUG_DRAWING("module:BanknoteTracker:enable", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteTracker:hypotheses_detections", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteTracker:hypotheses_info", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteTracker:best_detections", "drawingOnImage");
+    DECLARE_DEBUG_DRAWING("module:BanknoteTracker:semantic_consistency", "drawingOnImage");
     position.valid = false;
     bestDetectionIndex = -1;
 
@@ -184,10 +184,7 @@ void BanknoteTracker::update(BanknotePositionFiltered& position)
 
 
     /* Debug Drawings */
-    COMPLEX_DRAWING("module:BanknoteTracker:enable")
-    {
-        drawDetections();
-    }
+    drawDetections();
 }
 
 
@@ -309,7 +306,7 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
     /* Final decision */
     int bestDetectionNumberOfKeypoints = 0;
     int bestDetectionLayer = maxDetections;
-    float bestArea=0.7f;
+    float bestArea=0.3f;
     for(int i = 0; i < maxDetections; i++)
     {
         BanknoteDetection& detection = detections[i];
@@ -494,8 +491,23 @@ float BanknoteTracker::checkDetectionArea(const BanknoteDetection& detection)
     auto output = (moduleTorch->forward({torch::from_blob(bufferImgIn, {1,3, 50, 110}, at::kFloat).to(at::kCUDA)}).toTensor());//inferencia de la red en cuda
     float area= (output.data<float>())[0];
 
-    //if(area>0.8f)
-    //imwrite("background.png",resized);
+
+    COMPLEX_DRAWING("module:BanknoteTracker:semantic_consistency")
+    {
+      const BanknoteModel& model = models[detection.banknoteClass.result];
+
+      Vector3f start = model.corners[BanknoteModel::CornerID::MiddleMiddle];
+      start = detection.transform * start;
+
+      std::string area_string = std::to_string(area);
+      if(area_string.length() > 4)
+        area_string = area_string.substr(0,4);
+
+      float font = 20.f;
+
+      DRAWTEXT("module:BanknoteTracker:semantic_consistency", start.x(), start.y(), font, ColorRGBA::black, area_string);
+    }
+
     return area;
 
 }
@@ -840,8 +852,8 @@ bool BanknoteTracker::basicColorTest(const BanknoteDetection& detection)
     int hPoints = 10;
     int vPoints = 4;
 
-    float hBorderRatio = 0.15;
-    float vBorderRatio = 0.15;
+    float hBorderRatio = 0.15f;
+    float vBorderRatio = 0.15f;
 
     float minY = model.image.rows * vBorderRatio;
     float minX = model.image.cols * hBorderRatio;
@@ -851,6 +863,8 @@ bool BanknoteTracker::basicColorTest(const BanknoteDetection& detection)
 
 
     unsigned char expetectedClass = theSegmentedImage.map[detection.banknoteClass.result];
+
+    float numberOfInliers = 0, total = 0;
 
     for(int j = 0; j < vPoints; j++)
     {
@@ -863,16 +877,28 @@ bool BanknoteTracker::basicColorTest(const BanknoteDetection& detection)
             int px = int(p.x()) >> 1;
 
             if(px < 0 || px > theSegmentedImage.cols || py < 0 || py > theSegmentedImage.rows)
-            {
-                int nico = 0;
                 return false;
-            }
 
             unsigned char c = theSegmentedImage.at<unsigned char>(py, px);
 
-            if(c != expetectedClass)
-                return  false;
+            if(c == expetectedClass)
+                numberOfInliers++;
+
+            total++;
         }
+    }
+
+    if(numberOfInliers / total < 0.5f)
+      return false;
+
+
+    COMPLEX_DRAWING("module:BanknoteTracker:semantic_consistency")
+    {
+      ColorRGBA color = debugColors[detection.banknoteClass.result];
+      color.a = 128;
+
+      POLYGON("module:BanknoteTracker:semantic_consistency",4,detection.queryCorners,2,Drawings::solidPen,color,Drawings::solidBrush, color);
+
     }
 
     return true;
@@ -880,6 +906,8 @@ bool BanknoteTracker::basicColorTest(const BanknoteDetection& detection)
 
 void BanknoteTracker::drawDetections()
 {
+  COMPLEX_DRAWING("module:BanknoteTracker:hypotheses_detections")
+  {
     for(int i = 0; i < detections.size(); i++)
     {
         const BanknoteDetection& detection = detections[i];
@@ -923,33 +951,49 @@ void BanknoteTracker::drawDetections()
 
         CIRCLE("module:BanknoteTracker:hypotheses_detections", detection.graspPoint.x(), detection.graspPoint.y(), graspRadius, 8, Drawings::solidPen, colorGrasp2, Drawings::noBrush, ColorRGBA::white);
         CIRCLE("module:BanknoteTracker:hypotheses_detections", detection.graspPoint.x(), detection.graspPoint.y(), graspRadius, 5, Drawings::solidPen, colorGrasp, Drawings::noBrush, color);
-
-        std::string detection_id_str = "Detection id / class: " + std::to_string(i) + " / " + std::to_string(detection.banknoteClass.result);
-        std::string hypotheses_points_str = "Points: " + std::to_string(detection.integratedMatches.size());
-        std::string first_time_str = "Since first: " + std::to_string(theFrameInfo.getTimeSince(detection.firstTimeDetected));
-        std::string last_time_str = "Since last: " + std::to_string(theFrameInfo.getTimeSince(detection.lastTimeDetected));
-        std::string grasp_str = "Grasp: " + std::to_string(detection.validGrasp);
-        std::string foreground_str = "Layer: " + std::to_string(detection.layer);
-        std::string arearatio_str = "Area ratio: " + std::to_string(detection.areaRatio);
-        ColorRGBA color_text = detection.validNms ? ColorRGBA::white : ColorRGBA::black;
-
-        float font = 20;
-        float step = font + 1;
-
-        DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 0 * step, font, color_text, detection_id_str);
-        DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 1 * step, font, color_text, hypotheses_points_str);
-        DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 2 * step, font, color_text, first_time_str);
-        DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 3 * step, font, color_text, last_time_str);
-        DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 4 * step, font, color_text, grasp_str);
-        DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 5 * step, font, color_text, foreground_str);
-        DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 6 * step, font, color_text, arearatio_str);
-
-
-
     }
+  }
 
+  COMPLEX_DRAWING("module:BanknoteTracker:hypotheses_info")
+  {
+    for (int i = 0; i < detections.size(); ++i)
+    {
+      const BanknoteDetection& detection = detections[i];
 
+      if(!detection.isDetectionValid())
+          continue;
 
+      ASSERT(detection.banknoteClass.result >= 0 && detection.banknoteClass.result < Classification::numOfRealBanknotes);
+
+      const BanknoteModel& model = models[detection.banknoteClass.result];
+
+      Vector3f start = model.corners[BanknoteModel::CornerID::MiddleMiddle];
+      start = detection.transform * start;
+
+      std::string detection_id_str = "Detection id / class: " + std::to_string(i) + " / " + std::to_string(detection.banknoteClass.result);
+      std::string hypotheses_points_str = "Points: " + std::to_string(detection.integratedMatches.size());
+      std::string first_time_str = "Since first: " + std::to_string(theFrameInfo.getTimeSince(detection.firstTimeDetected));
+      std::string last_time_str = "Since last: " + std::to_string(theFrameInfo.getTimeSince(detection.lastTimeDetected));
+      std::string grasp_str = "Grasp: " + std::to_string(detection.validGrasp);
+      std::string foreground_str = "Layer: " + std::to_string(detection.layer);
+      std::string arearatio_str = "Area ratio: " + std::to_string(detection.areaRatio);
+      ColorRGBA color_text = detection.validNms ? ColorRGBA::white : ColorRGBA::black;
+
+      float font = 20;
+      float step = font + 1;
+
+      DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 0 * step, font, color_text, detection_id_str);
+      DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 1 * step, font, color_text, hypotheses_points_str);
+      DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 2 * step, font, color_text, first_time_str);
+      DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 3 * step, font, color_text, last_time_str);
+      DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 4 * step, font, color_text, grasp_str);
+      DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 5 * step, font, color_text, foreground_str);
+      DRAWTEXT("module:BanknoteTracker:hypotheses_info", start.x(), start.y() + 6 * step, font, color_text, arearatio_str);
+    }
+  }
+
+  COMPLEX_DRAWING("module:BanknoteTracker:best_detections")
+  {
     const BanknoteDetection& detection = lastBestDetecion;
 
     if(!detection.isDetectionValid())
@@ -992,5 +1036,5 @@ void BanknoteTracker::drawDetections()
 
     CIRCLE("module:BanknoteTracker:best_detections", detection.graspPoint.x(), detection.graspPoint.y(), graspRadius, 8, Drawings::solidPen, colorGrasp2, Drawings::noBrush, ColorRGBA::white);
     CIRCLE("module:BanknoteTracker:best_detections", detection.graspPoint.x(), detection.graspPoint.y(), graspRadius, 5, Drawings::solidPen, colorGrasp, Drawings::noBrush, color);
-
+  }
 }
