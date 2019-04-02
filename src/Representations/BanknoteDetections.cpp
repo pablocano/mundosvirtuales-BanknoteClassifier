@@ -200,8 +200,9 @@ int BanknoteDetection::compare(const BanknoteDetection& other)
  */
 void BanknoteDetection::estimateGraspPoint(const BanknoteModel& model, float graspRadius)
 {
-    std::vector<Vector2f> inliers;
-    inliers.reserve(currentMatches.size());
+    std::vector<Vector2f> leftInliers, rightInliers;
+    leftInliers.reserve(currentMatches.size());
+    rightInliers.reserve(currentMatches.size());
 
     for(const Vector3f& p : currentTrainPoints)
     {
@@ -213,17 +214,27 @@ void BanknoteDetection::estimateGraspPoint(const BanknoteModel& model, float gra
         if(s1 || s2 || s3 || s4)
             continue;
 
-        inliers.push_back(Vector2f(p.x(), p.y()));
+        if(p.x() < model.image.cols/2)
+            leftInliers.push_back(Vector2f(p.x(), p.y()));
+        else {
+            rightInliers.push_back(Vector2f(p.x(),p.y()));
+        }
     }
 
-    if(inliers.size() == 0)
+    if(leftInliers.size() == 0 && rightInliers.size() == 0)
     {
         validGrasp = false;
         graspScore = 0;
         return;
     }
 
-    Vector2f median = Geometry::geometricMedian(inliers);
+    Vector2f median;
+
+    if(leftInliers.size() > rightInliers.size())
+        median =Geometry::geometricMedian(leftInliers);
+    else {
+        median = Geometry::geometricMedian(rightInliers);
+    }
 
     graspPoint = transform * Vector3f(median.x(), median.y(), 1.f);
 
@@ -238,7 +249,9 @@ void BanknoteDetection::estimateGraspPoint(const BanknoteModel& model, float gra
     score = std::min(score, std::min(score1, std::min(score2, std::min(score3, score4)))) - graspRadius;
 
     graspScore = score;
-    validGrasp = true;
+
+    // If the grasp point is to close to the center, skip
+    validGrasp = std::abs(median.x() - model.image.cols/2) > 100;
 
 }
 

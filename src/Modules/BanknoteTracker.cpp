@@ -332,7 +332,7 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
             {
                 bestDetectionIndex = i;
                 bestArea=area;
-                std::cout << "used area claculation" << std::endl;
+                std::cout << "used area calculation" << std::endl;
                 //break;
             }
 
@@ -345,7 +345,7 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
         //std::cout << "used color claculation" << std::endl;
     //}
 
-    if(bestDetectionIndex == -1)
+    /*if(bestDetectionIndex == -1)
     {
         std::cout << "used descriptors" << std::endl;
         for(int i = 0; i < maxDetections; i++)
@@ -376,7 +376,7 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
                 bestDetectionNumberOfKeypoints = detection.integratedTrainPoints.size();
             }
         }
-    }
+    }*/
 
     if(bestDetectionIndex != -1)
     {
@@ -863,7 +863,10 @@ bool BanknoteTracker::basicColorTest(const BanknoteDetection& detection)
             int px = int(p.x()) >> 1;
 
             if(px < 0 || px > theSegmentedImage.cols || py < 0 || py > theSegmentedImage.rows)
+            {
+                int nico = 0;
                 return false;
+            }
 
             unsigned char c = theSegmentedImage.at<unsigned char>(py, px);
 
