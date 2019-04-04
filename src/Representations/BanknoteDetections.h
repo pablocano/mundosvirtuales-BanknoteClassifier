@@ -48,62 +48,78 @@
  * to update and compare the current detection during both detection and tracking steps
  *
  */
+
 class BanknoteDetection : public Streamable
 {
 public:
 
-    BanknoteDetection();
-    ~BanknoteDetection() override;
+  ENUM(FilterSummary,
+  {,
+    invalidGrasp,
+    tooNew,
+    tooOld,
+    areaSmall,
+    semantic,
+    chkArea,
+    eligible,
+    chosen,
+  });
 
-    bool isDetectionValid() const;
-    bool isGraspingValid() const;
-    float iou(const BanknoteDetection& detection) const;
-    void updateTransformation(const BanknoteModel& model, const BanknoteDetectionParameters& param, bool useIntegrated);
-    int compare(const BanknoteDetection& other); /* 1. this is over. -1 other is over. 0 unknown */
-    void estimateGraspPoint(const BanknoteModel& model, float graspingRadius);
-    void checkAndFixGraspPoint(const BanknoteModel& model, float graspingRadius, int iter = 0);
+  BanknoteDetection();
+  ~BanknoteDetection() override;
 
-    /* Buffer with detection related points */
-    std::vector<cv::DMatch> currentMatches;
-    std::vector<Vector3f> currentQueryPoints;
-    std::vector<Vector3f> currentTrainPoints;
+  bool isDetectionValid() const;
+  bool isGraspingValid() const;
+  float iou(const BanknoteDetection& detection) const;
+  void updateTransformation(const BanknoteModel& model, const BanknoteDetectionParameters& param, bool useIntegrated);
+  int compare(const BanknoteDetection& other); /* 1. this is over. -1 other is over. 0 unknown */
+  void estimateGraspPoint(const BanknoteModel& model, float graspingRadius);
+  void checkAndFixGraspPoint(const BanknoteModel& model, float graspingRadius, int iter = 0);
 
-    std::vector<cv::DMatch> integratedMatches;
-    std::vector<Vector3f> integratedQueryPoints;
-    std::vector<Vector3f> integratedTrainPoints;
+  /* Buffer with detection related points */
+  std::vector<cv::DMatch> currentMatches;
+  std::vector<Vector3f> currentQueryPoints;
+  std::vector<Vector3f> currentTrainPoints;
+
+  std::vector<cv::DMatch> integratedMatches;
+  std::vector<Vector3f> integratedQueryPoints;
+  std::vector<Vector3f> integratedTrainPoints;
 
 
-   /* Detection representation*/
-   Classification banknoteClass;
-   Matrix3f transform; /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
-   Pose2f pose; /* 2D Pose of the hypothesis in the image space */
-   Vector3f graspPoint; /* Estimated grasping point in query coordinates */
-   Vector3f queryCorners[BanknoteModel::numOfRealCorners];
+  /* Detection representation*/
+  Classification banknoteClass;
+  Matrix3f transform; /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
+  Pose2f pose; /* 2D Pose of the hypothesis in the image space */
+  Vector3f graspPoint; /* Estimated grasping point in query coordinates */
+  Vector3f queryCorners[BanknoteModel::numOfRealCorners];
 
-   /* Geometry objects representing the detection. Hopefully, all geos-related variables should be here to promove a separation of concerns */
-   static geos::geom::GeometryFactory::Ptr factory;
-   std::shared_ptr<geos::geom::Polygon> geometry; /* The template represented as a polygon in query coordinates */
-   std::shared_ptr<geos::geom::Geometry> hull; /* The convex hull of the query keypoints */
+  /* Geometry objects representing the detection. Hopefully, all geos-related variables should be here to promove a separation of concerns */
+  static geos::geom::GeometryFactory::Ptr factory;
+  std::shared_ptr<geos::geom::Polygon> geometry; /* The template represented as a polygon in query coordinates */
+  std::shared_ptr<geos::geom::Geometry> hull; /* The convex hull of the query keypoints */
 
-   /* Detection statistics */
-   int ransacVotes;
-   float graspScore;
-   float maxIOU;
-   int layer; /* -1 = invalid/non-computed, 0 = non occluded. 1,2,... represent the number of detections that occlude this detection */
-   float areaRatio;
-   float area;
+  /* Detection statistics */
+  int ransacVotes;
+  float graspScore;
+  float maxIOU;
+  int layer; /* -1 = invalid/non-computed, 0 = non occluded. 1,2,... represent the number of detections that occlude this detection */
+  float areaRatio;
+  float area;
 
-   /* Status flags */
-   bool validTransform;
-   bool validNms;
-   bool validGrasp;
+  /* Status flags */
+  bool validTransform;
+  bool validNms;
+  bool validGrasp;
 
-    /* Tracking flags */
-   int lastTimeDetected;
-   int firstTimeDetected;
+  /* Tracking flags */
+  int lastTimeDetected;
+  int firstTimeDetected;
 
-   /* Experimental for O(n) keypoint addition to this detection (useful during tracking) */
-   MatrixXi trainKeypointStatus;
+  /* Experimental for O(n) keypoint addition to this detection (useful during tracking) */
+  MatrixXi trainKeypointStatus;
+
+  /* The last filter this detection pass*/
+  FilterSummary summary;
 
   virtual void serialize(In* in, Out* out);
 };
@@ -115,5 +131,5 @@ public:
  */
 STREAMABLE(BanknoteDetections,
 {,
-    (std::vector<BanknoteDetection>) detections,
+ (std::vector<BanknoteDetection>) detections,
 });

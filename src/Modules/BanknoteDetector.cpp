@@ -107,27 +107,13 @@ BanknoteDetector::BanknoteDetector():
 
 void BanknoteDetector::update(BanknoteDetections& repr)
 {
-    DECLARE_DEBUG_DRAWING("module:BanknoteDetections:enable", "drawingOnImage");
-    DECLARE_DEBUG_DRAWING("module:BanknoteDetections:raw_keypoints", "drawingOnImage");
-    DECLARE_DEBUG_DRAWING("module:BanknoteDetections:raw_detections", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteDetections:hough_keypoints", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteDetections:hough_detections", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteDetections:ransac_detections", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteDetections:hypotheses_detections", "drawingOnImage");
     DECLARE_DEBUG_DRAWING("module:BanknoteDetections:hypotheses_info", "drawingOnImage");
 
-    std::cout << "---------------------------" << std::endl;
-
-    auto start = std::chrono::system_clock::now();
-
-    //gpuImage.upload(theGrayScaleImage);
-
-
-    //surf(gpuImage, gpuImageMask, gpuImageKeypoints, gpuImageDescriptors);
-
-
-    //surf.downloadKeypoints(gpuImageKeypoints, imageKeypoints);
-
+    OUTPUT_TEXT("-------------------");
 
     int numberOfMatches = 0;
 
@@ -201,10 +187,16 @@ void BanknoteDetector::update(BanknoteDetections& repr)
         }
     }
 
-    COMPLEX_DRAWING("module:BanknoteDetections:enable")
+    COMPLEX_DRAWING("module:BanknoteDetections:hough_detections")
     {
         drawAcceptedHough();
+    }
+    COMPLEX_DRAWING("module:BanknoteDetections:ransac_detections")
+    {
         drawAcceptedRansac();
+    }
+    COMPLEX_DRAWING("module:BanknoteDetections:hypotheses_detections")
+    {
         drawAcceptedHypotheses();
     }
 

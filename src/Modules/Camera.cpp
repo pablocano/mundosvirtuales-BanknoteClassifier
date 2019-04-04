@@ -42,10 +42,6 @@ Camera::Camera() : cameraLoaded(false)
     // Print the model name of the camera.
     OUTPUT_TEXT("Using device " + camera->GetDeviceInfo().GetModelName());
 
-    // Initialice the pixel converter
-    fc = new Pylon::CImageFormatConverter();
-    fc->OutputPixelFormat = Pylon::PixelType_BGR8packed;
-
     // Initialization of a pylon image
     grabbedImage = new Pylon::CPylonImage();        // Open the camera
     camera->Open();
@@ -71,15 +67,21 @@ Camera::Camera() : cameraLoaded(false)
   catch (GenICam::GenericException &e)
   {
     cameraLoaded = false;
+    camera = nullptr;
+    fc = nullptr;
     std::cerr << "An exception occurred." << std::endl << e.GetDescription() << std::endl;
   }
 }
 Camera::~Camera()
 {
-  camera->StopGrabbing();
-  camera->Close();
-
-  delete camera;
+  if(camera)
+  {
+    camera->StopGrabbing();
+    camera->Close();
+    delete camera;
+    delete fc;
+    delete grabbedImage;
+  }
 
   Pylon::PylonTerminate();
 }

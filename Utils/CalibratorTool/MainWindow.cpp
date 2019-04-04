@@ -158,9 +158,11 @@ void MainWindow::close()
   openedObjects.clear();
   openedObjectsByName.clear();
   
-  if (wasOpened) {
-    ctrl->stop();
-  }
+  //if (wasOpened) {
+    //ctrl->stop();
+  //}
+
+  delete ctrl;
   
 }
 

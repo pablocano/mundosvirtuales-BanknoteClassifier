@@ -180,7 +180,7 @@ int BanknoteDetection::compare(const BanknoteDetection& other)
     float oneOverTwoIntersectionArea = oneOverTwoIntersection->getArea();
     float twoOverOneIntersectionArea = twoOverOneIntersection->getArea();
 
-    bool result = oneOverTwoIntersectionArea > twoOverOneIntersectionArea ? 1 : oneOverTwoIntersectionArea < twoOverOneIntersectionArea ? -1 : 0;
+    int result = oneOverTwoIntersectionArea > twoOverOneIntersectionArea ? 1 : oneOverTwoIntersectionArea < twoOverOneIntersectionArea ? -1 : 0;
 
     delete oneOverTwoIntersection;
     delete twoOverOneIntersection;

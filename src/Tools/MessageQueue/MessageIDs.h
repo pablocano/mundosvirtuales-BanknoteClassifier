@@ -54,6 +54,7 @@ ENUM(MessageID,
 
  idStopwatch,
  idColorCalibration,
+ idConsole,
  idDebugRequest,
  idDebugResponse,
  idDebugDataResponse,

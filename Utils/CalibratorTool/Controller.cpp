@@ -162,6 +162,17 @@ void Controller::update()
     updateCompletion = false;
   }
 
+  if(!commands.empty())
+    {
+      std::list<std::string> commands;
+      {
+        SYNC;
+        commands.swap(this->commands);
+      }
+      for(const std::string& command : commands)
+        console->executeConsoleCommand(command);
+    }
+
   pollForDirectMode();
 
   console->update();
@@ -266,6 +277,15 @@ bool Controller::handleMessage(InMessage& message)
 {
   SYNC;
   switch (message.getMessageID()) {
+    case idText:
+    {
+      std::string buffer(message.text.readAll());
+      console->printLn(buffer);
+      return true;
+    }
+    case idConsole:
+      commands.push_back(message.text.readAll());
+      return true;
     case idProcessBegin:
     {
       message.bin >> processIdentifier;
