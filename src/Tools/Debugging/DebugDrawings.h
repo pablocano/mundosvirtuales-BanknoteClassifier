@@ -764,6 +764,37 @@ inline const char* DrawingManager::getTypeName(char id, char processIdentifier) 
 #define DRAW_IMAGE(name, image, timestamp) \
     OUTPUT(idCustomImage, bin, name << image << timestamp);
 
+
+/**
+ * A macro that sends a polygon from a geometry of the geos::geom library
+ * @param id A drawing id (Drawings::FieldDrawing or Drawings::ImageDrawing)
+ * @param geometry The geometry from geos::geom library
+ * @param penWidth The width of the pen
+ * @param penStyle The pen style of the arc of the circle (Drawings::PenStyle)
+ * @param penColor The color of the arc of the circle
+ * @param brushStyle The brush style of the polygon
+ * @param brushColor The brush color of the polygon
+ */
+#define GEOMETRY(id, geometry, penWidth, penStyle, penColor, brushStyle, brushColor) \
+    do \
+    { \
+        COMPLEX_DRAWING(id) \
+        { \
+            geos::geom::CoordinateSequence* vertexs = geometry->getCoordinates(); \
+            const std::vector<geos::geom::Coordinate>* vertexsVector = vertexs->toVector(); \
+            std::vector<Vector2f> stdVector; \
+            stdVector.reserve(vertexs->size()); \
+            for(std::vector<geos::geom::Coordinate>::const_iterator it = vertexsVector->begin(); it != vertexsVector->end(); it++) \
+            { \
+                Vector2f v(it->x, it->y); \
+                stdVector.push_back(v); \
+            } \
+            POLYGON(id, stdVector.size(), stdVector, penWidth, penStyle, penColor, brushStyle, brushColor); \
+        } \
+    } \
+    while(false)
+
+
 #else
 //Ignore everything
 #define DEBUG_DRAWING(id, type) if(false)

@@ -106,6 +106,7 @@ protected:
     void evaluateGraspingScore(BanknoteDetection& detection, const BanknoteModel& model, const BanknoteDetectionParameters& params);
     void checkAndFixGraspingScore(BanknoteDetection& detection, const BanknoteModel& model);
     bool basicColorTest(const BanknoteDetection& detection);
+    void calculateVisibleArea();
 
     void keepOne(const BanknoteDetection& d1, int detectionIndex);
 

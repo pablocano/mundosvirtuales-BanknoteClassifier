@@ -174,7 +174,7 @@ int BanknoteDetection::compare(const BanknoteDetection& other)
     if(!geometry->intersects(other.geometry.get()))
         return 0;
 
-    geos::geom::Geometry* oneOverTwoIntersection = hull->intersection(other.geometry.get());
+    /*geos::geom::Geometry* oneOverTwoIntersection = hull->intersection(other.geometry.get());
     geos::geom::Geometry* twoOverOneIntersection = geometry->intersection(other.hull.get());
 
     float oneOverTwoIntersectionArea = oneOverTwoIntersection->getArea();
@@ -183,7 +183,29 @@ int BanknoteDetection::compare(const BanknoteDetection& other)
     int result = oneOverTwoIntersectionArea > twoOverOneIntersectionArea ? 1 : oneOverTwoIntersectionArea < twoOverOneIntersectionArea ? -1 : 0;
 
     delete oneOverTwoIntersection;
-    delete twoOverOneIntersection;
+    delete twoOverOneIntersection;*/
+
+    std::shared_ptr<geos::geom::Point> point;
+    float oneOverTwo, twoOverOne;
+    oneOverTwo = twoOverOne = 0.f;
+
+    for(int i = 0; i < integratedQueryPoints.size(); i++)
+    {
+        point = std::shared_ptr<geos::geom::Point>((geos::geom::Point*)factory->createPoint(geos::geom::Coordinate(integratedQueryPoints[i].x(), integratedQueryPoints[i].y())));
+
+        if(point->intersects(other.geometry.get()))
+            oneOverTwo++;
+    }
+
+    for(int i = 0; i < other.integratedQueryPoints.size(); i++)
+    {
+        point = std::shared_ptr<geos::geom::Point>((geos::geom::Point*)factory->createPoint(geos::geom::Coordinate(other.integratedQueryPoints[i].x(), other.integratedQueryPoints[i].y())));
+
+        if(point->intersects(geometry.get()))
+            twoOverOne++;
+    }
+
+    int result = oneOverTwo > twoOverOne ? 1 : oneOverTwo < twoOverOne ? -1 : 0;
 
     return result;
 }

@@ -42,11 +42,6 @@ BanknoteTracker::BanknoteTracker()
 
   ASSERT(moduleTorch != nullptr);
 
-
-
-
-
-
   for(unsigned c = 0; c < Classification::numOfRealBanknotes; c++)
   {
     saveDetectionImagesIndex[c] = 0;
@@ -285,6 +280,9 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
     detection1.layer = occlusions;
   }
 
+  // Calculate visible area of each detection
+  calculateVisibleArea();
+
   // check grasping pose and score
   for(BanknoteDetection& detection : detections)
   {
@@ -295,11 +293,8 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
 
     const BanknoteModel& model = models[detection.banknoteClass.result];
 
-    if(detection.layer == -1)
-    {
-      detection.estimateGraspPoint(model, graspRadius);
-      checkAndFixGraspingScore(detection, model);
-    }
+    detection.estimateGraspPoint(model, graspRadius);
+    checkAndFixGraspingScore(detection, model);
   }
 
   /* Final decision */
@@ -609,6 +604,35 @@ void BanknoteTracker::saveRandomDetectionImage(const BanknoteDetection& detectio
   }
 
   imwrite(name, cropped);
+}
+
+void BanknoteTracker::calculateVisibleArea()
+{
+    for (int i = 0; i < detections.size(); ++i)
+    {
+      BanknoteDetection& detection = detections[i];
+
+      if(!detection.isDetectionValid())
+        continue;
+
+      detection.visibleGeom = std::shared_ptr<geos::geom::Geometry>(detection.geometry->clone());
+
+      for (int j = 0; j < detections.size(); j++)
+      {
+        if(i == j || comparisons(i,j) >= 0)
+          continue;
+
+        BanknoteDetection& detection2 = detections[j];
+
+        if(!detection2.isDetectionValid())
+          continue;
+
+        if(!detection.visibleGeom->intersects(detection2.geometry.get()))
+          continue;
+
+        detection.visibleGeom = std::shared_ptr<geos::geom::Geometry>((geos::geom::Geometry*)detection.visibleGeom->difference(detection2.geometry.get()));
+      }
+    }
 }
 
 /**
@@ -1091,47 +1115,23 @@ void BanknoteTracker::drawDetections()
       if(!detection.isDetectionValid())
         continue;
 
-      geos::geom::Geometry* difference = detection.geometry.get();
-
-      //POLYGON("module:BanknoteTracker:layers",4,detection.queryCorners,2,Drawings::solidPen,layerColors[detection.layer],Drawings::solidBrush, layerColors[detection.layer]);
-
-      for (int j = i - 1; j >= 0; j--)
-      {
-        if(i == j || comparisons(i,j) == 0)
-          continue;
-
-        const BanknoteDetection& detection2 = detections[j];
-
-        if(!detection2.isDetectionValid())
-          continue;
-
-        if(!difference->intersects(detection2.geometry.get()))
-          continue;
-
-        if(comparisons(i,j) > 0)
-          continue;
-
-        difference = difference->difference(detection2.geometry.get());
-      }
-
-      geos::geom::CoordinateSequence* vertexs = difference->getCoordinates();
-
-      const std::vector<geos::geom::Coordinate>* vertexsVector = vertexs->toVector();
-
-      std::vector<Vector2f> geomVertexs;
-      geomVertexs.reserve(vertexs->size());
-
-      for(std::vector<geos::geom::Coordinate>::const_iterator it = vertexsVector->begin(); it != vertexsVector->end(); it++)
-      {
-        Vector2f v(it->x, it->y);
-        geomVertexs.push_back(v);
-      }
-
       ColorRGBA color;
-
       color = layerColors[i];
 
-      POLYGON("module:BanknoteTracker:layers",geomVertexs.size(),geomVertexs,2,Drawings::solidPen,color,Drawings::solidBrush, color);
+      int numOfGeometries = detection.visibleGeom->getNumGeometries();
+      if(numOfGeometries > 1)
+      {
+          const geos::geom::Geometry* nGeometry;
+          for(int i = 0; i < numOfGeometries; i++)
+          {
+              nGeometry = detection.visibleGeom->getGeometryN(i);
+              GEOMETRY("module:BanknoteTracker:layers", nGeometry, 2, Drawings::solidPen,color,Drawings::solidBrush, color);
+          }
+      }
+      else
+      {
+          GEOMETRY("module:BanknoteTracker:layers", detection.visibleGeom, 2, Drawings::solidPen,color,Drawings::solidBrush, color);
+      }
     }
   }
 }

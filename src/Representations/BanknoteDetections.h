@@ -28,6 +28,7 @@
 #include <geos/geom/Geometry.h>
 #include <geos/geom/Polygon.h>
 #include <geos/geom/GeometryFactory.h>
+#include <geos/geom/Point.h>
 
 /**
  * @brief The BanknoteDetection class
@@ -97,6 +98,7 @@ public:
   static geos::geom::GeometryFactory::Ptr factory;
   std::shared_ptr<geos::geom::Polygon> geometry; /* The template represented as a polygon in query coordinates */
   std::shared_ptr<geos::geom::Geometry> hull; /* The convex hull of the query keypoints */
+  std::shared_ptr<geos::geom::Geometry> visibleGeom;
 
   /* Detection statistics */
   int ransacVotes;
