@@ -280,7 +280,8 @@ bool Controller::handleMessage(InMessage& message)
     case idText:
     {
       std::string buffer(message.text.readAll());
-      console->printLn(buffer);
+      if(printMessages)
+        console->printLn(buffer);
       return true;
     }
     case idConsole:

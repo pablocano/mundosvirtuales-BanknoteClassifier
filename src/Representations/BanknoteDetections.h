@@ -56,12 +56,10 @@ public:
 
   ENUM(FilterSummary,
   {,
-    invalidGrasp,
+    visibleTooSmall,
     tooNew,
     tooOld,
-    areaSmall,
-    semantic,
-    chkArea,
+    invalidGrasp,
     eligible,
     chosen,
   });
@@ -74,7 +72,7 @@ public:
   float iou(const BanknoteDetection& detection) const;
   void updateTransformation(const BanknoteModel& model, const BanknoteDetectionParameters& param, bool useIntegrated);
   int compare(const BanknoteDetection& other); /* 1. this is over. -1 other is over. 0 unknown */
-  void estimateGraspPoint(const BanknoteModel& model, float graspingRadius);
+  void estimateGraspPoint(const BanknoteModel& model, float graspingRadius, double bufferDistance);
   void checkAndFixGraspPoint(const BanknoteModel& model, float graspingRadius, int iter = 0);
 
   /* Buffer with detection related points */
@@ -99,6 +97,7 @@ public:
   std::shared_ptr<geos::geom::Polygon> geometry; /* The template represented as a polygon in query coordinates */
   std::shared_ptr<geos::geom::Geometry> hull; /* The convex hull of the query keypoints */
   std::shared_ptr<geos::geom::Geometry> visibleGeom;
+  std::shared_ptr<geos::geom::Geometry> graspArea;
 
   /* Detection statistics */
   int ransacVotes;

@@ -10,6 +10,7 @@
 
 #include "Platform/File.h"
 
+#include <geos/opBuffer.h>
 #include <cmath>
 #include <fstream>
 
@@ -118,6 +119,7 @@ BanknoteTracker::~BanknoteTracker()
 void BanknoteTracker::update(BanknotePositionFiltered& position)
 {
   DECLARE_DEBUG_DRAWING("module:BanknoteTracker:best_detections", "drawingOnImage");
+  DECLARE_DEBUG_DRAWING("module:BanknoteTracker:grasp_area", "drawingOnImage");
   DECLARE_DEBUG_DRAWING("module:BanknoteTracker:hypotheses_detections", "drawingOnImage");
   DECLARE_DEBUG_DRAWING("module:BanknoteTracker:hypotheses_info", "drawingOnImage");
   DECLARE_DEBUG_DRAWING("module:BanknoteTracker:layers", "drawingOnImage");
@@ -162,7 +164,8 @@ void BanknoteTracker::update(BanknotePositionFiltered& position)
   {
   case TracketState::estimating:
 
-    estimatingStateFunction(position);
+    estimatingStateFunction();
+    selectBestHypothesis(position);
     break;
 
   case TracketState::waitingForRobotIn:
@@ -185,7 +188,7 @@ void BanknoteTracker::update(BanknotePositionFiltered& position)
 }
 
 
-void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position)
+void BanknoteTracker::estimatingStateFunction()
 {
   for(int i = 0; i < theBanknoteDetections.detections.size(); i++)
   {
@@ -232,6 +235,10 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
       detection = BanknoteDetection();
   }
 
+}
+
+void BanknoteTracker::selectBestHypothesis(BanknotePositionFiltered &position)
+{
   /* Check oclusion (comparison) */
   for(int i1 = 0; i1 < maxDetections; i1++)
   {
@@ -257,7 +264,7 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
     }
   }
 
-  /* Compute layers */
+  /* Compute layers
   for(int i1 = 0; i1 < maxDetections; i1++)
   {
     BanknoteDetection& detection1 = detections[i1];
@@ -278,36 +285,23 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
     }
 
     detection1.layer = occlusions;
-  }
+  }*/
 
   // Calculate visible area of each detection
   calculateVisibleArea();
 
-  // check grasping pose and score
-  for(BanknoteDetection& detection : detections)
-  {
-    if(!detection.isDetectionValid())
-      continue;
-
-    ASSERT(detection.banknoteClass.result >= 0 && detection.banknoteClass.result < Classification::numOfRealBanknotes);
-
-    const BanknoteModel& model = models[detection.banknoteClass.result];
-
-    detection.estimateGraspPoint(model, graspRadius);
-    checkAndFixGraspingScore(detection, model);
-  }
-
-  /* Final decision */
-  float bestArea=0.3f;
-
+  // Start filtering the hypotheses
+  int bestDetectionIndex = -1;
+  float bestArea = 0.f;
   for(int i = 0; i < maxDetections; i++)
   {
     BanknoteDetection& detection = detections[i];
 
-    //Set the filter as the first one
-    detection.summary = BanknoteDetection::invalidGrasp;
+    if(!detection.isDetectionValid())
+      continue;
 
-    if(!detection.isGraspingValid())
+    detection.summary = BanknoteDetection::visibleTooSmall;
+    if(detection.visibleGeom->getArea() < minVisibleArea)
       continue;
 
     detection.summary = BanknoteDetection::tooNew;
@@ -318,31 +312,23 @@ void BanknoteTracker::estimatingStateFunction(BanknotePositionFiltered& position
     if(theFrameInfo.getTimeSince(detection.lastTimeDetected) > 50)
       continue;
 
-    detection.summary = BanknoteDetection::areaSmall;
-    if(detection.areaRatio < 0.2f)
+    // Compute grasp point
+    const BanknoteModel& model = models[detection.banknoteClass.result];
+    detection.estimateGraspPoint(model, graspRadius, bufferDistance);
+
+    detection.summary = BanknoteDetection::invalidGrasp;
+    if(!detection.validGrasp)
       continue;
 
-    detection.summary = BanknoteDetection::semantic;
-    if(basicColorTest(detection)) //billete encontrado con descriptores es consistente con la segmentacion semantica
+    detection.summary = BanknoteDetection::eligible;
+    float currentArea = detection.graspArea->getArea();
+    if(currentArea> bestArea)
     {
-      float area=checkDetectionArea(detection);//area del billete es correcta
-
-      detection.summary = BanknoteDetection::chkArea;
-      if(area < 0.3f)
-        continue;
-
-      detection.summary = BanknoteDetection::eligible;
-      if(area>bestArea)
-      {
+        bestArea = currentArea;
         bestDetectionIndex = i;
-        bestArea=area;
-        std::cout << "used area calculation" << std::endl;
-        //break;
-      }
-
     }
-
   }
+
   //if(bestDetectionIndex==-1)
   //{
   //bestDetectionIndex=tempDetectionIndex;
@@ -1082,6 +1068,9 @@ void BanknoteTracker::drawDetections()
     {
       const BanknoteDetection& detection = detections[i];
 
+      if(!detection.isDetectionValid())
+        continue;
+
       const BanknoteModel& model = models[detection.banknoteClass.result];
 
       Vector3f start = model.corners[BanknoteModel::CornerID::MiddleMiddle];
@@ -1133,5 +1122,20 @@ void BanknoteTracker::drawDetections()
           GEOMETRY("module:BanknoteTracker:layers", detection.visibleGeom, 2, Drawings::solidPen,color,Drawings::solidBrush, color);
       }
     }
+  }
+
+  COMPLEX_DRAWING("module:BanknoteTracker:grasp_area")
+  {
+      for (int i = 0; i < detections.size(); ++i)
+      {
+        const BanknoteDetection& detection = detections[i];
+
+        if(!detection.isDetectionValid() || !detection.validGrasp)
+          continue;
+
+        ColorRGBA color = debugColors[detection.banknoteClass.result];
+        ColorRGBA color2(color.r,color.g,color.b,64);
+        GEOMETRY("module:BanknoteTracker:grasp_area", detection.graspArea, 2, Drawings::solidPen, color, Drawings::solidBrush, color2);
+      }
   }
 }

@@ -69,6 +69,8 @@ MODULE(BanknoteTracker,
      (bool)(false) useRobotStates, /* when using the robot, this must always be true. However, when using databses or real images without the robot, use this as false */
      (bool)(false) saveDetectionImages, /* wether or not save images of the best detection */
      (float)(0.1f) saveDetectionBorderRatio, /* how much context must be kept when saving the best detection */
+     (double)(-25.0) bufferDistance,
+     (float)(100.f) minVisibleArea,
     }),
 });
 
@@ -90,7 +92,8 @@ public:
 
 protected:
 
-    void estimatingStateFunction(BanknotePositionFiltered& position);
+    void estimatingStateFunction();
+    void selectBestHypothesis(BanknotePositionFiltered& position);
     void waitingForRobotInStateFunction();
     void waitingForRobotOutStateFunction();
 

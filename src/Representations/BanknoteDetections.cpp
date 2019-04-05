@@ -1,7 +1,9 @@
 
 #include "Representations/BanknoteDetections.h"
+#include "Tools/Debugging/Debugging.h"
 #include "Tools/Math/Geometry.h"
 
+#include <geos/util/GEOSException.h>
 #include <opencv2/calib3d.hpp>
 
 geos::geom::GeometryFactory::Ptr BanknoteDetection::factory = nullptr;
@@ -17,9 +19,11 @@ BanknoteDetection::BanknoteDetection() :
     areaRatio(0.f),
     validTransform(false),
     validNms(true),
-    validGrasp(true),
+    validGrasp(false),
     hull(nullptr),
     geometry(nullptr),
+    visibleGeom(nullptr),
+    graspArea(nullptr),
     lastTimeDetected(0),
     firstTimeDetected(0)
 {
@@ -220,9 +224,57 @@ int BanknoteDetection::compare(const BanknoteDetection& other)
  * @param model: The banknote model
  * @param graspRadius: the grasping radius
  */
-void BanknoteDetection::estimateGraspPoint(const BanknoteModel& model, float graspRadius)
+void BanknoteDetection::estimateGraspPoint(const BanknoteModel& model, float graspRadius, double bufferDistance)
 {
-    std::vector<Vector2f> leftInliers, rightInliers;
+    try
+    {
+        validGrasp = true;
+        graspArea = std::shared_ptr<geos::geom::Geometry>(visibleGeom->intersection(hull.get()));
+        graspArea = std::shared_ptr<geos::geom::Geometry>(graspArea->buffer(bufferDistance));
+
+        int numOfGeometries = graspArea->getNumGeometries();
+        if(numOfGeometries > 1)
+        {
+            const geos::geom::Geometry* nGeometry;
+            const geos::geom::Geometry* biggerArea = factory->createEmptyGeometry();
+            for(int i = 0; i < numOfGeometries; i++)
+            {
+                nGeometry = graspArea->getGeometryN(i);
+                if(nGeometry->getArea() > biggerArea->getArea())
+                {
+                    biggerArea = nGeometry;
+                }
+            }
+
+            if(biggerArea->isEmpty())
+            {
+                validGrasp = false;
+                return;
+            }
+
+            geos::geom::Coordinate centroid;
+            biggerArea->getCentroid(centroid);
+            graspPoint = Vector3f(centroid.x,centroid.y,1.f);
+        }
+        else
+        {
+            if(graspArea->isEmpty())
+            {
+                validGrasp = false;
+                return;
+            }
+
+            geos::geom::Coordinate centroid;
+            graspArea->getCentroid(centroid);
+            graspPoint = Vector3f(centroid.x,centroid.y,1.f);
+        }
+    }
+    catch(const geos::util::GEOSException& exc) {
+        validGrasp = false;
+        OUTPUT_ERROR(exc.what());
+    }
+
+    /*std::vector<Vector2f> leftInliers, rightInliers;
     leftInliers.reserve(currentMatches.size());
     rightInliers.reserve(currentMatches.size());
 
@@ -273,7 +325,7 @@ void BanknoteDetection::estimateGraspPoint(const BanknoteModel& model, float gra
     graspScore = score;
 
     // If the grasp point is to close to the center, skip
-    validGrasp = std::abs(median.x() - model.image.cols/2) > 100;
+    validGrasp = std::abs(median.x() - model.image.cols/2) > 100;*/
 
 }
 
