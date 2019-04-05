@@ -403,6 +403,8 @@ void BanknoteTracker::selectBestHypothesis(BanknotePositionFiltered &position)
 
       lastBestDetecion = detection;
 
+      position.needEstirator = detection.areaRatio > 0.5f ? 0 : 1;
+
       if(useRobotStates || saveDetectionImages)
       {
         if(saveDetectionImages)

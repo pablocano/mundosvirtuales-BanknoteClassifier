@@ -12,5 +12,6 @@ STREAMABLE_WITH_BASE(WorldCoordinatesPose, Pose2f,
     (int)(0) banknote,
     (int)(0) timeStamp,
     (BanknotePosition::GraspZone) zone,
+    (int)(0) needEstirator,
 });
 

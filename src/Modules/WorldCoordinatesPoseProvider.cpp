@@ -134,7 +134,9 @@ void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinates
 
         worldCoordinatesPose.timeStamp = theFrameInfo.time;
 
-        DEBUG_RESPONSE("status:worldPose")
+        worldCoordinatesPose.needEstirator = theBanknotePositionFiltered.needEstirator;
+
+         DEBUG_RESPONSE("status:worldPose")
         {
             OUTPUT(idWorldPoseStatus,bin,worldCoordinatesPose);
         };

@@ -59,14 +59,14 @@ MODULE(BanknoteTracker,
      (float)(50.f) graspRadius, /* the smaller coso is exactly 40 pixels */
      (float)(0.1f) graspStep,// In pixels. This should be computed with the real grasp radius and the camera transform
      (int)(10) graspMaxIter,
-     (float)(20) zoneLimit, /* The banknote is divided in three parts (Left, Middle, and Right). zoneLimit is half the width of the middle zone starting deom the center */
+     (float)(1) zoneLimit, /* The banknote is divided in three parts (Left, Middle, and Right). zoneLimit is half the width of the middle zone starting deom the center */
      (int)(20) maxDetections, /* The max number of possible hypotheses to keep track */
      (int)(5000) maxNoDetectionTime, /* Timeout to destroy hypotheses when they are not detected */
      (float)(0.7f) minSameDetectionIOU, /* Minimum IOU between detection to be considered the same */
      (float)(20.f) maxSameDetectionDistance, /* Max translation error for two detection to be merged */
      (Angle)(30_deg) maxSameDetectionAngle, /* Max rotation error for two detection to be merged */
      (bool)(false) resizeImage, /* let this one be false pls */
-     (bool)(false) useRobotStates, /* when using the robot, this must always be true. However, when using databses or real images without the robot, use this as false */
+     (bool)(true) useRobotStates, /* when using the robot, this must always be true. However, when using databses or real images without the robot, use this as false */
      (bool)(false) saveDetectionImages, /* wether or not save images of the best detection */
      (float)(0.1f) saveDetectionBorderRatio, /* how much context must be kept when saving the best detection */
      (double)(-25.0) bufferDistance,

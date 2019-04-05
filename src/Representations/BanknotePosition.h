@@ -28,6 +28,7 @@ STREAMABLE(BanknotePosition,
     (CvMat) homography,
     (Vector2f) grabPos,
     (GraspZone) zone,
+    (int)(0) needEstirator,
 });
 
 

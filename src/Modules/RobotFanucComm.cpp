@@ -34,6 +34,8 @@ void RobotFanucComm::update(DummyComm &dummyComm)
         //Zone
         PacketEthernetIPFanuc zone(WRITE_REG, idPacket, REG_ZONE_GRIP, theWorldCoordinatesPose.zone);
 
+        //Estirator
+        PacketEthernetIPFanuc estirator(WRITE_REG, idPacket, REG_NEED_STIRATOR, theWorldCoordinatesPose.needEstirator);
 
         PositionRegisterCartesian pos;
 
@@ -77,6 +79,9 @@ void RobotFanucComm::update(DummyComm &dummyComm)
 
         //Flag to indicate grip zone
         SEND_MESSAGE(idEthernetIPFanuc, bin, zone);
+
+        //Flag to indicate if banknote need estirator
+        SEND_MESSAGE(idEthernetIPFanuc, bin, estirator);
 
         //Flag to advertise new pose
         SEND_MESSAGE(idEthernetIPFanuc, bin, statusPose);
