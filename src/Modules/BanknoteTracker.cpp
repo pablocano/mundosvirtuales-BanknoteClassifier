@@ -73,15 +73,15 @@ BanknoteTracker::BanknoteTracker()
     model.corners[BanknoteModel::CornerID::MiddleMiddle] = Vector3f(0.5f*image.cols, 0.5f*image.rows, 1);
     model.corners[BanknoteModel::CornerID::MiddleRight] = Vector3f(0.25f*image.cols, 0.5f*image.rows, 1);
 
-    model.allowedGraspArea1[0] = Vector3f(0.1f*image.cols, 0.2f*image.rows, 1.f);
-    model.allowedGraspArea1[1] = Vector3f(0.1f*image.cols, 0.8f*image.rows, 1.f);
-    model.allowedGraspArea1[2] = Vector3f(0.35f*image.cols, 0.8f*image.rows, 1.f);
-    model.allowedGraspArea1[3] = Vector3f(0.35f*image.cols, 0.2f*image.rows, 1.f);
+    model.allowedGraspArea1[0] = Vector3f(0.1f*image.cols, 0.25f*image.rows, 1.f);
+    model.allowedGraspArea1[1] = Vector3f(0.1f*image.cols, 0.75f*image.rows, 1.f);
+    model.allowedGraspArea1[2] = Vector3f(0.35f*image.cols, 0.75f*image.rows, 1.f);
+    model.allowedGraspArea1[3] = Vector3f(0.35f*image.cols, 0.25f*image.rows, 1.f);
 
-    model.allowedGraspArea2[0] = Vector3f(0.65f*image.cols, 0.2f*image.rows, 1.f);
-    model.allowedGraspArea2[1] = Vector3f(0.65f*image.cols, 0.8f*image.rows, 1.f);
-    model.allowedGraspArea2[2] = Vector3f(0.9f*image.cols, 0.8f*image.rows, 1.f);
-    model.allowedGraspArea2[3] = Vector3f(0.9f*image.cols, 0.2f*image.rows, 1.f);
+    model.allowedGraspArea2[0] = Vector3f(0.65f*image.cols, 0.25f*image.rows, 1.f);
+    model.allowedGraspArea2[1] = Vector3f(0.65f*image.cols, 0.75f*image.rows, 1.f);
+    model.allowedGraspArea2[2] = Vector3f(0.9f*image.cols, 0.75f*image.rows, 1.f);
+    model.allowedGraspArea2[3] = Vector3f(0.9f*image.cols, 0.25f*image.rows, 1.f);
   }
 
 
