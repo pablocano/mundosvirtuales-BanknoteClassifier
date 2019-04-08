@@ -69,8 +69,9 @@ MODULE(BanknoteTracker,
      (float)(-35.0f) bufferDistance,
      (float)(100.f) minVisibleArea,
      (bool)(false) resizeImage, /* let this one be false pls */
-     (bool)(false) useRobotStates, /* when using the robot, this must always be true. However, when using databses or real images without the robot, use this as false */
+     (bool)(true) useRobotStates, /* when using the robot, this must always be true. However, when using databses or real images without the robot, use this as false */
      (bool)(false) saveDetectionImages, /* wether or not save images of the best detection */
+     (bool)(true) doNoStretch,
     }),
 });
 
