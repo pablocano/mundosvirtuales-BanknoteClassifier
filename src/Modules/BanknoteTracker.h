@@ -65,12 +65,13 @@ MODULE(BanknoteTracker,
      (float)(0.7f) minSameDetectionIOU, /* Minimum IOU between detection to be considered the same */
      (float)(20.f) maxSameDetectionDistance, /* Max translation error for two detection to be merged */
      (Angle)(30_deg) maxSameDetectionAngle, /* Max rotation error for two detection to be merged */
+     (float)(0.1f) saveDetectionBorderRatio, /* how much context must be kept when saving the best detection */
+     (float)(-35.0f) bufferDistance,
+     (float)(100.f) minVisibleArea,
      (bool)(false) resizeImage, /* let this one be false pls */
      (bool)(false) useRobotStates, /* when using the robot, this must always be true. However, when using databses or real images without the robot, use this as false */
      (bool)(false) saveDetectionImages, /* wether or not save images of the best detection */
-     (float)(0.1f) saveDetectionBorderRatio, /* how much context must be kept when saving the best detection */
-     (double)(-25.0) bufferDistance,
-     (float)(100.f) minVisibleArea,
+     (bool)(true) doNoStretch,
     }),
 });
 

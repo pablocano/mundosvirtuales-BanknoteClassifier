@@ -72,6 +72,16 @@ BanknoteTracker::BanknoteTracker()
     model.corners[BanknoteModel::CornerID::BottomLeft] = Vector3f(0, image.rows, 1);
     model.corners[BanknoteModel::CornerID::MiddleMiddle] = Vector3f(0.5f*image.cols, 0.5f*image.rows, 1);
     model.corners[BanknoteModel::CornerID::MiddleRight] = Vector3f(0.25f*image.cols, 0.5f*image.rows, 1);
+
+    model.allowedGraspArea1[0] = Vector3f(0.1f*image.cols, 0.2f*image.rows, 1.f);
+    model.allowedGraspArea1[1] = Vector3f(0.1f*image.cols, 0.8f*image.rows, 1.f);
+    model.allowedGraspArea1[2] = Vector3f(0.35f*image.cols, 0.8f*image.rows, 1.f);
+    model.allowedGraspArea1[3] = Vector3f(0.35f*image.cols, 0.2f*image.rows, 1.f);
+
+    model.allowedGraspArea2[0] = Vector3f(0.65f*image.cols, 0.2f*image.rows, 1.f);
+    model.allowedGraspArea2[1] = Vector3f(0.65f*image.cols, 0.8f*image.rows, 1.f);
+    model.allowedGraspArea2[2] = Vector3f(0.9f*image.cols, 0.8f*image.rows, 1.f);
+    model.allowedGraspArea2[3] = Vector3f(0.9f*image.cols, 0.2f*image.rows, 1.f);
   }
 
 
@@ -403,7 +413,7 @@ void BanknoteTracker::selectBestHypothesis(BanknotePositionFiltered &position)
 
       lastBestDetecion = detection;
 
-      position.needEstirator = detection.areaRatio > 0.5f ? 0 : 1;
+      position.needEstirator = doNoStretch || detection.areaRatio > 0.5f || detection.banknoteClass.result > Classification::CINCO_S ? 0 : 1;
 
       if(useRobotStates || saveDetectionImages)
       {
@@ -1138,6 +1148,8 @@ void BanknoteTracker::drawDetections()
         ColorRGBA color = debugColors[detection.banknoteClass.result];
         ColorRGBA color2(color.r,color.g,color.b,64);
         GEOMETRY("module:BanknoteTracker:grasp_area", detection.graspArea, 2, Drawings::solidPen, color, Drawings::solidBrush, color2);
+
+        GEOMETRY("module:BanknoteTracker:grasp_area", detection.allowedArea, 1, Drawings::solidPen, ColorRGBA::black, Drawings::solidBrush, color2);
       }
   }
 }

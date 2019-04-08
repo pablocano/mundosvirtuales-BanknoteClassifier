@@ -98,6 +98,7 @@ public:
   std::shared_ptr<geos::geom::Geometry> hull; /* The convex hull of the query keypoints */
   std::shared_ptr<geos::geom::Geometry> visibleGeom;
   std::shared_ptr<geos::geom::Geometry> graspArea;
+  std::shared_ptr<geos::geom::Geometry> allowedArea;
 
   /* Detection statistics */
   int ransacVotes;
