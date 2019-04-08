@@ -28,5 +28,7 @@ STREAMABLE(BanknoteModel,
     (CvMat) mask,
     (Features) features,
     (Vector3f[CornerID::numOfCornerIDs]) corners,
+    (Vector3f[4]) allowedGraspArea1,
+    (Vector3f[4]) allowedGraspArea2,
 });
 
