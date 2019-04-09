@@ -330,6 +330,10 @@ void BanknoteTracker::selectBestHypothesis(BanknotePositionFiltered &position)
     if(!detection.validGrasp)
       continue;
 
+    detection.summary = BanknoteDetection::stretcherOccupied;
+    if(detection.areaRatio <= 0.5f && theRobotFanucStatus.stretchOccupied)
+      continue;
+
     detection.summary = BanknoteDetection::eligible;
     float currentArea = detection.graspArea->getArea();
     if(currentArea> bestArea)

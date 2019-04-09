@@ -15,4 +15,5 @@ STREAMABLE(RobotFanucStatus,
     ,
     (Step)(undefined) step,
     (bool)(true) visionAreaClear,
+    (bool)(false) stretchOccupied,
 });

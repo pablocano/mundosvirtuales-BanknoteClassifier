@@ -22,6 +22,8 @@ void RobotStatusProvider::update(RobotFanucStatus& robotFanucStatus)
 
     robotFanucStatus.visionAreaClear = theRobotFanucRegisters.robotModel.reg.at(REG_STATUS_AREA) && aux;
 
+    robotFanucStatus.stretchOccupied = theRobotFanucRegisters.robotModel.reg.at(14) == 1;
+
 }
 
 void RobotStatusProvider::messageDelivered()

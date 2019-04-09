@@ -105,7 +105,7 @@ void RobotFanucComm::update(DummyComm &dummyComm)
     PacketEthernetIPFanuc packetReadRegPoseStatus(READ_REG, idPacket, REG_STATUS_POSE);
     SEND_MESSAGE(idEthernetIPFanuc, bin, packetReadRegPoseStatus);
 
-    for(int i = 0; i < 4; i++)
+    for(int i = 0; i < 5; i++)
     {
         PacketEthernetIPFanuc packetReadRegCount(READ_REG, idPacket, i + 10);
         SEND_MESSAGE(idEthernetIPFanuc, bin, packetReadRegCount);

@@ -60,6 +60,7 @@ public:
     tooNew,
     tooOld,
     invalidGrasp,
+    stretcherOccupied,
     eligible,
     chosen,
   });
