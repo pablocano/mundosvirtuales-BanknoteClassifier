@@ -56,6 +56,7 @@ struct RobotModelFanuc
         reg[11] = 0;
         reg[12] = 0;
         reg[13] = 0;
+        reg[14] = 0;
 
         regPos[1] = PositionRegisterCartesian();
     }
