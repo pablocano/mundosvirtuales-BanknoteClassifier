@@ -10,6 +10,14 @@
 
 STREAMABLE(BanknotePosition,
 {
+    ENUM(GraspZone,
+    {,
+        Left,
+        Center,
+        Right,
+    });
+
+
     void getColorAndStyle(ColorRGBA& color, Drawings::PenStyle &style) const;
 
     virtual void draw() const;
@@ -19,6 +27,8 @@ STREAMABLE(BanknotePosition,
     (Pose2f) position,
     (CvMat) homography,
     (Vector2f) grabPos,
+    (GraspZone) zone,
+    (int)(0) needEstirator,
 });
 
 

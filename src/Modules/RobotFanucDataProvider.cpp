@@ -60,11 +60,11 @@ void RobotFanucDataProvider::processPacket(PacketEthernetIPFanuc & packet)
 	case READ_CURR_POS_ERROR:
 	case READ_CURR_JPOS_ERROR:
 
-        OUTPUT_TEXT("Error: " + std::string(reinterpret_cast<char *>(packet.payload)));
+        OUTPUT_ERROR(std::string(reinterpret_cast<char *>(packet.payload)));
 		break;
 
 	default:
-        OUTPUT_TEXT("Packet not caught");
+        OUTPUT_ERROR("Packet not caught");
 	}
 }
 

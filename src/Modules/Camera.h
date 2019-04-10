@@ -16,9 +16,6 @@ MODULE(Camera,
   REQUIRES(FrameInfo),
   PROVIDES(CameraInfo),
   PROVIDES(Image),
-  REQUIRES(Image),
-  PROVIDES(GrayScaleImage),
-  PROVIDES(ImageBGR),
 });
 
 /**
@@ -52,27 +49,18 @@ public:
     void update(CameraInfo& cameraInfo);
   
     /**
-     * @brief Update function of the image in YCbCr
+     * @brief Update function of the image in BGR
      * @param image The image to be updated
-     * Updates the images in YCbCr using the image in BGR delivered by the camera
+     * Updates the image using the one delivered by the camera
      */
     void update(Image& image);
-
-    /**
-     * @brief Update function of the gray scale image
-     * @param grayScaleImage The image to be updated
-     * Updates the images in grayscale using the image in BGR delivered by the camera
-     */
-    void update(GrayScaleImage& grayScaleImage);
-
-	void update(ImageBGR& theImageBGR);
   
     /**
      * @brief currentImage
      */
-    ImageBGR currentImage;
+    Image currentImage;
 
-    ImageBGR grabbedImageBRG;
+    Image grabbedImageBRG;
   
     /**
     * @brief The height of the image to be delivered

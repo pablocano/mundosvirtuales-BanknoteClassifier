@@ -28,65 +28,111 @@
 #include <geos/geom/Geometry.h>
 #include <geos/geom/Polygon.h>
 #include <geos/geom/GeometryFactory.h>
+#include <geos/geom/Point.h>
 
+/**
+ * @brief The BanknoteDetection class
+ *
+ * A Banknote representation is determined by a set of matches between que query image (the current image) and the train image (the template).
+ * (so we keep the matches and both the corresponding query and train keypoints).
+ *
+ * This class also contains a representation of the detection:
+ *     - The associated Banknote class
+ *     - The transformation from template to query coordinates.
+ *     - The pose of the template in query coordinates
+ *     - The grasp point in query coordinates
+ *     - The template corners in query coordinates
+ *
+ * Furthermore, this class also contains useful statistics of the detection
+ * to allow the system to choose the "best" detection at a certain point of time,
+ * a geometric representation of the detection to perform geometry analysis, and useful methods
+ * to update and compare the current detection during both detection and tracking steps
+ *
+ */
 
 class BanknoteDetection : public Streamable
 {
 public:
 
-    BanknoteDetection();
-    ~BanknoteDetection() override;
+  ENUM(FilterSummary,
+  {,
+    visibleTooSmall,
+    tooNew,
+    tooOld,
+    invalidGrasp,
+    stretcherOccupied,
+    eligible,
+    chosen,
+  });
 
-    bool isDetectionValid() const;
-    bool isGraspingValid() const;
-    float iou(const BanknoteDetection& detection) const;
-    void updateTransformation(const BanknoteModel& model, const BanknoteDetectionParameters& param);
-    int compare(const BanknoteDetection& other); /* 1. this is over. -1 other is over. 0 unknown */
-    void estimateGraspPoint(const BanknoteModel& model, float graspingRadius);
-    void checkAndFixGraspPoint(const BanknoteModel& model, float graspingRadius, int iter = 0);
+  BanknoteDetection();
+  ~BanknoteDetection() override;
 
-    std::vector<cv::DMatch> matches;
+  bool isDetectionValid() const;
+  bool isGraspingValid() const;
+  float iou(const BanknoteDetection& detection) const;
+  void updateTransformation(const BanknoteModel& model, const BanknoteDetectionParameters& param, bool useIntegrated);
+  int compare(const BanknoteDetection& other); /* 1. this is over. -1 other is over. 0 unknown */
+  void estimateGraspPoint(const BanknoteModel& model, float graspingRadius, double bufferDistance);
+  void checkAndFixGraspPoint(const BanknoteModel& model, float graspingRadius, int iter = 0);
 
-    static geos::geom::GeometryFactory::Ptr factory;
+  /* Buffer with detection related points */
+  std::vector<cv::DMatch> currentMatches;
+  std::vector<Vector3f> currentQueryPoints;
+  std::vector<Vector3f> currentTrainPoints;
 
-    /* Geometry objects representing the hypothesys */
-    std::shared_ptr<geos::geom::Polygon> geometry;
-    std::shared_ptr<geos::geom::Geometry> hull;
+  std::vector<cv::DMatch> integratedMatches;
+  std::vector<Vector3f> integratedQueryPoints;
+  std::vector<Vector3f> integratedTrainPoints;
 
-   /* Buffer with detection related points */
-   std::vector<Vector3f> queryPoints;
-   std::vector<Vector3f> trainPoints;
-   Vector3f queryCorners[BanknoteModel::numOfRealCorners];
 
-   /* Detection representation*/
-   Classification banknoteClass;
-   Matrix3f transform; /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
-   Pose2f pose; /* 2D Pose of the hypothesis in the image space */
-   Vector3f graspPoint; /* Estimated grasping point in query coordinates */
+  /* Detection representation*/
+  Classification banknoteClass;
+  Matrix3f transform; /* From the model (a.k.a train image) to the camera image (a.k.a query image) */
+  Pose2f pose; /* 2D Pose of the hypothesis in the image space */
+  Vector3f graspPoint; /* Estimated grasping point in query coordinates */
+  Vector3f queryCorners[BanknoteModel::numOfRealCorners];
 
-   /* Detection statistics */
-   int ransacVotes;
-   float graspScore;
-   float maxIOU;
-   int layer; /* 0 = foreground. 1,2,... represent the "depth" */
-   float areaRatio;
+  /* Geometry objects representing the detection. Hopefully, all geos-related variables should be here to promove a separation of concerns */
+  static geos::geom::GeometryFactory::Ptr factory;
+  std::shared_ptr<geos::geom::Polygon> geometry; /* The template represented as a polygon in query coordinates */
+  std::shared_ptr<geos::geom::Geometry> hull; /* The convex hull of the query keypoints */
+  std::shared_ptr<geos::geom::Geometry> visibleGeom;
+  std::shared_ptr<geos::geom::Geometry> graspArea;
+  std::shared_ptr<geos::geom::Geometry> allowedArea;
 
-   /* Status flags */
-   bool validTransform;
-   bool validNms;
-   bool validGrasp;
+  /* Detection statistics */
+  int ransacVotes;
+  float graspScore;
+  float maxIOU;
+  int layer; /* -1 = invalid/non-computed, 0 = non occluded. 1,2,... represent the number of detections that occlude this detection */
+  float areaRatio;
+  float area;
 
-    /* Tracking flags */
-   int lastTimeDetected;
-   int firstTimeDetected;
+  /* Status flags */
+  bool validTransform;
+  bool validNms;
+  bool validGrasp;
 
-   /* Experimental for O(n) addition */
-   MatrixXi trainKeypointStatus;
+  /* Tracking flags */
+  int lastTimeDetected;
+  int firstTimeDetected;
+
+  /* Experimental for O(n) keypoint addition to this detection (useful during tracking) */
+  MatrixXi trainKeypointStatus;
+
+  /* The last filter this detection pass*/
+  FilterSummary summary;
 
   virtual void serialize(In* in, Out* out);
 };
 
+/**
+ * @brief The BanknoteDetections class
+ *
+ * Just a BanknoteDetection vector
+ */
 STREAMABLE(BanknoteDetections,
 {,
-    (std::vector<BanknoteDetection>) detections,
+ (std::vector<BanknoteDetection>) detections,
 });

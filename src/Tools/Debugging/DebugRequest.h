@@ -105,6 +105,7 @@ public:
 
   friend class Process;
   friend class Controller;
+  friend class ConsoleController;
 };
 
 inline bool DebugRequestTable::isActive(const char* name)

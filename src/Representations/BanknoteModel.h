@@ -23,9 +23,12 @@ STREAMABLE(BanknoteModel,
     });           
     cv::cuda::GpuMat gpuImage;
     ,
+    (Classification::Banknote) banknoteClass,
     (CvMat) image,
     (CvMat) mask,
     (Features) features,
     (Vector3f[CornerID::numOfCornerIDs]) corners,
+    (Vector3f[4]) allowedGraspArea1,
+    (Vector3f[4]) allowedGraspArea2,
 });
 

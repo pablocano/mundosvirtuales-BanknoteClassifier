@@ -3,32 +3,18 @@
 #include "Tools/Debugging/Debugging.h"
 #include "Tools/Debugging/DebugDrawings.h"
 #include <opencv2/opencv.hpp>
+#include <opencv2/cudaimgproc.hpp>
 
 MAKE_MODULE(DummyImages, BanknoteClassifier);
 
 DummyImages::DummyImages()
 {
-    currentImage = cv::imread(std::string(File::getBCDir()) + "/Data/database/0005.bmp", cv::IMREAD_COLOR);
+    currentImage = cv::imread(std::string(File::getBCDir()) + "/Data/database/nico4.png", cv::IMREAD_COLOR);
 }
 
 void DummyImages::update(Image& image)
 {
-    cv::cvtColor(currentImage,image,cv::COLOR_BGR2YCrCb);
+  image = currentImage.clone();
 
-    currentImage.timeStamp = theFrameInfo.time;
-
-    DEBUG_RESPONSE("representation:ImageBGR")
-    {
-        OUTPUT(idImage,bin,currentImage);
-    };
-}
-
-void DummyImages::update(GrayScaleImage &grayScaleImage)
-{
-    cv::extractChannel(theImage,grayScaleImage,0);
-}
-
-void DummyImages::update(ImageBGR &imageBGR)
-{
-    imageBGR = currentImage.clone();
+  image.timeStamp = theFrameInfo.time;
 }

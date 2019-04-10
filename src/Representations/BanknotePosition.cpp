@@ -84,13 +84,21 @@ void BanknotePositionFiltered::draw() const
 
             color = valid ? color : ColorRGBA::white;
 
-            for(int i = 0; i < corners.size() - 1; i++)
+            ASSERT(corners.size() >= 4);
+            int n = 4 - 1;
+
+            for(int i = 0; i < 4; i++)
             {
-                LINE("representation:BanknotePositionFiltered", corners[i].x(), corners[i].y() , corners[i + 1].x(), corners[i + 1].y(), 3, style, color);
+                int i2 = (i + 1) % 4;
+                LINE("representation:BanknotePositionFiltered", corners[i].x(), corners[i].y() , corners[i2].x(), corners[i2].y(), 3, style, color);
 
             }
+
+            DRAWTEXT("representation:BanknotePositionFiltered", position.translation.x(), position.translation
+                     .y(), 20, ColorRGBA::white, TypeRegistry::getEnumName(zone));
+
             Vector2f direction = position.translation + Vector2f(100,0).rotate(position.rotation);
-            ARROW("representation:BanknotePositionFiltered",position.translation.x(),position.translation.y(),direction.x(),direction.y(),3,Drawings::solidPen,ColorRGBA::black);
+            ARROW("representation:BanknotePositionFiltered", position.translation.x(),position.translation.y(),direction.x(),direction.y(),3,Drawings::solidPen,ColorRGBA::black);
 
             CIRCLE("representation:BanknotePositionFiltered", grabPos.x(), grabPos.y(), 60, 3, Drawings::solidPen, ColorRGBA::blue, Drawings::noBrush, ColorRGBA::blue);
         }

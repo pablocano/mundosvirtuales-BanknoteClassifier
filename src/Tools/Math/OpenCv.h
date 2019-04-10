@@ -8,10 +8,8 @@
 
 #include "Tools/Streams/Streamable.h"
 #include <opencv2/core/core.hpp>
-
-#ifdef BC_WITH_CUDA
 #include <opencv2/core/cuda.hpp>
-#endif
+
 
 class CvMat : public cv::Mat, public Streamable
 {
@@ -74,7 +72,6 @@ protected:
     }
 };
 
-#ifdef BC_WITH_CUDA
 class CvGpuMat : public cv::cuda::GpuMat, public Streamable
 {
 public:
@@ -89,4 +86,3 @@ protected:
     {
     }
 };
-#endif

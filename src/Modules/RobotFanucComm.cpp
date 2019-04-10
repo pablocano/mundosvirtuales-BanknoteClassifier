@@ -31,6 +31,11 @@ void RobotFanucComm::update(DummyComm &dummyComm)
         //Cara o sello
         PacketEthernetIPFanuc side(WRITE_REG, idPacket, REG_STATUS_SIDE, RobotFanucComm::checkSide(theBanknotePositionFiltered.banknote));
 
+        //Zone
+        PacketEthernetIPFanuc zone(WRITE_REG, idPacket, REG_ZONE_GRIP, theWorldCoordinatesPose.zone);
+
+        //Estirator
+        PacketEthernetIPFanuc estirator(WRITE_REG, idPacket, REG_NEED_STIRATOR, theWorldCoordinatesPose.needEstirator);
 
         PositionRegisterCartesian pos;
 
@@ -39,7 +44,7 @@ void RobotFanucComm::update(DummyComm &dummyComm)
         pos.y = theWorldCoordinatesPose.translation.y();
         //pos.z = 0;
 
-        pos.z = 250;
+        pos.z = 140;
 
         pos.w = -180;
         pos.r = theWorldCoordinatesPose.rotation.toDegrees();
@@ -72,6 +77,12 @@ void RobotFanucComm::update(DummyComm &dummyComm)
         //Flag to indicate side of banknote
         SEND_MESSAGE(idEthernetIPFanuc, bin, side);
 
+        //Flag to indicate grip zone
+        SEND_MESSAGE(idEthernetIPFanuc, bin, zone);
+
+        //Flag to indicate if banknote need estirator
+        SEND_MESSAGE(idEthernetIPFanuc, bin, estirator);
+
         //Flag to advertise new pose
         SEND_MESSAGE(idEthernetIPFanuc, bin, statusPose);
         RobotStatusProvider::messageDelivered();
@@ -94,7 +105,7 @@ void RobotFanucComm::update(DummyComm &dummyComm)
     PacketEthernetIPFanuc packetReadRegPoseStatus(READ_REG, idPacket, REG_STATUS_POSE);
     SEND_MESSAGE(idEthernetIPFanuc, bin, packetReadRegPoseStatus);
 
-    for(int i = 0; i < 4; i++)
+    for(int i = 0; i < 5; i++)
     {
         PacketEthernetIPFanuc packetReadRegCount(READ_REG, idPacket, i + 10);
         SEND_MESSAGE(idEthernetIPFanuc, bin, packetReadRegCount);

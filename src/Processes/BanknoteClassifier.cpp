@@ -41,6 +41,9 @@ void BanknoteClassifier::init()
 /* Main del programa*/
 int BanknoteClassifier::main()
 {
+  numberOfMessages = theDebugOut.getNumberOfMessages();
+  OUTPUT(idProcessBegin, bin, 'e');
+
   DEBUG_RESPONSE_ONCE("automated requests:TypeInfo") OUTPUT(idTypeInfo, bin, TypeInfo(true));
 
   RECEIVE_BANKNOTE_CLASSIFIER_COMM;
@@ -48,11 +51,6 @@ int BanknoteClassifier::main()
   RobotFanucDataProvider::handleMessages(theCommReceiver);
   
   timingManager.signalProcessStart();
-
-  int numberOfMessages = theDebugOut.getNumberOfMessages();
-
-  char process = 'e';
-  OUTPUT(idProcessBegin, bin, process);
 
   unsigned t0 = SystemCall::getCurrentSystemTime();
 
@@ -70,28 +68,23 @@ int BanknoteClassifier::main()
   timingManager.signalProcessStop();
   DEBUG_RESPONSE("timing") timingManager.getData().copyAllMessages(theDebugOut);
   
+  DEBUG_RESPONSE_ONCE("automated requests:DrawingManager") OUTPUT(idDrawingManager, bin, Global::getDrawingManager());
+
+  timingManager.signalProcessStop();
+  DEBUG_RESPONSE("timing") timingManager.getData().copyAllMessages(theDebugOut);
+//>>>>>>> edbeae46d0d0d7cdf560566096822e5a2b3fe73d
+  
   if(Blackboard::getInstance().exists("CameraInfo"))
   {
     SEND_BANKNOTE_CLASSIFIER_COMM;
   }
+
+  if(Global::getDebugRequestTable().pollCounter > 0 && --Global::getDebugRequestTable().pollCounter == 0)
+      OUTPUT(idDebugResponse, text, "pollingFinished");
   
   if(theDebugOut.getNumberOfMessages() > numberOfMessages + 1)
-  {
-      /*
-    // messages were sent in this frame -> send process finished
-    if(Blackboard::getInstance().exists("CameraInfo") &&
-       ((const CameraInfo&) Blackboard::getInstance()["CameraInfo"]).type == CameraInfo::CameraType::westCam)
-    { // lower camera -> process called 'e'
-      theDebugOut.patchMessage(numberOfMessages, 0, 'w');
-      process = 'w';
-    }
-    else
-    */
-      process = 'e';
-    OUTPUT(idProcessFinished, bin, process);
-    
-  }
-  else if(theDebugOut.getNumberOfMessages() == numberOfMessages + 1)
+    OUTPUT(idProcessFinished, bin, 'e');
+  else
     theDebugOut.removeLastMessage();
   
   return 0;

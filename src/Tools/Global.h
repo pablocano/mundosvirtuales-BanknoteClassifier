@@ -90,4 +90,6 @@ public:
   friend class VisionTool;
   friend class Settings; // The class Settings can set a default StreamHandler.
   friend class GripperCommunication;
+  friend class ConsoleController; // The class ConsoleRoboCupCtrl can set theSettings.
+  friend class Controller; // The class RobotConsole can set theDebugOut.
 };

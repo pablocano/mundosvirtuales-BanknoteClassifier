@@ -23,7 +23,8 @@
 #define REG_STATUS_AREA 0x01
 #define REG_STATUS_POSE 0x02
 #define REG_STATUS_SIDE 0x03
-#define REG_STATUS_GRIP 0x07
+#define REG_ZONE_GRIP 0x07
+#define REG_NEED_STIRATOR 0x06
 
 
 ENUM(MovementStatus,
@@ -49,11 +50,13 @@ struct RobotModelFanuc
         reg[REG_STATUS_AREA] = 0;
         reg[REG_STATUS_POSE] = 0;
         reg[REG_STATUS_SIDE] = 0;
-        reg[REG_STATUS_GRIP] = 0;
+        reg[REG_NEED_STIRATOR] = 0;
+        reg[REG_ZONE_GRIP] = 0;
         reg[10] = 0;
         reg[11] = 0;
         reg[12] = 0;
         reg[13] = 0;
+        reg[14] = 0;
 
         regPos[1] = PositionRegisterCartesian();
     }

@@ -123,16 +123,20 @@ void WorldCoordinatesPoseProvider::update(WorldCoordinatesPose &worldCoordinates
             return;
         }
 
+        worldCoordinatesPose.zone = theBanknotePositionFiltered.zone;
+
         worldCoordinatesPose.banknote = theBanknotePositionFiltered.banknote;
 
         std::stringstream ss;
 
         ss << "Banknote " << TypeRegistry::getEnumName((Classification::Banknote)theBanknotePositionFiltered.banknote) <<  " \nPos:\n\t x: " << worldCoordinatesPose.translation.x() << "\n\t y: " << worldCoordinatesPose.translation.y() << "\n\t rot: " << worldCoordinatesPose.rotation.toDegrees() << "\nOffset:\n\tx: " << worldCoordinatesPose.pickOffset.x() << "\n\ty: " << worldCoordinatesPose.pickOffset.y() << "\nDropOffset:\n\tx: " << worldCoordinatesPose.dropOffset.x() << "\n\ty: " << worldCoordinatesPose.dropOffset.y() << "\n";
-        std::cout << ss.str() << std::endl;;
+        OUTPUT_TEXT(ss.str());
 
         worldCoordinatesPose.timeStamp = theFrameInfo.time;
 
-        DEBUG_RESPONSE("status:worldPose")
+        worldCoordinatesPose.needEstirator = theBanknotePositionFiltered.needEstirator;
+
+         DEBUG_RESPONSE("status:worldPose")
         {
             OUTPUT(idWorldPoseStatus,bin,worldCoordinatesPose);
         };

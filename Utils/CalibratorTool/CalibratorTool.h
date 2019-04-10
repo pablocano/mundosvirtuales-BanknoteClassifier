@@ -78,6 +78,7 @@ namespace CalibratorTool
     virtual ~Application() = default;
     virtual Object* resolveObject(const QString& fullName, int kind = 0) = 0;
     virtual bool registerObject(Object& object, const Object* parent, int flags = 0) = 0;
+    virtual bool unregisterObject(const CalibratorTool::Object& object) = 0;
     virtual const QString& getAppPath() const = 0;
     virtual QSettings& getSettings() = 0;
   };

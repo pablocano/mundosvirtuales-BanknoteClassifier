@@ -24,6 +24,8 @@ public:
   virtual const QString& getAppPath() const {return appPath;}
   
   virtual bool registerObject(CalibratorTool::Object& object, const CalibratorTool::Object* parent, int flag = 0);
+
+  bool unregisterObject(const CalibratorTool::Object& object) override;
   
   QSettings& getSettings() {return settings;}
   
