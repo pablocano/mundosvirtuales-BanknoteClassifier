@@ -41,7 +41,7 @@ BanknoteTracker::BanknoteTracker()
     ASSERT(false);
   }*/
 
-  ASSERT(moduleTorch != nullptr);
+  //ASSERT(moduleTorch != nullptr);
 
   for(unsigned c = 0; c < Classification::numOfRealBanknotes; c++)
   {
@@ -671,7 +671,7 @@ void BanknoteTracker::checkAndFixGraspingScore(BanknoteDetection& detection, con
         continue;
       }
 
-      int py = queryPi.y() >> 2;
+      int py = queryPi.y() >> 1;
       int px = queryPi.x() >> 1;
 
       unsigned char pixelClass = theSegmentedImage.at<unsigned char>(py, px);
@@ -913,7 +913,7 @@ bool BanknoteTracker::basicColorTest(const BanknoteDetection& detection)
       Vector3f p = Vector3f(minX + i*xStep, minY + j*yStep, 1.f);
       p = detection.transform * p;
 
-      int py = int(p.y()) >> 2;
+      int py = int(p.y()) >> 1;
       int px = int(p.x()) >> 1;
 
       if(px < 0 || px > theSegmentedImage.cols || py < 0 || py > theSegmentedImage.rows)

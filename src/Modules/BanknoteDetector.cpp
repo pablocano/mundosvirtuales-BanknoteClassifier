@@ -336,7 +336,7 @@ void BanknoteDetector::hough4d(const BanknoteModel& model, const BanknoteDetecti
             int pty = (int) modelKeypoint.pt.y;
 
             int ptx2 = int(imageKeypoint.pt.x) >> 1;
-            int pty2 = int(imageKeypoint.pt.y) >> 2;
+            int pty2 = int(imageKeypoint.pt.y) >> 1;
 
 
             unsigned char maskValue = model.mask.at<unsigned char>(pty, ptx);
@@ -394,7 +394,7 @@ void BanknoteDetector::hough4d(const BanknoteModel& model, const BanknoteDetecti
             int pty = (int) modelKeypoint.pt.y;
 
             int ptx2 = int(imageKeypoint.pt.x) >> 1;
-            int pty2 = int(imageKeypoint.pt.y) >> 2;
+            int pty2 = int(imageKeypoint.pt.y) >> 1;
 
             unsigned char classValue = theSegmentedImage.at<unsigned char>(pty2, ptx2);
 
