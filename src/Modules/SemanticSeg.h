@@ -80,7 +80,7 @@ private:
     void colored(cv::Mat src, cv::Mat colored);
     float* bufferImgIn;
     double alpha; double beta; double input;
-
+    std::vector<cv::Vec3b> coloursMap;
 
 
 };
