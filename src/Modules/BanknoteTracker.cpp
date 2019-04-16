@@ -24,7 +24,7 @@ BanknoteTracker::BanknoteTracker()
 
   bestDetectionIndex = -1;
   state = TracketState::estimating;
-  if (torch::cuda::is_available())//hay gpu
+  /*if (torch::cuda::is_available())//hay gpu
   {
     string darknetFolder = string(File::getBCDir()) + "/Config/LibTorch/";
     const string traceFile = darknetFolder + "areaNet.pt";
@@ -39,7 +39,7 @@ BanknoteTracker::BanknoteTracker()
   else
   {
     ASSERT(false);
-  }
+  }*/
 
   ASSERT(moduleTorch != nullptr);
 
