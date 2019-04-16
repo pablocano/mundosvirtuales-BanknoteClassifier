@@ -113,7 +113,7 @@ void SemanticSeg::update(SegmentedImage &image)
     cv::Mat resized;
 
     cv::resize(theImage, resized, cv::Size(1024,1024), 0, 0);
-    imwrite("background.png",theImage);
+    //imwrite("background.png",theImage);
     transpose(resized);
 
     auto output = (moduleTorch->forward({torch::from_blob(bufferImgIn, {1,3, 1024, 1024}, at::kFloat).to(at::kCUDA)}).toTensor());//inferencia de la red en cuda
