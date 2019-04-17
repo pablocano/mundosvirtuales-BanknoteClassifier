@@ -87,9 +87,10 @@ public:
   
   friend class Process; // The class Process can set these pointers.
   friend class BanknoteClassifier; // The class BanknoteClassifier can set theTeamOut.
-  friend class VisionTool;
-  friend class Settings; // The class Settings can set a default StreamHandler.
+  friend class VisionTool; // The class Settings can set a default StreamHandler.
   friend class GripperCommunication;
   friend class ConsoleController; // The class ConsoleRoboCupCtrl can set theSettings.
   friend class Controller; // The class RobotConsole can set theDebugOut.
+  friend class CalibratorToolCtrl;
+  friend class RobotConsole;
 };

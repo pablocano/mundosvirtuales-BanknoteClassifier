@@ -82,16 +82,20 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/WorldCoordinatesPoseProvider.h
   src/Modules/SemanticSeg.cpp
   src/Modules/SemanticSeg.h
-  src/Platform/BCAssert.cpp
   src/Platform/BCAssert.h
+  src/Platform/DebugHandler.h
   src/Platform/File.cpp
   src/Platform/File.h
-  src/Platform/Memory.cpp
   src/Platform/Memory.h
-  src/Platform/Time.cpp
+  src/Platform/Semaphore.h
+  src/Platform/SystemCall.cpp
+  src/Platform/SystemCall.h
+  src/Platform/Thread.h
   src/Platform/Time.h
   src/Processes/BanknoteClassifier.cpp
   src/Processes/BanknoteClassifier.h
+  src/Processes/Debug.cpp
+  src/Processes/Debug.h
   src/Representations/BanknoteDetections.cpp
   src/Representations/BanknoteDetections.h
   src/Representations/BanknoteDetectionParameters.h
@@ -147,6 +151,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/Debugging/QueueFillRequest.cpp
   src/Tools/Debugging/QueueFillRequest.h
   src/Tools/Debugging/Stopwatch.h
+  src/Tools/Debugging/TcpConnection.cpp
+  src/Tools/Debugging/TcpConnection.h
   src/Tools/Debugging/TimingManager.cpp
   src/Tools/Debugging/TimingManager.h
   src/Tools/Function.h
@@ -189,6 +195,17 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/ModuleManager/Module.h
   src/Tools/ModuleManager/ModuleManager.cpp
   src/Tools/ModuleManager/ModuleManager.h
+  src/Tools/ModuleManager/ModulePackage.h
+  src/Tools/ModuleManager/Next.h
+  src/Tools/ProcessFramework/PlatformProcess.h
+  src/Tools/ProcessFramework/Process.cpp
+  src/Tools/ProcessFramework/Process.h
+  src/Tools/ProcessFramework/ProcessFramework.cpp
+  src/Tools/ProcessFramework/ProcessFramework.h
+  src/Tools/ProcessFramework/Receiver.cpp
+  src/Tools/ProcessFramework/Receiver.h
+  src/Tools/ProcessFramework/Sender.cpp
+  src/Tools/ProcessFramework/Sender.h
   src/Tools/Range.h
   src/Tools/Streams/AutoStreamable.h
   src/Tools/Streams/Eigen.h
@@ -208,18 +225,37 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/Streams/TypeInfo.h
   src/Tools/Streams/TypeRegistry.cpp
   src/Tools/Streams/TypeRegistry.h
-  src/Tools/Process.cpp
-  src/Tools/Process.h
   src/Tools/Settings.cpp
   src/Tools/Settings.h
-  src/Tools/SystemCall.cpp
-  src/Tools/SystemCall.h
 )
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+set(BC_PLATFORM_SRC
+  src/Platform/macOS/File.cpp
+)
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+set(BC_PLATFORM_SRC
+  src/Platform/Linux/BCAssert.cpp
+  src/Platform/Linux/DebugHandler.cpp
+  src/Platform/Linux/File.cpp
+  src/Platform/Linux/Memory.cpp
+  src/Platform/Linux/Semaphore.cpp
+  src/Platform/Linux/Thread.cpp
+  src/Platform/Linux/ThreadBase.cpp
+  src/Platform/Linux/Time.cpp
+)
+ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+set(BC_PLATFORM_SRC
+  src/Platform/Windows/File.cpp
+  src/Platform/Windows/Time.cpp
+)
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
 set( CAMERA_CALIBRATION
    Utils/CameraCalibration/calibration.cpp
-   src/Platform/BCAssert.cpp
+   src/Platform/Linux/BCAssert.cpp
+   src/Platform/Linux/File.cpp
    src/Platform/File.cpp
    src/Platform/File.h
 )
@@ -234,12 +270,14 @@ QT5_ADD_RESOURCES(CALIBRATION_TOOL_RESOURCES_RCC ${CALIBRATOR_SRC_DIR}/Calibrato
 
 set( CALIBRATOR_TOOL_SRC
   #${CALIBRATOR_SRC_DIR}/CalibratorTool.h
-  ${CALIBRATOR_SRC_DIR}/Controller.cpp
+  ${CALIBRATOR_SRC_DIR}/CalibratorToolCtrl.cpp
+  #${CALIBRATOR_SRC_DIR}/Controller.cpp
   #${CALIBRATOR_SRC_DIR}/Controller.h
   ${CALIBRATOR_SRC_DIR}/ConsoleController.cpp
-  ${CALIBRATOR_SRC_DIR}/BanknoteClassifierWrapper.cpp
+  #${CALIBRATOR_SRC_DIR}/BanknoteClassifierWrapper.cpp
   #${CALIBRATOR_SRC_DIR}/BanknoteClassifierWrapper.h
   ${CALIBRATOR_SRC_DIR}/ListViewsDockWidget.cpp
+  ${CALIBRATOR_SRC_DIR}/LocalRobot.cpp
   #${CALIBRATOR_SRC_DIR}/ListViewsDockWidget.h
   ${CALIBRATOR_SRC_DIR}/Main.cpp
   ${CALIBRATOR_SRC_DIR}/MainWindow.cpp
@@ -249,13 +287,14 @@ set( CALIBRATOR_TOOL_SRC
   #${CALIBRATOR_SRC_DIR}/Synchronization.h
   ${CALIBRATOR_SRC_DIR}/Representations/TimeInfo.cpp
   ${CALIBRATOR_SRC_DIR}/Representations/ModuleInfo.cpp
+  ${CALIBRATOR_SRC_DIR}/RobotConsole.cpp
   ${CALIBRATOR_SRC_DIR}/Views/ImageView.cpp
   #${CALIBRATOR_SRC_DIR}/Views/ImageView.h
-  ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.cpp
+  #${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.cpp
   #${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ColorCalibrationView.h
-  ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.cpp
+  #${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.cpp
   #${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/RangeSelector.h
-  ${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.cpp
+  #${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.cpp
   ${CALIBRATOR_SRC_DIR}/Views/ConsoleView.cpp
   #${CALIBRATOR_SRC_DIR}/Views/ColorCalibrationView/ThresholdSelector.h
   ${CALIBRATOR_SRC_DIR}/Views/DataView/DataView.cpp
@@ -282,6 +321,7 @@ set( CALIBRATOR_TOOL_SRC
   #${CALIBRATOR_SRC_DIR}/Visualization/DebugDrawing.h
   ${CALIBRATOR_SRC_DIR}/Visualization/PaintMethods.cpp
   #${CALIBRATOR_SRC_DIR}/Visualization/PaintMethods.h
+  src/Platform/Linux/RobotCtrlSim.cpp
 )
 
 #Vision Tool Resurces
@@ -297,6 +337,7 @@ set( VISION_TOOL_SRC
   #${VISION_TOOL_SRC_DIR}/VisionTool.h
   ${VISION_TOOL_SRC_DIR}/VisionToolWidget.cpp
   #${VISION_TOOL_SRC_DIR}/VisionToolWidget.h
+  src/Platform/Linux/File.cpp
   src/Platform/File.cpp
   src/Platform/File.h
   src/Platform/Memory.cpp
@@ -352,8 +393,8 @@ set( LIB_ETHERNETIP_FANUC_SRC
 
 set( LIB_ETHERNETIP_FANUC_INCLUDE
 	src/Tools/Fanuc/PositionRegisterCartesian.h
-        src/Tools/Fanuc/PositionRegisterJoint.h
-        src/Tools/Fanuc/PacketEthernetIPFanuc.cpp
+  src/Tools/Fanuc/PositionRegisterJoint.h
+  src/Tools/Fanuc/PacketEthernetIPFanuc.cpp
 	src/Tools/Fanuc/PacketEthernetIPFanuc.h
 	src/Tools/Comm/TcpComm.h
 )
@@ -408,7 +449,7 @@ include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/includ
 
 message(STATUS "Pylon dir find in " ${PYLON_ROOT})
 
-add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE} ${LIB_ETHERNETIP_FANUC_SRC} ${LIB_ETHERNETIP_FANUC_INCLUDE})
+add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${BC_PLATFORM_SRC} ${OpenCV_INCLUDE} ${LIB_ETHERNETIP_FANUC_SRC} ${LIB_ETHERNETIP_FANUC_INCLUDE})
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1 geos)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -417,14 +458,16 @@ ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen PylonBase_MD_VC120_v5_1 PylonUtility_MD_VC120_v5_1 GenApi_MD_VC120_v3_0_Basler_pylon_v5_1 GCBase_MD_VC120_v3_1_Basler_pylon_v5_1 ws2_32 winmm geos)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-add_library( banknoteClassifierSim SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLUDE} ${LIB_ETHERNETIP_FANUC_SRC} ${LIB_ETHERNETIP_FANUC_INCLUDE})
+
+include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt /usr/local/incude ${TORCH_INCLUDE_DIRS} ${Qt5Widgets_INCLUDES})
+add_library( banknoteClassifierSim SHARED ${BANCKNOTECLASSIFIER_SRC} ${BC_PLATFORM_SRC} ${OpenCV_INCLUDE} ${LIB_ETHERNETIP_FANUC_SRC} ${LIB_ETHERNETIP_FANUC_INCLUDE})
 target_compile_definitions(banknoteClassifierSim PRIVATE CALIBRATION_TOOL)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-target_link_libraries( banknoteClassifierSim ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1 geos)
+target_link_libraries( banknoteClassifierSim ${OpenCV_LIBS} Eigen3::Eigen ${Qt5Widgets_LIBRARIES} pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1 geos)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-target_link_libraries( banknoteClassifierSim ${OpenCV_LIBS} ${TORCH_LIBRARIES} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1 geos)
+target_link_libraries( banknoteClassifierSim ${OpenCV_LIBS} ${TORCH_LIBRARIES} Eigen3::Eigen ${Qt5Widgets_LIBRARIES} pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1 geos)
 ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-target_link_libraries( banknoteClassifierSim ${OpenCV_LIBS} Eigen3::Eigen PylonBase_MD_VC120_v5_1 PylonUtility_MD_VC120_v5_1 GenApi_MD_VC120_v3_0_Basler_pylon_v5_1 GCBase_MD_VC120_v3_1_Basler_pylon_v5_1 ws2_32 winmm geos)
+target_link_libraries( banknoteClassifierSim ${OpenCV_LIBS} Eigen3::Eigen ${Qt5Widgets_LIBRARIES} PylonBase_MD_VC120_v5_1 PylonUtility_MD_VC120_v5_1 GenApi_MD_VC120_v3_0_Basler_pylon_v5_1 GCBase_MD_VC120_v3_1_Basler_pylon_v5_1 ws2_32 winmm geos)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 include_directories(${Qt5Widgets_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/Utils/qtpropertybrowser ${CMAKE_CURRENT_BINARY_DIR}/Utils/qtpropertybrowser ${CMAKE_CURRENT_SOURCE_DIR})
@@ -446,7 +489,7 @@ ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 target_link_libraries( cameraCalibration ${OpenCV_LIBS} pylonBase_MD_VC120_v5_1 PylonUtility_MD_VC120_v5_1 GenApi_MD_VC120_v3_1_Basler_pylon_v5_1 GCBase_MD_VC120_v3_1_Basler_pylon_v5_1)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-add_executable(bc src/Processes/main.cpp)
+add_executable(bc src/Platform/Linux/Main.cpp src/Platform/Linux/RobotCtrl.cpp)
 include (GenerateExportHeader)          
 generate_export_header(banknoteClassifier BASE_NAME banknoteClassifier EXPORT_MACRO_NAME BANCKNOTECLASSIFIER_EXPORT EXPORT_FILE_NAME BanknoteClassifier_EXPORTS.h STATIC_DEFINE BANCKNOTECLASSIFIER_EXPORTS_BUILT_AS_STATIC)
 generate_export_header(banknoteClassifier BASE_NAME Process EXPORT_MACRO_NAME PROCESS_EXPORT EXPORT_FILE_NAME Process_EXPORTS.h STATIC_DEFINE PROCESS_EXPORTS_BUILT_AS_STATIC)

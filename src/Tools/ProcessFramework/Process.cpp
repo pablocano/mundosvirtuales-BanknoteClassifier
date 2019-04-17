@@ -11,11 +11,14 @@
 #include "Tools/Debugging/Debugging.h"
 #include "Tools/Debugging/DebugRequest.h"
 
+bool DebugSenderBase::terminating = false;
+
 Process::Process(MessageQueue& in,MessageQueue& out)
-: initialized(false),
-  debugIn(in),
+: debugIn(in),
   debugOut(out)
 {
+  setGlobals();
+  initialized = false;
 }
 
 void Process::setGlobals()
@@ -30,7 +33,7 @@ void Process::setGlobals()
   Blackboard::setInstance(blackboard);
 }
 
-int Process::procesMain()
+bool Process::processMain()
 {
   if (!initialized) {
     init();
@@ -40,7 +43,10 @@ int Process::procesMain()
   handleAllMessages(debugIn);
   debugIn.clear();
 
-  int result = main();
+  bool result = main();
+
+  if(Global::getDebugRequestTable().pollCounter > 0 && --Global::getDebugRequestTable().pollCounter == 0)
+      OUTPUT(idDebugResponse, text, "pollingFinished");
   
   return result;
 }

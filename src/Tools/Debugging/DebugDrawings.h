@@ -64,6 +64,7 @@ private:
   // only a process is allowed to create the instance.
   friend class Process;
   friend class Controller;
+  friend class RobotConsole;
   friend In& operator>>(In& stream, DrawingManager&);
   friend Out& operator<<(Out& stream, const DrawingManager&);
 
@@ -132,7 +133,7 @@ inline const char* DrawingManager::getTypeName(char id, char processIdentifier) 
   return "unknown";
 }
 
-#if !defined TARGET_TOOL && (!defined TARGET_ROBOT || !defined NDEBUG)
+#if defined CALIBRATION_TOOL || !defined NDEBUG
 
 /**
  * A macro that declares

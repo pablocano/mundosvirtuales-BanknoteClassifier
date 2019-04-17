@@ -19,7 +19,7 @@
 #include "CalibratorTool.h"
 
 class NumberTableWidgetItem;
-class Controller;
+class RobotConsole;
 struct Row;
 class TimeInfo;
 class TimeWidget;
@@ -42,12 +42,12 @@ public:
    * @param console The console object.
    * @param info The timing info object to be visualized.
    */
-  TimeView(const QString& fullName, Controller& controller, const TimeInfo& info);
+  TimeView(const QString& fullName, RobotConsole& controller, const TimeInfo& info);
 
 private:
   const QString fullName; /**< The path to this view in the scene graph */
   const QIcon icon; /**< The icon used for listing this view in the scene graph */
-  Controller& controller; /**< A reference to the console object. */
+  RobotConsole& controller; /**< A reference to the console object. */
   const TimeInfo& info; /**< The Time info structure. */
 
   /**

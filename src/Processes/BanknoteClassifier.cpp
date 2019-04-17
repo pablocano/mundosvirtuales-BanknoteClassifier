@@ -5,27 +5,31 @@
  */
 
 #include "BanknoteClassifier.h"
+#include "Modules/ArucoPoseEstimator.h"
+#include "Modules/BanknoteClassifierConfiguration.h"
+#include "Modules/RobotFanucDataProvider.h"
+#include "Modules/Segmentator.h"
+#include "Platform/SystemCall.h"
 #include "Representations/CameraInfo.h"
 #include "Representations/Regions.h"
-#include "Modules/BanknoteClassifierConfiguration.h"
-#include "Modules/Segmentator.h"
 #include "Tools/Global.h"
-#include "Tools/SystemCall.h"
 #include "Tools/Fanuc/PacketEthernetIPFanuc.h"
-#include "Modules/ArucoPoseEstimator.h"
-#include "Modules/RobotFanucDataProvider.h"
 #include "Tools/Streams/TypeInfo.h"
 
 #include <istream>
 
 BanknoteClassifier::BanknoteClassifier() :
-INIT_DEBUGGING,
-INIT_GROUND_TRUTH_COMM,
-moduleManager({ModuleBase::BanknoteClassifier,ModuleBase::Segmentation,ModuleBase::Common,ModuleBase::BaslerCamera,ModuleBase::Communication})
+  Process (theDebugReceiver,theDebugSender),
+  INIT_GROUND_TRUTH_COMM,
+  theDebugReceiver(this),
+  theDebugSender(this),
+  theMotionReceiver(this),
+  theMotionSender(this),
+  moduleManager({ModuleBase::BanknoteClassifier,ModuleBase::Segmentation,ModuleBase::Common,ModuleBase::BaslerCamera,ModuleBase::Communication})
 //moduleManager({ "CameraPose","Communication","Common","BaslerCamera","Segmentation" }),
 {
-  theDebugOut.setSize(20200000);
-  theDebugIn.setSize(2800000);
+  theDebugSender.setSize(20200000, 100000);
+  theDebugReceiver.setSize(2800000);
   theCommSender.setSize(5000 * MAX_SIZE_PACKET);
   theCommReceiver.setSize(5000 * MAX_SIZE_PACKET); // more than 4 because of additional data
 }
@@ -35,16 +39,16 @@ void BanknoteClassifier::init()
   Global::theCommunicationOut = &theCommSender.out;
   START_BANKNOTE_CLASSIFIER_COMM;
   moduleManager.load();
+
+  // Prepare first frame
+  numberOfMessages = theDebugSender.getNumberOfMessages();
+  OUTPUT(idProcessBegin, bin, 'e');
 }
 
 
 /* Main del programa*/
-int BanknoteClassifier::main()
+bool BanknoteClassifier::main()
 {
-  numberOfMessages = theDebugOut.getNumberOfMessages();
-  OUTPUT(idProcessBegin, bin, 'e');
-
-  DEBUG_RESPONSE_ONCE("automated requests:TypeInfo") OUTPUT(idTypeInfo, bin, TypeInfo(true));
 
   RECEIVE_BANKNOTE_CLASSIFIER_COMM;
 
@@ -66,28 +70,35 @@ int BanknoteClassifier::main()
   DEBUG_RESPONSE_ONCE("automated requests:DrawingManager") OUTPUT(idDrawingManager, bin, Global::getDrawingManager());
 
   timingManager.signalProcessStop();
-  DEBUG_RESPONSE("timing") timingManager.getData().copyAllMessages(theDebugOut);
+  DEBUG_RESPONSE("timing") timingManager.getData().copyAllMessages(theDebugSender);
   
   DEBUG_RESPONSE_ONCE("automated requests:DrawingManager") OUTPUT(idDrawingManager, bin, Global::getDrawingManager());
 
   timingManager.signalProcessStop();
-  DEBUG_RESPONSE("timing") timingManager.getData().copyAllMessages(theDebugOut);
-//>>>>>>> edbeae46d0d0d7cdf560566096822e5a2b3fe73d
+  DEBUG_RESPONSE("timing") timingManager.getData().copyAllMessages(theDebugSender);
   
   if(Blackboard::getInstance().exists("CameraInfo"))
   {
     SEND_BANKNOTE_CLASSIFIER_COMM;
   }
-
-  if(Global::getDebugRequestTable().pollCounter > 0 && --Global::getDebugRequestTable().pollCounter == 0)
-      OUTPUT(idDebugResponse, text, "pollingFinished");
   
-  if(theDebugOut.getNumberOfMessages() > numberOfMessages + 1)
+  if(theDebugSender.getNumberOfMessages() > numberOfMessages + 1)
     OUTPUT(idProcessFinished, bin, 'e');
   else
-    theDebugOut.removeLastMessage();
-  
-  return 0;
+    theDebugSender.removeLastMessage();
+
+  BH_TRACE_MSG("theDebugSender.send()");
+  theDebugSender.send();
+
+  // Prepare next frame
+  numberOfMessages = theDebugSender.getNumberOfMessages();
+  OUTPUT(idProcessBegin, bin, 'e');
+
+#ifdef CALIBRATION_TOOL
+  return true;
+#else
+  return false;
+#endif
 }
 
 bool BanknoteClassifier::handleMessage(InMessage &message)
@@ -107,3 +118,5 @@ bool BanknoteClassifier::handleMessage(InMessage &message)
                  Process::handleMessage(message);
       }
 }
+
+MAKE_PROCESS(BanknoteClassifier);

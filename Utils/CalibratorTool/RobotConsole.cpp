@@ -6,37 +6,29 @@
 //
 //
 
-#include "Controller.h"
+#include "RobotConsole.h"
 #include "ConsoleController.h"
+#include "Platform/SystemCall.h"
+#include "Platform/File.h"
+#include "Tools/Debugging/DebugDataStreamer.h"
+#include "Tools/Debugging/QueueFillRequest.h"
 #include "Views/ConsoleView.h"
 #include "Views/ImageView.h"
-#include "Views/ColorCalibrationView/ColorCalibrationView.h"
 #include "Views/DataView/DataView.h"
 #include "Views/StatusView.h"
 #include "Views/TimeView.h"
-#include "ConsoleController.h"
-#include "Tools/Debugging/DebugDataStreamer.h"
-#include "Tools/Debugging/QueueFillRequest.h"
-#include "Tools/SystemCall.h"
-#include "Platform/File.h"
 #include "MainWindow.h"
 
 #define PREREQUISITE(p) pollingFor = #p; if(!poll(p)) return false;
 
-CalibratorTool::Application* Controller::application = 0;
-
-Controller::Controller(CalibratorTool::Application& application)
-: banknoteClassifierWrapper(0),
-  colorCalibrationChanged(false),
-  colorTableTimeStamp(0),
-  dataViewWriter(&dataViews)
+RobotConsole::RobotConsole(MessageQueue &in, MessageQueue &out)
+: Process (in, out),
+  dataViewWriter(&dataViews),
+  debugOut(out)
 {
-  this->application = &application;
 
-  console = new ConsoleController(this);
-  
-  debugIn.setSize(20200000);
-  debugOut.setSize(2800000);
+  ctrl = (ConsoleController*)CalibratorToolCtrl::controller;
+  //console = new ConsoleController(this);
   
   for(int i = 0; i < numOfMessageIDs; ++i)
   {
@@ -44,141 +36,71 @@ Controller::Controller(CalibratorTool::Application& application)
     polled[i] = false;
   }
   
-  banknoteClassifierWrapper = new BanknoteClassifierWrapper(this);
-  poll(idDebugResponse);
-  poll(idDrawingManager);
-  poll(idColorCalibration);
-  poll(idTypeInfo);
-  poll(idModuleTable);
-  
-  SYNC;
   timeInfos['e'] = TimeInfo("BanknoteClassifier", 1);
   debugDrawings['e'];
-  
-  banknoteClassifierWrapper->start();
 }
 
-Controller::~Controller()
+RobotConsole::~RobotConsole()
 {
   qDeleteAll(views);
-  banknoteClassifierWrapper->requestInterruption();
-  banknoteClassifierWrapper->wait();
-  delete banknoteClassifierWrapper;
 }
 
-void Controller::compile()
+void RobotConsole::init()
 {
-  addCategory("GroundTruth", 0, ":/Icons/GroundTruth.png");
+ poll(idTypeInfo);
+}
+
+void RobotConsole::addViews()
+{
+  ctrl->addCategory("GroundTruth", nullptr, ":/Icons/GroundTruth.png");
   //addView(new StatusView("GroundTruth.Status.Status",*this,"RobotStatus"),"GroundTruth.Status");
 
-  console->consoleView = new ConsoleView("GroundTruth.Console.Console",*console);
-
-  addView(console->consoleView, "GroundTruth.Console");
-
-  addView(new TimeView("GroundTruth.Timing.BanknoteClassifier", *this, timeInfos.at('e')), "GroundTruth.Timing");
+  ctrl->addView(new TimeView("GroundTruth.Timing.BanknoteClassifier", *this, timeInfos.at('e')), "GroundTruth.Timing");
 }
 
-void Controller::addView(CalibratorTool::Object* object, const CalibratorTool::Object* parent, int flags)
-{
-  views.append(object);
-  application->registerObject(*object, parent, flags | CalibratorTool::Flag::showParent);
-}
 
-void Controller::addView(CalibratorTool::Object* object, const QString& categoryName, int flags)
+void RobotConsole::update()
 {
-  CalibratorTool::Object* category = application->resolveObject(categoryName);
-  if(!category)
+  setGlobals();
+
+  while(!lines.empty())
   {
-    int lio = categoryName.lastIndexOf('.');
-    QString subParentName = categoryName.mid(0, lio);
-    QString name = categoryName.mid(lio + 1);
-    category = addCategory(name, subParentName);
-  }
-  addView(object, category, flags);
-}
-
-void Controller::removeView(CalibratorTool::Object* object)
-{
-  views.removeOne(object);
-  application->unregisterObject(*object);
-}
-
-CalibratorTool::Object* Controller::addCategory(const QString& name, const CalibratorTool::Object* parent, const char* icon)
-{
-  class Category : public CalibratorTool::Object
-  {
-  public:
-    Category(const QString& name, const QString& fullName, const char* icon) : name(name), fullName(fullName), icon(icon) {}
-    
-  private:
-    QString name;
-    QString fullName;
-    QIcon icon;
-    
-    virtual const QString& getDisplayName() const {return name;}
-    virtual const QString& getFullName() const {return fullName;}
-    virtual const QIcon* getIcon() const {return &icon;}
-  };
-  
-  CalibratorTool::Object* category = new Category(name, parent ? parent->getFullName() + "." + name : name, icon ? icon : ":/Icons/folder.png");
-  views.append(category);
-  application->registerObject(*category, parent, CalibratorTool::Flag::windowless | CalibratorTool::Flag::hidden);
-  return category;
-}
-
-CalibratorTool::Object* Controller::addCategory(const QString& name, const QString& parentName)
-{
-  CalibratorTool::Object* parent = application->resolveObject(parentName);
-  if(!parent)
-  {
-    int lio = parentName.lastIndexOf('.');
-    QString subParentName = parentName.mid(0, lio);
-    QString name = parentName.mid(lio + 1);
-    parent = addCategory(name, subParentName);
-  }
-  return addCategory(name, parent);
-}
-
-void Controller::update()
-{
-  receive();
-  if(colorCalibrationChanged && SystemCall::getTimeSince(colorTableTimeStamp) > 200)
-  {
-    SYNC;
-    colorCalibrationChanged = false;
-    colorTableTimeStamp = SystemCall::getCurrentSystemTime();
-    colorModel.fromColorCalibration(colorCalibration, prevColorCalibration);
+    std::list<std::string> temp = lines;
+    lines.clear();
+    if(handleConsoleLine(temp.front()))
     {
-      SYNC_WITH(*banknoteClassifierWrapper);
-      debugOut.out.bin << colorCalibration;
-      debugOut.out.finishMessage(idColorCalibration);
+      temp.pop_front();
+      lines.splice(lines.end(), temp);
+    }
+    else
+    {
+      lines = temp;
+      break;
     }
   }
+
+  if(!commands.empty())
+  {
+    std::list<std::string> commands;
+    {
+      SYNC;
+      commands.swap(this->commands);
+    }
+    for(const std::string& command : commands)
+      ctrl->executeConsoleCommand(command);
+  }
+
+  pollForDirectMode();
 
   if(updateCompletion)
   {
     SYNC;
-    console->updateCommandCompletion();
+    ctrl->updateCommandCompletion();
     updateCompletion = false;
   }
-
-  if(!commands.empty())
-    {
-      std::list<std::string> commands;
-      {
-        SYNC;
-        commands.swap(this->commands);
-      }
-      for(const std::string& command : commands)
-        console->executeConsoleCommand(command);
-    }
-
-  pollForDirectMode();
-
-  console->update();
 }
 
-void Controller::pollForDirectMode()
+void RobotConsole::pollForDirectMode()
 {
   //if(directMode)
   //{
@@ -195,22 +117,7 @@ void Controller::pollForDirectMode()
   //}
 }
 
-void Controller::stop()
-{
-  banknoteClassifierWrapper->shouldStop = true;
-}
-
-void Controller::saveColorCalibration()
-{
-  SYNC_WITH(*banknoteClassifierWrapper);
-  debugOut.out.bin << DebugRequest("module:GroundTruthConfiguration:saveColorCalibration");
-  debugOut.out.finishMessage(idDebugRequest);
-
-  debugOut.out.bin << DebugRequest("module:ArucoPoseEstimator:saveCameraPose");
-  debugOut.out.finishMessage(idDebugRequest);
-}
-
-bool Controller::poll(MessageID id)
+bool RobotConsole::poll(MessageID id)
 {
   if(waitingFor[id] > 0)
   {
@@ -273,7 +180,7 @@ bool Controller::poll(MessageID id)
   return false;
 }
 
-bool Controller::handleMessage(InMessage& message)
+bool RobotConsole::handleMessage(InMessage& message)
 {
   SYNC;
   switch (message.getMessageID()) {
@@ -281,7 +188,7 @@ bool Controller::handleMessage(InMessage& message)
     {
       std::string buffer(message.text.readAll());
       if(printMessages)
-        console->printLn(buffer);
+        ctrl->printLn(buffer);
       return true;
     }
     case idConsole:
@@ -302,15 +209,9 @@ bool Controller::handleMessage(InMessage& message)
         debugRequestTable.addRequest(DebugRequest(description, enable));
       else if(--waitingFor[idDebugResponse] <= 0)
       {
-        console->setDebugRequestTable(debugRequestTable);
+        ctrl->setDebugRequestTable(debugRequestTable);
         updateCompletion = true;
       }
-      return true;
-    }
-    case idColorCalibration:
-    {
-      message.bin >> colorCalibration;
-      colorCalibrationChanged = true;
       return true;
     }
     case idDebugImage:
@@ -378,22 +279,22 @@ bool Controller::handleMessage(InMessage& message)
     }
     case idModuleTable:
     {
-      SYNC_WITH(*console);
+      SYNC_WITH(*ctrl);
       moduleInfo.handleMessage(message, processIdentifier);
       if(--waitingFor[idModuleTable] <= 0)
       {
-        console->setModuleInfo(moduleInfo);
+        ctrl->setModuleInfo(moduleInfo);
         updateCompletion = true;
       }
       return true;
     }
     case idDrawingManager:
     {
-      SYNC_WITH(*console);
+      SYNC_WITH(*ctrl);
       message.bin >> drawingManager;
       if(--waitingFor[idDrawingManager] <= 0)
       {
-        console->setDrawingManager(drawingManager);
+        ctrl->setDrawingManager(drawingManager);
         updateCompletion = true;
       }
       return true;
@@ -457,26 +358,19 @@ bool Controller::handleMessage(InMessage& message)
   }
 }
 
-void Controller::receive()
-{
-  SYNC_WITH(*banknoteClassifierWrapper);
-  debugIn.handleAllMessages(*this);
-  debugIn.clear();
-}
-
-void Controller::toggleImageView(const std::string &name, bool activate)
+void RobotConsole::toggleImageView(const std::string &name, bool activate)
 {
   for(const auto& i : debugRequestTable.slowIndex)
   {
     if(i.first.substr(0, 13) == "debug images:" &&
-       console->translate(i.first.substr(13)) == name)
+       ctrl->translate(i.first.substr(13)) == name)
     {
-      handleConsole("dr " + console->translate(i.first) + (activate ? " on" : " off"));
+      handleConsole("dr " + ctrl->translate(i.first) + (activate ? " on" : " off"));
     }
   }
 }
 
-void Controller::drDebugDrawing(const std::string &request, const std::string& imageView)
+void RobotConsole::drDebugDrawing(const std::string &request, const std::string& imageView)
 {
   handleConsole("vid " + imageView + " " + request);
 
@@ -497,13 +391,13 @@ void Controller::drDebugDrawing(const std::string &request, const std::string& i
       }*/
 }
 
-void Controller::sendDebugMessage(InMessage& msg)
+void RobotConsole::sendDebugMessage(InMessage& msg)
 {
   SYNC;
   msg >> debugOut;
 }
 
-void Controller::handleConsole(std::string line)
+void RobotConsole::handleConsole(std::string line)
 {
   //setGlobals(); // this is called in GUI thread -> set globals for this process
   for(;;)
@@ -534,7 +428,7 @@ void Controller::handleConsole(std::string line)
   pollForDirectMode();
 }
 
-bool Controller::handleConsoleLine(const std::string& line)
+bool RobotConsole::handleConsoleLine(const std::string& line)
 {
   InConfigMemory stream(line.c_str(), line.size());
   std::string command;
@@ -549,7 +443,7 @@ bool Controller::handleConsoleLine(const std::string& line)
   }
   else if(command == "cls")
   {
-    console->printLn("_cls");
+    ctrl->printLn("_cls");
     result = true;
   }
   else if(command == "dr")
@@ -559,7 +453,7 @@ bool Controller::handleConsoleLine(const std::string& line)
   }
   else if(command == "echo")
   {
-    console->echo(stream);
+    ctrl->echo(stream);
     result = true;
   }
   else if(command == "get")
@@ -661,17 +555,17 @@ bool Controller::handleConsoleLine(const std::string& line)
   pollingFor = 0;
   if(!result)
   {
-    console->printLn("Syntax Error");
+    ctrl->printLn("Syntax Error");
   }
   return true;
 }
 
-bool Controller::log(In &stream)
+bool RobotConsole::log(In &stream)
 {
   return true;
 }
 
-bool Controller::debugRequest(In& stream)
+bool RobotConsole::debugRequest(In& stream)
 {
   std::string debugRequestString, state;
   stream >> debugRequestString >> state;
@@ -679,8 +573,8 @@ bool Controller::debugRequest(In& stream)
   if(debugRequestString == "?")
   {
     for(const auto& i : debugRequestTable.slowIndex)
-      console->list(console->translate(i.first).c_str(), state);
-    console->printLn("");
+      ctrl->list(ctrl->translate(i.first).c_str(), state);
+    ctrl->printLn("");
     return true;
   }
   else
@@ -694,7 +588,7 @@ bool Controller::debugRequest(In& stream)
     }
     else
       for(const auto& i : debugRequestTable.slowIndex)
-        if(console->translate(i.first) == debugRequestString)
+        if(ctrl->translate(i.first) == debugRequestString)
         {
           if(state == "off")
             debugRequestTable.enabled[i.second] = false;
@@ -712,7 +606,7 @@ bool Controller::debugRequest(In& stream)
   return false;
 }
 
-bool Controller::get(In& stream, bool first, bool print)
+bool RobotConsole::get(In& stream, bool first, bool print)
 {
   std::string request, option;
   stream >> request >> option;
@@ -720,13 +614,13 @@ bool Controller::get(In& stream, bool first, bool print)
   {
     for(const auto& i : debugRequestTable.slowIndex)
       if(i.first.substr(0, 11) == "debug data:")
-        console->list(console->translate(i.first.substr(11)), option);
-    console->printLn("");
+        ctrl->list(ctrl->translate(i.first.substr(11)), option);
+    ctrl->printLn("");
     return true;
   }
   else
     for(const auto& i : debugRequestTable.slowIndex)
-      if(std::string("debugData:") + request == console->translate(i.first))
+      if(std::string("debugData:") + request == ctrl->translate(i.first))
       {
         if(first)
         {
@@ -751,7 +645,7 @@ bool Controller::get(In& stream, bool first, bool print)
           if(option == "?")
           {
             printType(j->second.first.c_str());
-            console->printLn("");
+            ctrl->printLn("");
             return true;
           }
           else if(option == "")
@@ -762,7 +656,7 @@ bool Controller::get(In& stream, bool first, bool print)
             j->second.second->handleAllMessages(memoryWriter);
             std::string buffer = "set " + request + " " + memory.data();
             if(print)
-              console->printLn(buffer);
+              ctrl->printLn(buffer);
             else
               printBuffer = buffer;
             return true;
@@ -773,7 +667,7 @@ bool Controller::get(In& stream, bool first, bool print)
   return false;
 }
 
-bool Controller::moduleRequest(In& stream)
+bool RobotConsole::moduleRequest(In& stream)
 {
   SYNC;
   std::string representation, module, pattern;
@@ -793,7 +687,7 @@ bool Controller::moduleRequest(In& stream)
           selected |= rp.provider == m.name;
         text += r + (selected ? "* " : " ");
       }
-      console->list(text, module, true);
+      ctrl->list(text, module, true);
     }
 
     return true;
@@ -811,7 +705,7 @@ bool Controller::moduleRequest(In& stream)
         if(std::find(m.representations.begin(), m.representations.end(), rp.representation) != m.representations.end())
           text += m.name + (m.name == rp.provider ? "* " : " ");
       text += rp.provider == "default" ? "default*" : "default";
-      console->list(text, module, true);
+      ctrl->list(text, module, true);
     }
     return true;
   }
@@ -833,9 +727,9 @@ bool Controller::moduleRequest(In& stream)
           provider = rp.provider;
       for(const auto& m : moduleInfo.modules)
         if(std::find(m.representations.begin(), m.representations.end(), representation) != m.representations.end())
-          console->list(m.name + (m.name == provider ? "*" : ""), pattern);
-      console->list(std::string("default") + ("default" == provider ? "*" : ""), pattern);
-      console->printLn("");
+          ctrl->list(m.name + (m.name == provider ? "*" : ""), pattern);
+      ctrl->list(std::string("default") + ("default" == provider ? "*" : ""), pattern);
+      ctrl->printLn("");
       return true;
     }
     else
@@ -897,7 +791,7 @@ bool Controller::moduleRequest(In& stream)
   return false;
 }
 
-bool Controller::msg(In& stream)
+bool RobotConsole::msg(In& stream)
 {
   std::string state;
   stream >> state;
@@ -940,13 +834,13 @@ bool Controller::msg(In& stream)
   return false;
 }
 
-bool Controller::repoll(In& stream)
+bool RobotConsole::repoll(In& stream)
 {
   polled[idDebugResponse] = polled[idDrawingManager] = polled[idDrawingManager3D] = false;
   return true;
 }
 
-bool Controller::queueFillRequest(In& stream)
+bool RobotConsole::queueFillRequest(In& stream)
 {
   std::string request;
   stream >> request;
@@ -998,12 +892,12 @@ bool Controller::queueFillRequest(In& stream)
   return true;
 }
 
-bool Controller::viewData(In& stream)
+bool RobotConsole::viewData(In& stream)
 {
   std::string name, option;
   stream >> name >> option;
   for(const auto& i : debugRequestTable.slowIndex)
-    if(std::string("debugData:") + name == console->translate(i.first))
+    if(std::string("debugData:") + name == ctrl->translate(i.first))
     {
       // enable the debug request if it is not already enabled
       if(option == "off")
@@ -1016,7 +910,7 @@ bool Controller::viewData(In& stream)
         if(dataViews.find(name) == dataViews.end())
         {
           dataViews[name] = new DataView(QString("GroundTruth.data.") + name.c_str(), name, *this, typeInfo);
-          addView(dataViews[name], QString("GroundTruth.data"), CalibratorTool::Flag::copy | CalibratorTool::Flag::exportAsImage);
+          ctrl->addView(dataViews[name], QString("GroundTruth.data"), CalibratorTool::Flag::copy | CalibratorTool::Flag::exportAsImage);
         }
         requestDebugData(name, true);
         return true;
@@ -1027,7 +921,7 @@ bool Controller::viewData(In& stream)
   return false;
 }
 
-bool Controller::viewDrawing(In& stream, Views& views, const char* type)
+bool RobotConsole::viewDrawing(In& stream, Views& views, const char* type)
 {
   bool found = false;
   std::string view;
@@ -1037,8 +931,8 @@ bool Controller::viewDrawing(In& stream, Views& views, const char* type)
   if(view == "?")
   {
     for(const auto& viewPair : views)
-      console->list(viewPair.first, view);
-    console->printLn("");
+      ctrl->list(viewPair.first, view);
+    ctrl->printLn("");
     return true;
   }
   else if(view == "off")
@@ -1065,14 +959,14 @@ bool Controller::viewDrawing(In& stream, Views& views, const char* type)
         {
           for(const auto& drawingPair : drawingManager.drawings)
             if(!strcmp(drawingManager.getDrawingType(drawingPair.first), type))
-              console->list(console->translate(drawingPair.first), command);
-          console->printLn("");
+              ctrl->list(ctrl->translate(drawingPair.first), command);
+          ctrl->printLn("");
           return true;
         }
         else
         {
           for(const auto& drawingPair : drawingManager.drawings)
-            if(console->translate(drawingPair.first) == drawing && !strcmp(drawingManager.getDrawingType(drawingPair.first), type))
+            if(ctrl->translate(drawingPair.first) == drawing && !strcmp(drawingManager.getDrawingType(drawingPair.first), type))
             {
               if(command == "on" || command == "")
               {
@@ -1091,7 +985,7 @@ bool Controller::viewDrawing(In& stream, Views& views, const char* type)
                 if(!all)
                   for(const auto& viewPair : views)
                     for(const auto& d : views[viewPair.first])
-                      if(console->translate(d) == drawing && !strcmp(drawingManager.getDrawingType(drawingManager.getString(d)), type))
+                      if(ctrl->translate(d) == drawing && !strcmp(drawingManager.getDrawingType(drawingManager.getString(d)), type))
                         found2 = true;
                 if(!found2)
                   handleConsole(std::string("dr debugDrawing:") + drawing + " off");
@@ -1108,19 +1002,19 @@ bool Controller::viewDrawing(In& stream, Views& views, const char* type)
   return found;
 }
 
-bool Controller::viewImage(In& stream)
+bool RobotConsole::viewImage(In& stream)
 {
   std::string buffer;
   stream >> buffer;
   if(buffer == "?")
   {
     stream >> buffer;
-    console->list("none", buffer);
-    console->list("image", buffer);
+    ctrl->list("none", buffer);
+    ctrl->list("image", buffer);
     for(const auto& i : debugRequestTable.slowIndex)
       if(i.first.substr(0, 13) == "debug images:")
-        console->list(console->translate(i.first.substr(13)), buffer);
-    console->printLn("");
+        ctrl->list(ctrl->translate(i.first.substr(13)), buffer);
+    ctrl->printLn("");
     return true;
   }
   else
@@ -1134,20 +1028,20 @@ bool Controller::viewImage(In& stream)
       for(const auto& i : debugRequestTable.slowIndex)
       {
         if(i.first.substr(0, 13) == "debug images:" &&
-           console->translate(i.first.substr(13)) == buffer)
+           ctrl->translate(i.first.substr(13)) == buffer)
         {
           if(imageViews.find(buffer) != imageViews.end())
           {
-            console->printLn("View already exists. Specify a (different) name.");
+            ctrl->printLn("View already exists. Specify a (different) name.");
             return true;
           }
 
           imageViews[buffer];
-          console->setImageViews(imageViews);
-          console->updateCommandCompletion();
+          ctrl->setImageViews(imageViews);
+          ctrl->updateCommandCompletion();
           actualImageViews[buffer] = new ImageView(QString("GroundTruth.image.") + buffer.c_str(), *this, buffer);
-          addView(actualImageViews[buffer], QString("GroundTruth.image"), CalibratorTool::Flag::copy | CalibratorTool::Flag::exportAsImage);
-          handleConsole(std::string("dr ") + console->translate(i.first) + " on");
+          ctrl->addView(actualImageViews[buffer], QString("GroundTruth.image"), CalibratorTool::Flag::copy | CalibratorTool::Flag::exportAsImage);
+          handleConsole(std::string("dr ") + ctrl->translate(i.first) + " on");
           return true;
         }
       }
@@ -1158,10 +1052,10 @@ bool Controller::viewImage(In& stream)
         return false;
 
       imageViews.erase(buffer);
-      console->setImageViews(imageViews);
-      console->updateCommandCompletion();
+      ctrl->setImageViews(imageViews);
+      ctrl->updateCommandCompletion();
 
-      removeView(actualImageViews[buffer]);
+      ctrl->removeView(actualImageViews[buffer]);
 
       actualImageViews.erase(buffer);
 
@@ -1169,22 +1063,22 @@ bool Controller::viewImage(In& stream)
     }
     else
     {
-      console->printLn("Syntax error");
+      ctrl->printLn("Syntax error");
       return false;
     }
   }
   return false;
 }
 
-bool Controller::viewImageCommand(In& stream)
+bool RobotConsole::viewImageCommand(In& stream)
 {
   std::string view;
   stream >> view;
   if(view == "?")
   {
     for(const auto& viewPair : imageViews)
-      console->list(viewPair.first, view);
-    console->printLn("");
+      ctrl->list(viewPair.first, view);
+    ctrl->printLn("");
     return true;
   }
   ImageViewCommand command;
@@ -1250,7 +1144,7 @@ bool Controller::viewImageCommand(In& stream)
   return all;
 }
 
-bool Controller::saveRequest(In& stream, bool first)
+bool RobotConsole::saveRequest(In& stream, bool first)
 {
   std::string buffer;
   std::string path;
@@ -1258,17 +1152,17 @@ bool Controller::saveRequest(In& stream, bool first)
 
   if(buffer == "?")
   {
-    for(auto& entry : console->representationToFile)
-      console->list(entry.first.c_str(), path);
-    console->list("representation:CameraSettings", path);
-    console->list("representation:FieldColors", path);
-    console->printLn("");
+    for(auto& entry : ctrl->representationToFile)
+      ctrl->list(entry.first.c_str(), path);
+    ctrl->list("representation:CameraSettings", path);
+    ctrl->list("representation:FieldColors", path);
+    ctrl->printLn("");
     return true;
   }
   else
   {
     for(const auto& i : debugRequestTable.slowIndex)
-      if(std::string("debugData:") + buffer == console->translate(i.first))
+      if(std::string("debugData:") + buffer == ctrl->translate(i.first))
       {
         if(first) // request current Values
         {
@@ -1294,7 +1188,7 @@ bool Controller::saveRequest(In& stream, bool first)
             filename = getPathForRepresentation(i.first.substr(11));
             if(filename == "")
             {
-              console->printLn("Error getting filename for " + i.first.substr(11) + ". Representation can not be saved.");
+              ctrl->printLn("Error getting filename for " + i.first.substr(11) + ". Representation can not be saved.");
               return true;
             }
           }
@@ -1308,12 +1202,12 @@ bool Controller::saveRequest(In& stream, bool first)
   }
 }
 
-bool Controller::saveImage(In& stream)
+bool RobotConsole::saveImage(In& stream)
 {
   return true;
 }
 
-bool Controller::set(In& stream)
+bool RobotConsole::set(In& stream)
 {
   std::string request, option;
   stream >> request >> option;
@@ -1321,13 +1215,13 @@ bool Controller::set(In& stream)
   {
     for(const auto& i : debugRequestTable.slowIndex)
       if(i.first.substr(0, 11) == "debug data:")
-        console->list(console->translate(i.first.substr(11)), option);
-    console->printLn("");
+        ctrl->list(ctrl->translate(i.first.substr(11)), option);
+    ctrl->printLn("");
     return true;
   }
   else
     for(const auto& i : debugRequestTable.slowIndex)
-      if(std::string("debugData:") + request == console->translate(i.first))
+      if(std::string("debugData:") + request == ctrl->translate(i.first))
       {
         if(option == "unchanged")
         {
@@ -1372,7 +1266,7 @@ bool Controller::set(In& stream)
             if(option == "?")
             {
               printType(j->second.first.c_str());
-              console->printLn("");
+              ctrl->printLn("");
               return true;
             }
             else
@@ -1398,7 +1292,7 @@ bool Controller::set(In& stream)
                   debugOut.out.cancelMessage();
               }
               //setGlobals();
-              Printer printer(console);
+              Printer printer(ctrl);
               errors.handleAllMessages(printer);
               return !errors.isEmpty(); // return true if error was already printed
             }
@@ -1409,7 +1303,7 @@ bool Controller::set(In& stream)
   return false;
 }
 
-void Controller::printType(const std::string& type, const std::string& field)
+void RobotConsole::printType(const std::string& type, const std::string& field)
 {
   if(type[type.size() - 1] == ']')
   {
@@ -1421,33 +1315,33 @@ void Controller::printType(const std::string& type, const std::string& field)
   else
   {
     if(typeInfo.primitives.find(type) != typeInfo.primitives.end() || typeInfo.enums.find(type) != typeInfo.enums.end())
-      console->print(type);
+      ctrl->print(type);
     else if(typeInfo.classes.find(type) != typeInfo.classes.end())
     {
-      console->print("{");
+      ctrl->print("{");
       const char* space = "";
       for(const TypeInfo::Attribute& attribute : typeInfo.classes[type])
       {
-        console->print(space);
+        ctrl->print(space);
         space = " ";
         printType(attribute.type, attribute.name);
-        console->print(";");
+        ctrl->print(";");
       }
-      console->print("}");
+      ctrl->print("}");
     }
     else
-      console->print("UNKNOWN");
+      ctrl->print("UNKNOWN");
 
     if(!field.empty())
-      console->print(" " + field);
+      ctrl->print(" " + field);
   }
 }
 
-std::string Controller::getPathForRepresentation(const std::string& representation)
+std::string RobotConsole::getPathForRepresentation(const std::string& representation)
 {
   std::string fileName;
-  std::unordered_map<std::string, std::string>::const_iterator i = console->representationToFile.find(representation);
-  if(i == console->representationToFile.end())
+  std::unordered_map<std::string, std::string>::const_iterator i = ctrl->representationToFile.find(representation);
+  if(i == ctrl->representationToFile.end())
     return "";
   fileName = i->second;
 
@@ -1462,7 +1356,7 @@ std::string Controller::getPathForRepresentation(const std::string& representati
   return fileName;
 }
 
-bool Controller::MapWriter::handleMessage(InMessage& message)
+bool RobotConsole::MapWriter::handleMessage(InMessage& message)
 {
   ASSERT(message.getMessageID() == idDebugDataResponse);
   std::string name, type;
@@ -1473,7 +1367,7 @@ bool Controller::MapWriter::handleMessage(InMessage& message)
 }
 
 
-bool Controller::DataViewWriter::handleMessage(InMessage& message)
+bool RobotConsole::DataViewWriter::handleMessage(InMessage& message)
 {
   std::string name, type;
   message.bin >> name >> type;
@@ -1481,21 +1375,21 @@ bool Controller::DataViewWriter::handleMessage(InMessage& message)
   return handleMessage(message, type, name);
 }
 
-bool Controller::DataViewWriter::handleMessage(InMessage& message, const std::string& type, const std::string& name)
+bool RobotConsole::DataViewWriter::handleMessage(InMessage& message, const std::string& type, const std::string& name)
 {
   std::map<std::string, DataView*>::const_iterator view = pDataViews->find(name);
   ASSERT(message.getMessageID() == idDebugDataResponse);
   return view != pDataViews->end() && view->second->handleMessage(message, type, name);
 }
 
-bool Controller::Printer::handleMessage(InMessage& message)
+bool RobotConsole::Printer::handleMessage(InMessage& message)
 {
   ASSERT(message.getMessageID() == idText);
   console->printLn(message.text.readAll());
   return true;
 }
 
-void Controller::requestDebugData(const std::string& name, bool enable)
+void RobotConsole::requestDebugData(const std::string& name, bool enable)
 {
   SYNC;
   DebugRequest d("debug data:" + name, enable);

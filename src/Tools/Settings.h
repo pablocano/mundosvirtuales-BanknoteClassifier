@@ -55,6 +55,8 @@ public:
   {
     init();
   }
+
+  static bool loadingSucceeded() { return loaded; }
   
   static bool recover; /**< Start directly without the pre-initial state. */
   ,

@@ -14,8 +14,6 @@
 #include "Platform/BCAssert.h"
 #include "ConsoleController.h"
 
-#include "Controller.h"
-
 CalibratorTool::Widget* ConsoleView::createWidget()
 {
   ASSERT(!consoleWidget);
@@ -53,7 +51,7 @@ ConsoleWidget::ConsoleWidget(ConsoleView& consoleView, ConsoleController &consol
   bool restoredCursor = false;
   if(consoleView.loadAndSaveOutput)
   {
-    QSettings& settings = Controller::application->getSettings();
+    QSettings& settings = CalibratorToolCtrl::application->getSettings();
     settings.beginGroup(consoleView.fullName);
     output = settings.value("Output").toString();
     setPlainText(output);
@@ -99,7 +97,7 @@ ConsoleWidget::~ConsoleWidget()
 
   if(consoleView.loadAndSaveOutput)
   {
-    QSettings& settings = Controller::application->getSettings();
+    QSettings& settings = CalibratorToolCtrl::application->getSettings();
     settings.beginGroup(consoleView.fullName);
     settings.setValue("Output", output);
 
@@ -266,7 +264,7 @@ void ConsoleWidget::keyPressEvent(QKeyEvent* event)
           // save output for the case that the simulator crashes
           if(consoleView.loadAndSaveOutput)
           {
-            QSettings& settings = Controller::application->getSettings();
+            QSettings& settings = CalibratorToolCtrl::application->getSettings();
             settings.beginGroup(consoleView.fullName);
             settings.setValue("Output", toPlainText());
             settings.endGroup();

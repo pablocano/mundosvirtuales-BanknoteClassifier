@@ -1,7 +1,7 @@
 #include "BanknoteClassifierConfiguration.h"
+#include "Platform/SystemCall.h"
 #include "Tools/Comm/BanknoteClassifierMessageHandler.h"
 #include "Tools/Debugging/Debugging.h"
-#include "Tools/SystemCall.h"
 #include "Platform/File.h"
 
 MAKE_MODULE(BanknoteClassifierConfiguration, Common)

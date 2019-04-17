@@ -10,14 +10,14 @@
 #pragma once
 
 #include "Tools/MessageQueue/OutMessage.h"
-#ifndef CALIBRATION_TOOL
+#if !defined CALIBRATION_TOOL && defined NDEBUG
 #include <iostream>
 #else
 #include "Tools/Debugging/DebugRequest.h"
 #endif
 #include "Tools/Global.h"
 
-#ifndef CALIBRATION_TOOL
+#if !defined CALIBRATION_TOOL && defined NDEBUG
 #include <iostream>
 
 /**

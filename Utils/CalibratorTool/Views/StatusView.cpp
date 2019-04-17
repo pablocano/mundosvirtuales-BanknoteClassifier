@@ -6,12 +6,12 @@
 #include <QPointF>
 #include <QPointF>
 #include "StatusView.h"
-#include "Controller.h"
+#include "RobotConsole.h"
 #include "Platform/File.h"
 #include "Representations/Classification.h"
 #include "Tools/Debugging/Debugging.h"
 
-StatusView::StatusView(const QString& fullName, Controller& controller, const std::string& name) :
+StatusView::StatusView(const QString& fullName, RobotConsole& controller, const std::string& name) :
 fullName(fullName), icon(":/Icons/tag_green.png"),
 controller(controller),
 name(name)

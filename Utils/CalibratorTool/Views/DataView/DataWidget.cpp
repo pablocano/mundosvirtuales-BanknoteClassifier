@@ -8,6 +8,8 @@
 #include "DataWidget.h"
 #include <QSettings>
 
+#include "CalibratorToolCtrl.h"
+
 DataWidget::DataWidget(DataView& view, QtVariantPropertyManager& manager)
   : theView(view), theEditorFactory(&view), theManager(manager)
 {
@@ -35,7 +37,7 @@ DataWidget::DataWidget(DataView& view, QtVariantPropertyManager& manager)
   setFactoryForManager(&theManager, &theEditorFactory);
   setResizeMode(QtTreePropertyBrowser::Interactive);
 
-  QSettings& settings = Controller::application->getSettings();
+  QSettings& settings = CalibratorToolCtrl::application->getSettings();
   settings.beginGroup(theView.getFullName());
   setSplitterPosition(settings.value("HeaderState", 100).toInt());
   settings.endGroup();
@@ -43,7 +45,7 @@ DataWidget::DataWidget(DataView& view, QtVariantPropertyManager& manager)
 
 DataWidget::~DataWidget()
 {
-  QSettings& settings = Controller::application->getSettings();
+  QSettings& settings = CalibratorToolCtrl::application->getSettings();
   settings.beginGroup(theView.getFullName());
   settings.setValue("HeaderState", splitterPosition());
   settings.endGroup();

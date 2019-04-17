@@ -9,8 +9,7 @@ BanknoteClassifierMessageHandler* BanknoteClassifierMessageHandler::theInstance 
 
 BanknoteClassifierMessageHandler::BanknoteClassifierMessageHandler(MessageQueue& in, MessageQueue& out) :
 theCommIn(in),
-theCommOut(out),
-lpSocket(nullptr)
+theCommOut(out)
 {
   theInstance = this;
 
@@ -22,15 +21,16 @@ lpSocket(nullptr)
 
 void BanknoteClassifierMessageHandler::start()
 {
-    lpSocket = new SocketClientTcp(ip.c_str(), PORT_SERVER);
+  tcpComm = std::make_unique<TcpComm>(ip.c_str(), PORT_SERVER); //@todo: use the values of the max and min package size
+  //lpSocket = new SocketClientTcp(ip.c_str(), PORT_SERVER);
 }
 
 BanknoteClassifierMessageHandler::~BanknoteClassifierMessageHandler()
 {
   theInstance = 0;
-  lpSocket->closeSocket();
+  //lpSocket->closeSocket();
 
-  delete lpSocket;
+  //delete lpSocket;
 }
 
 bool BanknoteClassifierMessageHandler::handleMessage(InMessage &message)
@@ -41,7 +41,7 @@ bool BanknoteClassifierMessageHandler::handleMessage(InMessage &message)
 
         message.bin >> packet;
         int sizePayload = packet.getSize();
-        char *buffer = new char[sizePayload];
+        unsigned char *buffer = new unsigned char[sizePayload];
 
         PacketEthernetIpFanucHeader header(packet);
 
@@ -53,11 +53,12 @@ bool BanknoteClassifierMessageHandler::handleMessage(InMessage &message)
                    packet.sizePayload);
         }
 
-        if (!lpSocket->send(buffer, sizePayload))
+        tcpComm->send(buffer,sizePayload);
+        /*if (!lpSocket->send(buffer, sizePayload))
         {
             OUTPUT_ERROR("Could not send the message\n");
             lpSocket->closeSocket();
-        }
+        }*/
 
         delete[] buffer;
     }
@@ -79,19 +80,21 @@ unsigned BanknoteClassifierMessageHandler::receive()
 {
 
   theCommIn.clear();
-  if(!lpSocket)
-    return 0; // not started yet
+  //if(!lpSocket)
+  //  return 0; // not started yet
 
   PacketEthernetIpFanucHeader header;
   
   unsigned totalSize = 0;
-  while(lpSocket->receive(reinterpret_cast<char *>(&header), SIZE_HEADER, false))
+  //while(lpSocket->receive(reinterpret_cast<char *>(&header), SIZE_HEADER, false))
+  while(tcpComm->receive(reinterpret_cast<unsigned char *>(&header),SIZE_HEADER,false))
   {
       PacketEthernetIPFanuc packet(header);
 	  if (packet.isValid())
 	  {
           int sizePayload = packet.sizePayload;
-          if(sizePayload == 0 || lpSocket->receive(reinterpret_cast<char *>(packet.payload), sizePayload, false))
+          //if(sizePayload == 0 || lpSocket->receive(reinterpret_cast<char *>(packet.payload), sizePayload, false))
+          if(sizePayload == 0 || tcpComm->receive(reinterpret_cast<unsigned char*>(packet.payload),sizePayload, false))
           {
             totalSize += packet.getSize();
           }

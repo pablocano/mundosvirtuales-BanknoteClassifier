@@ -106,10 +106,19 @@ public:
   friend class Process;
   friend class Controller;
   friend class ConsoleController;
+  friend class RobotConsole;
+  friend class CalibratorToolCtrl;
 };
 
 inline bool DebugRequestTable::isActive(const char* name)
 {
   std::unordered_map<const char*, size_t>::const_iterator i = fastIndex.find(name);
-  return i != fastIndex.end() ? enabled[i->second] != 0 : isActiveSlow(name);
+  //return i != fastIndex.end() ? enabled[i->second] != 0 : isActiveSlow(name);
+  if(i != fastIndex.end())
+  {
+    unsigned a = enabled[i->second];
+    return a != 0;
+  }
+  else
+    return isActiveSlow(name);
 }

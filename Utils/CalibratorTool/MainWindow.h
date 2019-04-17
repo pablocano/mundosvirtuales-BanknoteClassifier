@@ -5,7 +5,7 @@
 #include <QDockWidget>
 #include <QSettings>
 #include "CalibratorTool.h"
-#include "Controller.h"
+#include "ConsoleController.h"
 
 class ListViewsDockWidget;
 class RegisteredDockWidget;
@@ -21,13 +21,13 @@ public:
   static QString getAppPath(const char* argv0);
   static unsigned int getAppLocationSum(const QString& appPath);
   
-  virtual const QString& getAppPath() const {return appPath;}
+  virtual const QString& getAppPath() const override{return appPath;}
   
-  virtual bool registerObject(CalibratorTool::Object& object, const CalibratorTool::Object* parent, int flag = 0);
+  virtual bool registerObject(CalibratorTool::Object& object, const CalibratorTool::Object* parent, int flag = 0) override;
 
   bool unregisterObject(const CalibratorTool::Object& object) override;
   
-  QSettings& getSettings() {return settings;}
+  QSettings& getSettings() override {return settings;}
   
 private:
   
@@ -36,13 +36,13 @@ private:
   void close();
   
   void addToolBarButtonsFromMenu(QMenu* menu, QToolBar* toolBar, bool addSeparator);
-  virtual CalibratorTool::Object* resolveObject(const QString& fullName, int kind);
-  virtual void timerEvent(QTimerEvent* event);
+  virtual CalibratorTool::Object* resolveObject(const QString& fullName, int kind) override;
+  virtual void timerEvent(QTimerEvent* event) override;
   
   unsigned int getSystemTime();
   
   ListViewsDockWidget* listViewsDockWidget;
-  Controller *ctrl;
+  ConsoleController *ctrl;
   
   QStringList openedObjects;
   QMap<QString, RegisteredDockWidget*> openedObjectsByName;
@@ -69,12 +69,12 @@ private slots:
   
   void startGT();
   
-  void closeEvent (QCloseEvent *event);
+  void closeEvent (QCloseEvent *event) override;
   
   void openObject(const QString& fullName, CalibratorTool::Object* object, int flags);
   void closeObject(const QString& fullName);
   void closedObject(const QString& fullName);
-  
+  void setStatusMessage(const QString& message) override;
   void visibilityChanged(bool visible);
   
   void focusChanged(QWidget *old, QWidget* now);

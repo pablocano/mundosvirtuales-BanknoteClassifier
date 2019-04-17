@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
   
   while(true)
   {
-    b.procesMain();
+    b.processMain();
     if(handleKey(pause))
       break;
   }

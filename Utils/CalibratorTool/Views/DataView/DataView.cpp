@@ -11,11 +11,11 @@
 #include "Platform/Time.h"
 #include "Tools/Debugging/DebugDataStreamer.h"
 #include "Tools/MessageQueue/InMessage.h"
-#include "Controller.h"
+#include "RobotConsole.h"
 
 #include <QEvent>
 
-DataView::DataView(const QString& fullName, const std::string& repName, Controller& controller, const TypeInfo& typeInfo) :
+DataView::DataView(const QString& fullName, const std::string& repName, RobotConsole& controller, const TypeInfo& typeInfo) :
   theFullName(fullName), theIcon(":/Icons/tag_green.png"),
   controller(controller), theName(repName), typeInfo(typeInfo)
 {}

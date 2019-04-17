@@ -7,7 +7,7 @@
 #include "Blackboard.h"
 #include "Tools/Streams/Streamable.h"
 #include "Platform/BCAssert.h"
-#include "Tools/SystemCall.h"
+#include "Platform/SystemCall.h"
 #include <unordered_map>
 
 /** The instance of the blackboard of the current process. */

@@ -17,7 +17,7 @@
 #include "Tools/ColorClasses.h"
 #include "Tools/Debugging/DebugImages.h"
 
-class Controller;
+class RobotConsole;
 
 class ImageView : public CalibratorTool::Object{
   
@@ -31,12 +31,12 @@ public:
    * @param segmented The image will be segmented.
    * @param gain The intensity is multiplied with this factor.
    */
-  ImageView(const QString& fullName, Controller& controller, const std::string& name);
+  ImageView(const QString& fullName, RobotConsole& controller, const std::string& name);
   
 private:
   const QString fullName; /**< The path to this view in the scene graph */
   const QIcon icon; /**< The icon used for listing this view in the scene graph */
-  Controller& controller; /**< A reference to the console object. */
+  RobotConsole& controller; /**< A reference to the console object. */
   const std::string name; /**< The name of the view. */
   
   /**

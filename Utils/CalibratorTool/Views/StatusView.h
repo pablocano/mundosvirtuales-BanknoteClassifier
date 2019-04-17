@@ -10,7 +10,7 @@
 #include "Representations/Modeling/WorldCoordinatesPose.h"
 #include <queue>
 
-class Controller;
+class RobotConsole;
 
 class StatusView : public CalibratorTool::Object{
 
@@ -22,12 +22,12 @@ public:
    * @param controller The controller object.
    * @param name The name of the view.event
    */
-  StatusView(const QString& fullName, Controller& controller, const std::string& name);
+  StatusView(const QString& fullName, RobotConsole& controller, const std::string& name);
 
 private:
   const QString fullName; /**< The path to this view in the scene graph */
   const QIcon icon; /**< The icon used for listing this view in the scene graph */
-  Controller& controller; /**< A reference to the console object. */
+  RobotConsole& controller; /**< A reference to the console object. */
   const std::string name; /**< The name of the view. */
 
   QVector<QImage> images;

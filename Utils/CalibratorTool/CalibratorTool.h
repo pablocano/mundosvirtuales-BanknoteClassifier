@@ -81,5 +81,6 @@ namespace CalibratorTool
     virtual bool unregisterObject(const CalibratorTool::Object& object) = 0;
     virtual const QString& getAppPath() const = 0;
     virtual QSettings& getSettings() = 0;
+    virtual void setStatusMessage(const QString& message) = 0;
   };
 }

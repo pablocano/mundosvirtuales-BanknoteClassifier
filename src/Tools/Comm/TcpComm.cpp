@@ -1,47 +1,45 @@
-#include "TcpComm.h"
+/**
+ * @file Platform/Common/TcpComm.cpp
+ *
+ * Implementation of class TcpComm.
+ *
+ * @author <a href="mailto:Thomas.Roefer@dfki.de">Thomas Röfer</a>
+ */
 
-#include <iostream>
-#ifndef WINCE
+#include "TcpComm.h"
+#include "Platform/BCAssert.h"
+
 #include <cerrno>
 #include <fcntl.h>
-#endif
 
 #ifdef WINDOWS
-
-#ifndef WINCE
-#include <sys/types.h>
-#endif
-
 #define ERRNO WSAGetLastError()
 #define RESET_ERRNO WSASetLastError(0)
+#define NON_BLOCK(socket) ioctlsocket(socket, FIONBIO, (u_long*) "NONE")
+#define CLOSE(socket) closesocket(socket)
 #undef EWOULDBLOCK
 #define EWOULDBLOCK WSAEWOULDBLOCK
 #undef EINPROGRESS
 #define EINPROGRESS WSAEINPROGRESS
-#define NON_BLOCK(socket) ioctlsocket(socket, FIONBIO, (u_long*) "NONE")
-#define CLOSE(socket) closesocket(socket)
 
-class _WSAFramework
+struct _WSAFramework
 {
-public:
-	_WSAFramework()
-	{
-		WORD wVersionRequested = MAKEWORD(1, 0);
-		WSADATA wsaData;
-		WSAStartup(wVersionRequested, &wsaData);
-	}
-	~_WSAFramework() { WSACleanup(); }
+  _WSAFramework()
+  {
+    WORD wVersionRequested = MAKEWORD(2, 2);
+    WSADATA wsaData;
+    WSAStartup(wVersionRequested, &wsaData);
+  }
+  ~_WSAFramework() { WSACleanup(); }
 } _wsaFramework;
 
 #else
 
-#include <netdb.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
-#include <string.h>
 
 #define ERRNO errno
 #define RESET_ERRNO errno = 0
@@ -50,230 +48,189 @@ public:
 
 #endif
 
-SocketServerTCP::SocketServerTCP(int port) : SocketTCP()
+#ifndef LINUX
+#define MSG_NOSIGNAL 0
+#endif
+
+TcpComm::TcpComm(const char* ip, int port, int maxPackageSendSize, int maxPackageReceiveSize) :
+  maxPackageSendSize(maxPackageSendSize), maxPackageReceiveSize(maxPackageReceiveSize)
 {
-	m_address.sin_family = AF_INET;
-	m_address.sin_port = htons(port);
-	m_socket = (int)socket(AF_INET, SOCK_STREAM, 0);
-	if (m_socket > 0)
-	{
-		int val = 1;
-		setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, (char*)&val, sizeof(val));
-		m_address.sin_addr.s_addr = INADDR_ANY;
-		if (bindSocket())
-			std::cout << "Response Packet Client" << " Problem Binding" << std::endl;
-		if (listenSocket())
-			std::cout << "Response Packet Client" << " Problem Listening" << std::endl;
-		if (m_isNonBlock)
-			NON_BLOCK(m_socket); // switch socket to nonblocking
-	}
+  address.sin_family = AF_INET;
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wconversion"
+#endif
+  address.sin_port = htons(static_cast<unsigned short>(port));
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+  if(ip) // connect as client?
+    address.sin_addr.s_addr = inet_addr(ip);
+  else
+  {
+    createSocket = socket(AF_INET, SOCK_STREAM, 0);
+    ASSERT(createSocket > 0);
+    int val = 1;
+    setsockopt(createSocket, SOL_SOCKET, SO_REUSEADDR, (char*)&val, sizeof(val));
+    address.sin_addr.s_addr = INADDR_ANY;
+    VERIFY(bind(createSocket, (sockaddr*)&address, sizeof(sockaddr_in)) == 0);
+    VERIFY(listen(createSocket, SOMAXCONN) == 0);
+    NON_BLOCK(createSocket);
+  }
+  checkConnection();
 }
 
-SocketServerTCP::~SocketServerTCP()
+TcpComm::~TcpComm()
 {
-	closeSocket();
+  if(connected())
+    closeTransferSocket();
+  if(createSocket > 0)
+    CLOSE(createSocket);
 }
 
-int SocketServerTCP::acceptClient()
+bool TcpComm::checkConnection()
 {
-#ifndef WINDOWS
-	unsigned int addrlen = sizeof(sockaddr_in);
+  if(!connected())
+  {
+    if(createSocket)
+      transferSocket = accept(createSocket, nullptr, nullptr);
+    else if(!wasConnected)
+    {
+      transferSocket = socket(AF_INET, SOCK_STREAM, 0);
+      ASSERT(connected());
+      if(connect(transferSocket, (sockaddr*)&address, sizeof(sockaddr_in)) != 0)
+      {
+        CLOSE(transferSocket);
+        transferSocket = 0;
+      }
+    }
+
+    if(connected())
+    {
+      wasConnected = true;
+      NON_BLOCK(transferSocket); // switch socket to nonblocking
+#ifdef MACOS
+      int yes = 1;
+      VERIFY(!setsockopt(transferSocket, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(yes)));
+#endif
+      if(maxPackageSendSize)
+        VERIFY(!setsockopt(transferSocket, SOL_SOCKET, SO_SNDBUF, (char*)&maxPackageSendSize, sizeof(maxPackageSendSize)));
+      if(maxPackageReceiveSize)
+        VERIFY(!setsockopt(transferSocket, SOL_SOCKET, SO_RCVBUF, (char*)&maxPackageReceiveSize, sizeof(maxPackageReceiveSize)));
+      return true;
+    }
+    else
+      return false;
+  }
+  else
+    return true;
+}
+
+void TcpComm::closeTransferSocket()
+{
+  CLOSE(transferSocket);
+  transferSocket = 0;
+}
+
+bool TcpComm::receive(unsigned char* buffer, int size, bool wait)
+{
+  if(!checkConnection())
+    return false;
+
+  if(!wait)
+  {
+    RESET_ERRNO;
+#ifdef WINDOWS
+    char c;
+    int received = recv(transferSocket, &c, 1, MSG_PEEK);
+    if(!received || (received < 0 && ERRNO != EWOULDBLOCK && ERRNO != EINPROGRESS) ||
+       ioctlsocket(transferSocket, FIONREAD, (u_long*)&received) != 0)
+    {
+      closeTransferSocket();
+      return false;
+    }
+    else if(received == 0)
+      return false;
 #else
-	int addrlen = sizeof(sockaddr_in);
+    int received = (int)recv(transferSocket, (char*)buffer, size, MSG_PEEK);
+    if(received < size)
+    {
+      if(!received || (received < 0 && ERRNO != EWOULDBLOCK && ERRNO != EINPROGRESS))
+        closeTransferSocket();
+      return false;
+    }
 #endif
+  }
 
-	return (int)accept(m_socket, (sockaddr*)&m_address, &addrlen);
+  int received = 0;
+  while(received < size)
+  {
+    RESET_ERRNO;
+
+    int received2 = (int)recv(transferSocket, (char*)buffer + received, size - received, 0);
+
+    if(!received2 || (received2 < 0 && ERRNO != EWOULDBLOCK && ERRNO != EINPROGRESS))  // error during reading of package
+    {
+      closeTransferSocket();
+      return false;
+    }
+    else if(ERRNO == EWOULDBLOCK || ERRNO == EINPROGRESS) // wait for the rest
+    {
+      received2 = 0;
+      timeval timeout;
+      timeout.tv_sec = 0;
+      timeout.tv_usec = 100000;
+      fd_set rset;
+      FD_ZERO(&rset);
+      FD_SET(transferSocket, &rset);
+      if(select(static_cast<int>(transferSocket + 1), &rset, 0, 0, &timeout) == -1)
+      {
+        closeTransferSocket();
+        return false; // error while waiting
+      }
+    }
+    received += received2;
+    overallBytesReceived += received2;
+  }
+  return true; // ok, data received
 }
 
-bool SocketServerTCP::bindSocket()
+bool TcpComm::send(const unsigned char* buffer, int size)
 {
-	return bind(m_socket, (sockaddr*)&m_address, sizeof(sockaddr_in)) < 0;
-}
+  if(!checkConnection())
+    return false;
 
-bool SocketServerTCP::listenSocket()
-{
-	return listen(m_socket, SOMAXCONN) < 0;
-}
+  RESET_ERRNO;
+  int sent = (int) ::send(transferSocket, (const char*)buffer, size, MSG_NOSIGNAL);
+  if(sent > 0)
+  {
+    overallBytesSent += sent;
+    while(sent < size && (ERRNO == EWOULDBLOCK || ERRNO == EINPROGRESS || ERRNO == 0))
+    {
+      timeval timeout;
+      timeout.tv_sec = 0;
+      timeout.tv_usec = 100000;
+      fd_set wset;
+      FD_ZERO(&wset);
+      FD_SET(transferSocket, &wset);
+      RESET_ERRNO;
+      if(select(static_cast<int>(transferSocket + 1), 0, &wset, 0, &timeout) == -1)
+        break;
+      RESET_ERRNO;
+      int sent2 = (int) ::send(transferSocket, (const char*)buffer + sent, size - sent, MSG_NOSIGNAL);
+      if(sent2 >= 0)
+      {
+        sent += sent2;
+        overallBytesSent += sent;
+      }
+    }
+  }
 
-SocketClientTcp::SocketClientTcp(const char* ip, int port) :
-	m_bWasConnected(false), SocketTCP()
-{
-	m_isNonBlock = true;
-	m_address.sin_family = AF_INET;
-	m_address.sin_port = htons(port);
-	if (ip)
-	{
-		struct hostent* he;
-		if ((he = gethostbyname(ip)) == NULL)
-			m_address.sin_addr.s_addr = inet_addr(ip);
-		else
-			memcpy((void *)&m_address.sin_addr, (const void *)he->h_addr_list[0], he->h_length);
-	}
-
-	checkConnection();
-}
-
-SocketClientTcp::SocketClientTcp(int socketClient) :
-	m_bWasConnected(false)
-{
-	m_socket = socketClient;
-
-	if (connected())
-	{
-#ifndef WINDOWS
-		unsigned int addrlen = sizeof(sockaddr_in);
-#else
-		int addrlen = sizeof(sockaddr_in);
-#endif
-		getpeername(m_socket, (sockaddr*)&m_address, &addrlen);
-
-		if (m_isNonBlock)
-			NON_BLOCK(m_socket); // switch socket to nonblocking
-	}
-
-	checkConnection();
-}
-
-SocketClientTcp::~SocketClientTcp()
-{
-	if (connected())
-		closeSocket();
-}
-
-bool SocketClientTcp::checkConnection()
-{
-	if (!connected())
-	{
-		if (!m_bWasConnected)
-		{
-			m_socket = (int)socket(AF_INET, SOCK_STREAM, 0);
-            //TODO: fix the non connection case
-            if (connect(m_socket, (sockaddr*)&m_address, sizeof(sockaddr_in)) != 0)
-                closeSocket();
-		}
-
-		if (connected())
-		{
-			m_bWasConnected = true;
-
-			if (m_isNonBlock)
-				NON_BLOCK(m_socket); // switch socket to nonblocking
-#ifdef MACOSX
-			int yes = 1;
-			if (!setsockopt(m_socket, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(yes)))
-				return false;
-#endif
-			return true;
-		}
-		else
-			return false;
-	}
-	else
-		return true;
-}
-
-bool SocketClientTcp::receive(char* buffer, int size, bool wait)
-{
-	if (!checkConnection())
-		return false;
-
-	if (!wait)
-	{
-		RESET_ERRNO;
-#ifndef WINDOWS
-		int received = recv(m_socket, buffer, size, MSG_PEEK);
-		if (received < size)
-		{
-			if (!received || (received < 0 && ERRNO != EWOULDBLOCK && ERRNO != EINPROGRESS))
-				closeSocket();
-			return false;
-		}
-#else
-		char c;
-		int received = recv(m_socket, &c, 1, MSG_PEEK);
-		if (!received || (received < 0 && ERRNO != EWOULDBLOCK && ERRNO != EINPROGRESS) ||
-			ioctlsocket(m_socket, FIONREAD, (u_long*)&received) != 0)
-		{
-			closeSocket();
-			return false;
-		}
-		else if (received == 0)
-			return false;
-#endif
-	}
-
-	int received = 0;
-	while (received < size)
-	{
-		RESET_ERRNO;
-
-		int received2 = recv(m_socket, (char*)buffer + received,
-			size - received, 0);
-
-		if (!received2 || (received2 < 0 && ERRNO != EWOULDBLOCK && ERRNO != EINPROGRESS))  // error during reading of package
-		{
-			closeSocket();
-			return false;
-		}
-		else if (ERRNO == EWOULDBLOCK || ERRNO == EINPROGRESS) // wait for the rest
-		{
-			received2 = 0;
-			timeval timeout;
-			timeout.tv_sec = 0;
-			timeout.tv_usec = 100000;
-			fd_set rset;
-			FD_ZERO(&rset);
-			FD_SET(m_socket, &rset);
-			if (select(m_socket + 1, &rset, 0, 0, &timeout) == -1)
-			{
-				closeSocket();
-				return false; // error while waiting
-			}
-		}
-		received += received2;
-	}
-	return true; // ok, data received
-}
-
-int SocketClientTcp::receiveSys(void* buffer, unsigned int len, int flags)
-{
-	return recv(m_socket, (char*)buffer, len, flags);
-}
-
-bool SocketClientTcp::send(const char* buffer, int size)
-{
-	if (!checkConnection())
-		return false;
-
-	RESET_ERRNO;
-	int sent = ::send(m_socket, (const char*)buffer, size, 0);
-	if (sent > 0)
-	{
-		while (sent < size && (ERRNO == EWOULDBLOCK || ERRNO == EINPROGRESS || ERRNO == 0))
-		{
-			timeval timeout;
-			timeout.tv_sec = 0;
-			timeout.tv_usec = 100000;
-			fd_set wset;
-			FD_ZERO(&wset);
-			FD_SET(m_socket, &wset);
-			RESET_ERRNO;
-			if (select(m_socket + 1, 0, &wset, 0, &timeout) == -1)
-				break;
-			RESET_ERRNO;
-			int sent2 = ::send(m_socket, (const char*)buffer + sent, size - sent, 0);
-			if (sent2 >= 0)
-			{
-				sent += sent2;
-			}
-		}
-	}
-
-	if (ERRNO == 0 && sent == size)
-		return true;
-	else
-	{
-		closeSocket();
-		return false;
-	}
+  if(ERRNO == 0 && sent == size)
+    return true;
+  else
+  {
+    closeTransferSocket();
+    return false;
+  }
 }

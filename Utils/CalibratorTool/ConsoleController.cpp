@@ -4,11 +4,17 @@
 #include "Platform/File.h"
 #include "Tools/MessageQueue/MessageIDs.h"
 
+#include "Platform/Linux/RobotCtrlSim.h"
 
 #include <cstring>
 
-ConsoleController::ConsoleController(Controller *controller) : controller(controller)
+ConsoleController::ConsoleController(CalibratorTool::Application& application)
+  : CalibratorToolCtrl (application)
 {
+  consoleView = new ConsoleView("Console",*this);
+  addView(consoleView, nullptr);
+  addView(new ConsoleView("Console.Pad",*this,true), consoleView);
+
   // file names for representations
   representationToFile["representation:BallSpecification"] = "ballSpecification.cfg";
   representationToFile["representation:BehaviorParameters"] = "behaviorParameters.cfg";
@@ -21,6 +27,19 @@ ConsoleController::ConsoleController(Controller *controller) : controller(contro
   representationToFile["representation:KickInfo"] = "kickInfo.cfg";
   representationToFile["representation:MassCalibration"] = "massCalibration.cfg";
   representationToFile["representation:RobotDimensions"] = "robotDimensions.cfg";
+}
+
+bool ConsoleController::compile()
+{
+
+  if(!CalibratorToolCtrl::compile())
+    return false;
+
+  console = robot->getRobotProcess();
+
+  start();
+
+  return true;
 }
 
 
@@ -38,6 +57,13 @@ void ConsoleController::update()
         consoleView->print(textMessage.c_str());
     }
     textMessages.clear();
+  }
+
+  CalibratorToolCtrl::update();
+
+  {
+    SYNC;
+    application->setStatusMessage(statusText);
   }
 
   if(completion.empty())
@@ -78,6 +104,14 @@ void ConsoleController::printLn(const std::string& text)
   else
     textMessages.back() += text;
   newLine = true;
+}
+
+void ConsoleController::printStatusText(const QString& text)
+{
+  SYNC;
+  if(statusText != "")
+    statusText += " | ";
+  statusText += text;
 }
 
 void ConsoleController::list(const std::string& text, const std::string& required, bool newLine)
@@ -143,9 +177,9 @@ void ConsoleController::completeConsoleCommand(std::string &command, bool forwar
 
 void ConsoleController::executeConsoleCommand(std::string command)
 {
-  if(controller)
+  if(console)
   {
-    controller->handleConsole(command);
+    console->handleConsole(command);
   }
 }
 
@@ -415,7 +449,7 @@ void ConsoleController::createCompletion()
   //gameController.addCompletion(completion);
 }
 
-std::string ConsoleController::translate(const std::string& text) const
+std::string ConsoleController ::translate(const std::string& text) const
 {
   std::string s = text;
   for(unsigned i = 0; i < s.size(); ++i)

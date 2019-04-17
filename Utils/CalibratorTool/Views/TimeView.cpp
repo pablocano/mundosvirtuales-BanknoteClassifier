@@ -21,7 +21,8 @@
 #include <QTableWidgetItem>
 #include <QVBoxLayout>
 
-#include "Controller.h"
+#include "RobotConsole.h"
+#include "CalibratorToolCtrl.h"
 
 /**A simple QTableWidgetItem that enables correct sorting of numbers*/
 class NumberTableWidgetItem : public QTableWidgetItem
@@ -77,7 +78,7 @@ TimeWidget::TimeWidget(TimeView& timeView) : timeView(timeView)
   lastUpdate = Time::getCurrentSystemTime();
   QObject::connect(filterEdit, SIGNAL(textChanged(QString)), this, SLOT(filterChanged(QString)));
 
-  QSettings& settings = Controller::application->getSettings();
+  QSettings& settings = CalibratorToolCtrl::application->getSettings();
   settings.beginGroup(timeView.fullName);
   table->horizontalHeader()->restoreState(settings.value("HeaderState").toByteArray());
   table->sortItems(settings.value("SortBy").toInt(), (Qt::SortOrder) settings.value("SortOrder").toInt());
@@ -88,7 +89,7 @@ TimeWidget::TimeWidget(TimeView& timeView) : timeView(timeView)
 
 TimeWidget::~TimeWidget()
 {
-  QSettings& settings = Controller::application->getSettings();
+  QSettings& settings = CalibratorToolCtrl::application->getSettings();
   settings.beginGroup(timeView.fullName);
   settings.setValue("HeaderState", table->horizontalHeader()->saveState());
   settings.setValue("SortBy", table->horizontalHeader()->sortIndicatorSection());
@@ -235,7 +236,7 @@ void TimeWidget::copy()
   QApplication::clipboard()->setText(selected_text);
 }
 
-TimeView::TimeView(const QString& fullName, Controller &controller, const TimeInfo& info) :
+TimeView::TimeView(const QString& fullName, RobotConsole &controller, const TimeInfo& info) :
   fullName(fullName), icon(":/Icons/tag_green.png"), controller(controller), info(info)
 {}
 

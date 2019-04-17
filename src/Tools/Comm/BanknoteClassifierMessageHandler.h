@@ -5,6 +5,7 @@
 #include "Tools/Comm/TcpComm.h"
 #include <string.h>
 #include <fstream>
+#include <memory>
 
 #define BANKNOTE_CLASSIFIER_COMM \
 MessageQueue theCommReceiver; \
@@ -52,7 +53,7 @@ private:
   
   MessageQueue &theCommIn,&theCommOut;
   
-  SocketClientTcp* lpSocket;
+  std::unique_ptr<TcpComm> tcpComm;
 
   std::string ip;
 

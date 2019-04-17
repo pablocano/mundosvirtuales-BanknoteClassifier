@@ -7,7 +7,7 @@
 //
 
 #include "ImageView.h"
-#include "Controller.h"
+#include "RobotConsole.h"
 #include <QPainter>
 #include <QApplication>
 #include <QMouseEvent>
@@ -20,7 +20,7 @@
 
 #include "Visualization/PaintMethods.h"
 
-ImageView::ImageView(const QString& fullName, Controller& controller, const std::string& name) :
+ImageView::ImageView(const QString& fullName, RobotConsole& controller, const std::string& name) :
   fullName(fullName),
   icon(":/Icons/tag_green.png"),
   controller(controller),
@@ -66,7 +66,7 @@ void ImageWidget::paint(QPainter& painter)
 {
   SYNC_WITH(imageView.controller);
   
-  const Controller::ImagePtr* imagePtr;
+  const RobotConsole::ImagePtr* imagePtr;
 
   if(imageView.controller.debugImages.count(imageView.name) > 0)
     imagePtr = &imageView.controller.debugImages[imageView.name];
@@ -125,7 +125,7 @@ bool ImageWidget::needsRepaint() const
 {
   SYNC_WITH(imageView.controller);
 
-  const Controller::ImagePtr* imagePtr;
+  const RobotConsole::ImagePtr* imagePtr;
   if(imageView.controller.debugImages.count(imageView.name) > 0)
     imagePtr = &imageView.controller.debugImages[imageView.name];
   else

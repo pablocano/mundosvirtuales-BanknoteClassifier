@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include "SemanticSeg.h"
 #include "Tools/Debugging/Debugging.h"
-#include "Tools/Debugging/DebugImages.h".h"
+#include "Tools/Debugging/DebugImages.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include "Platform/File.h"

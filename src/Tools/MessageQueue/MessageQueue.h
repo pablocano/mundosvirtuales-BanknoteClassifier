@@ -208,7 +208,7 @@ Out& operator<<(Out& stream, const MessageQueue& messageQueue);
  */
 void operator>>(InMessage& message, MessageQueue& queue);
 
-class CognitionToDebug : public MessageQueue {};
-class DebugToCognition : public MessageQueue {};
-class MotionToDebug : public MessageQueue {};
-class DebugToMotion : public MessageQueue {};
+class BanknoteClassifierToDebug : public MessageQueue {};
+class DebugToBanknoteClassifier : public MessageQueue {};
+class ConfirmerToDebug : public MessageQueue {};
+class DebugToConfirmer : public MessageQueue {};

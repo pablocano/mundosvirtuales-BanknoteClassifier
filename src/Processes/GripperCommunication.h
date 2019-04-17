@@ -7,8 +7,6 @@
 #include <opencv2/core/core.hpp>
 #include <string>
 
-#include "BanknoteClassifier_EXPORTS.h"
-
 class GripperCommunication : public Process{
 
 public:

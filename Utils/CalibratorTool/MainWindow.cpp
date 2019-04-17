@@ -35,7 +35,7 @@ MainWindow::MainWindow(int argc, char *argv[])
   dockWidgetUserMenu(0),
   dockWidgetFileMenu(0),
   activeDockWidget(0),
-  guiUpdateRate(20),
+  guiUpdateRate(0),
   lastGuiUpdate(0),
   opened(false),
   layoutRestored(true),
@@ -98,7 +98,7 @@ void MainWindow::open()
   restoreGeometry(settings.value("Geometry").toByteArray());
   restoreState(settings.value("WindowState").toByteArray());
   
-  ctrl = new Controller(*this);
+  ctrl = new ConsoleController(*this);
   ctrl->compile();
   
   // restore focus
@@ -337,6 +337,11 @@ unsigned int MainWindow::getSystemTime()
   clock_gettime(CLOCK_MONOTONIC, &ts);
   return (unsigned int) (ts.tv_sec * 1000 + ts.tv_nsec / 1000000l);
 #endif
+}
+
+void MainWindow::setStatusMessage(const QString& message)
+{
+  //statusBar->setUserMessage(message);
 }
 
 void MainWindow::closeEvent (QCloseEvent *event)

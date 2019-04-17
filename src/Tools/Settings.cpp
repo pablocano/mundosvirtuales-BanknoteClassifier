@@ -5,9 +5,12 @@
  */
 
 #include "Settings.h"
-#include "SystemCall.h"
+#ifdef CALIBRATION_TOOL
+#include "Utils/CalibratorTool/CalibratorToolCtrl.h"
+#endif
 #include "Global.h"
 #include "Platform/File.h"
+#include "Platform/SystemCall.h"
 #include <opencv2/core/core.hpp>
 #include <iostream>
 
@@ -35,21 +38,5 @@ void Settings::init()
 
 bool Settings::load()
 {
-  cv::FileStorage file(std::string(File::getBCDir())+"/Config/settings.xml", cv::FileStorage::READ);
-  
-  if (file.isOpened()) {
-    file["teamNumber"] >> teamNumber;
-    file["playerNumber"] >> playerNumber;
-    file["teamPort"] >> teamPort;
-  }
-  else
-  {
-    printf("Could not load settings from settings.xml");
-  }
-  
-  printf("teamNumber %d\n", teamNumber);
-  printf("teamPort %d\n", teamPort);
-  printf("playerNumber %d\n", playerNumber);
-  
   return true;
 }

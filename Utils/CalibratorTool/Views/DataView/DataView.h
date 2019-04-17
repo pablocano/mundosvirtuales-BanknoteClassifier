@@ -16,9 +16,9 @@
 #include <string>
 #include <qtvariantproperty.h>
 #include "PropertyManager.h"
-#include "Synchronization.h"
+#include "Platform/Thread.h" // for SYNC
 
-class Controller;
+class RobotConsole;
 class InMessage;
 class DataWidget;
 class QtProperty;
@@ -43,7 +43,7 @@ public:
    * @param repName Name of the streamable data. This is used to generate get requests.
    * @param typeInfo Is used to get the type information while parsing.
    */
-  DataView(const QString& fullName, const std::string& repName, Controller& controller, const TypeInfo& typeInfo);
+  DataView(const QString& fullName, const std::string& repName, RobotConsole& controller, const TypeInfo& typeInfo);
 
   CalibratorTool::Widget* createWidget() override;
   const QString& getFullName() const override { return theFullName; }
@@ -96,7 +96,7 @@ private:
   DECLARE_SYNC;
   const QString theFullName; /**< The path to this view in the scene graph */
   const QIcon theIcon; /**< The icon used for listing this view in the scene graph */
-  Controller& controller; /**< A reference to the console object. */
+  RobotConsole& controller; /**< A reference to the console object. */
   const std::string theName; /**< The name of the view and the data displayed. */
   std::string type; /**< The type of the data shown. */
   DataWidget* pTheWidget = nullptr; /**< The widget which displays the properties */

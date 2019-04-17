@@ -1,27 +1,47 @@
 #pragma once
 
-#include "Controller.h"
-
-#include <list>
 #include <set>
-#include <string>
+#include <QDir>
+#include <QString>
 
+#include "CalibratorTool.h"
+#include "CalibratorToolCtrl.h"
+#include "RobotConsole.h"
+#include "Tools/Settings.h"
 
 class ConsoleView;
 
-class ConsoleController
+class ConsoleController : public CalibratorToolCtrl
 {
 public:
-
   DECLARE_SYNC;
 
-  ConsoleController(Controller* controller);
+private:
+  ConsoleView* consoleView; /**< The scene graph object that describes the console widget. */
+  RobotConsole* console; /**< The currently selected simulated robot. */
+  std::list<std::string> textMessages; /**< A list of all text messages received in the current frame. */
+  bool newLine = true; /**< States whether the last line of text was finished by a new line. */
+  int nesting = 0; /**< The number of recursion level during the execution of console files. */
+  std::set<std::string> completion; /**< A list for command completion. */
+  std::set<std::string>::const_iterator currentCompletionIndex; /** Points to the last string that was used for auto completion */
+
+  const DebugRequestTable* debugRequestTable = nullptr; /**< Points to the debug request table used for tab-completion. */
+  const ModuleInfo* moduleInfo = nullptr; /**< Points to the solution info used for tab-completion. */
+  const DrawingManager* drawingManager = nullptr; /**< Points to the drawing manager used for tab-completion. */
+  const RobotConsole::Views* imageViews = nullptr; /**< Points to the map of image views used for tab-completion. */
+
+public:
+
+  /**
+   * @brief CalibratorToolCtrl constructor
+   * @param aplication The interface to CalibratorTool.
+   */
+  ConsoleController(CalibratorTool::Application& aplication);
 
   /**
    * The function is called when a console command has been entered.
    * @param command The command.
    * @param console Use this console to execute the command.
-   * @param scenarioAndLocationOnly Only interpret commands "cs" and "cl".
    */
   void executeConsoleCommand(std::string command);
 
@@ -43,9 +63,14 @@ public:
   void completeConsoleCommandOnLetterEntry(std::string& command);
 
   /**
+   * The function is called to initialize the module.
+   */
+  bool compile() override;
+
+  /**
    * The function is called from SimRobot in each simulation step.
    */
-  void update();
+  void update() override;
 
   /**
    * The function prints a string into the console window.
@@ -103,7 +128,7 @@ public:
    * The function sets the map of image views used by the command completion.
    * @param imageViews The map of image views.
    */
-  void setImageViews(const Controller::Views& imageViews) { this->imageViews = &imageViews; }
+  void setImageViews(const RobotConsole::Views& imageViews) { this->imageViews = &imageViews; }
 
   /**
    * The function forces an update of the command completion table.
@@ -128,25 +153,7 @@ private:
    */
   void createCompletion();
 
-
-  ConsoleView* consoleView; /**< The scene graph object that describes the console widget. */
-  std::list<std::string> textMessages; /**< A list of all text messages received in the current frame. */
-  bool newLine = true; /**< States whether the last line of text was finished by a new line. */
-  int nesting = 0; /**< The number of recursion level during the execution of console files. */
-  std::set<std::string> completion; /**< A list for command completion. */
-  std::set<std::string>::const_iterator currentCompletionIndex; /** Points to the last string that was used for auto completion */
-
-  const DebugRequestTable* debugRequestTable = nullptr; /**< Points to the debug request table used for tab-completion. */
-  const ModuleInfo* moduleInfo = nullptr; /**< Points to the solution info used for tab-completion. */
-  const DrawingManager* drawingManager = nullptr; /**< Points to the drawing manager used for tab-completion. */
-  const Controller::Views* imageViews = nullptr; /**< Points to the map of image views used for tab-completion. */
-
-  Controller* controller;
-
-  friend class Controller;
-
 public:
 
   std::unordered_map<std::string, std::string> representationToFile;
-
 };

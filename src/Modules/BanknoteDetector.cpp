@@ -18,11 +18,11 @@
 
 #include "BanknoteDetector.h"
 #include "Platform/File.h"
-#include <opencv2/video/tracking.hpp>
+#include "Platform/SystemCall.h"
 #include <chrono>
 #include <iostream>
 #include <cmath>
-#include "Tools/SystemCall.h"
+
 
 MAKE_MODULE(BanknoteDetector, BanknoteClassifier)
 

@@ -8,20 +8,20 @@
 
 #pragma once
 
-#include "BanknoteClassifierWrapper.h"
-#include "CalibratorTool.h"
-#include "Visualization/DebugDrawing.h"
 #include "Representations/Image.h"
 #include "Representations/RobotFanucRegisters.h"
 #include "Representations/Modeling/WorldCoordinatesPose.h"
-#include "Representations/TimeInfo.h"
-#include "Representations/ModuleInfo.h"
-#include "Representations/ColorModel/ColorModel.h"
 #include "Tools/Debugging/DebugDrawings.h"
 #include "Tools/Debugging/DebugRequest.h"
 #include "Tools/Debugging/DebugImages.h"
+#include "Tools/ProcessFramework/Process.h"
 #include "Tools/Streams/TypeInfo.h"
-#include "Synchronization.h"
+
+#include "Representations/ModuleInfo.h"
+#include "Representations/TimeInfo.h"
+#include "Views/DataView/DataView.h"
+#include "Visualization/DebugDrawing.h"
+
 #include <QMutex>
 #include <QList>
 #include <unordered_map>
@@ -31,7 +31,7 @@ class MainWindow;
 class ConsoleController;
 class ImageView;
 
-class Controller : public MessageHandler{
+class RobotConsole : public Process{
   
 private:
 
@@ -72,14 +72,6 @@ private:
    * @return The information requested is already up-to-date.
    */
   bool poll(MessageID id);
-  
-  void receive();
-  
-  void addView(CalibratorTool::Object* object, const CalibratorTool::Object* parent = 0, int flags = 0);
-  void addView(CalibratorTool::Object* object, const QString& category, int flags = 0);
-  void removeView(CalibratorTool::Object* object);
-  CalibratorTool::Object* addCategory(const QString& name, const CalibratorTool::Object* parent, const char* icon = 0);
-  CalibratorTool::Object* addCategory(const QString& name, const QString& parentName);
 
   /**
    * The function is called when a console command has been entered.
@@ -100,10 +92,16 @@ private:
   int waitingFor[numOfMessageIDs]; /**< Each entry states for how many information packages the process waits. */
   bool polled[numOfMessageIDs]; /**< Each entry states whether certain information is up-to-date (if not waiting for). */
   
+
+protected:
+
+  ConsoleController* ctrl; /** A pointer to the controller object. */
+  QString robotFullName; /**< The full name of the robot. (e.g. "RoboCup.Robot1") */
+  QString robotName; /**< The name of the robot. (e.g. "Robot1") */
+
   DrawingManager drawingManager;
   DebugRequestTable debugRequestTable;
-  
-  BanknoteClassifierWrapper* banknoteClassifierWrapper;
+  const char* pollingFor = nullptr; /**< The information the console is waiting for. */
   
   QList<CalibratorTool::Object*> views;
 
@@ -115,7 +113,6 @@ private:
   using TimeInfos = std::unordered_map<char, TimeInfo>;
   TimeInfos timeInfos; /**< Information about the timing of modules per process. */
 
-  const char* pollingFor = nullptr; /**< The information the console is waiting for. */
   std::string getOrSetWaitsFor; /**< The name of the representation get or set are waiting for. If empty, they are not waiting for any. */
   bool updateCompletion = false; /**< Determines whether the tab-completion table has to be updated. */
   std::list<std::string> lines; /**< Console lines buffered because the process is currently waiting. */
@@ -191,19 +188,22 @@ public:
   
   DECLARE_SYNC;
   
-  Controller(CalibratorTool::Application& aplication);
+  RobotConsole(MessageQueue& in, MessageQueue& out);
   
-  static CalibratorTool::Application* application; /**< The interface to the SimRobot GUI */
+  ~RobotConsole();
   
-  ~Controller();
-  
-  void update();
-  
-  void stop();
-  
-  void compile();
-  
-  void saveColorCalibration();
+  virtual void update();
+
+  /**
+   * That function is called once before the first main(). It can be used
+   * for things that can't be done in the constructor.
+   */
+  void init() override;
+
+  /**
+   * The function adds all views.
+   */
+  void addViews();
 
   /**
    * @brief toggleImageView
@@ -241,19 +241,10 @@ public:
   DebugRequestTable& getDebugRequestTable() {return debugRequestTable;}
   
   void drDebugDrawing(const std::string& request, const std::string &imageView);
-  
-  MessageQueue debugIn;
-  MessageQueue debugOut; /**< The outgoing debug queue. */
+
+  MessageQueue& debugOut; /**< The outgoing debug queue. */
 
   TypeInfo typeInfo; /**< Information about all data types used by the connected robot. */
-  
-  ColorCalibration colorCalibration; /**< The color calibration */
-  ColorCalibration prevColorCalibration; /**< The previous color calibration */
-  bool colorCalibrationChanged;
-  
-  ColorModel colorModel;
-  
-  unsigned colorTableTimeStamp;
   
   Images debugImages;
   Images incompleteDebugImages;
@@ -273,8 +264,6 @@ public:
 
   Views imageViews; /**< The map of all image views. */
   ModuleInfo moduleInfo; /**< The current state of all solution requests. */
-
-  ConsoleController* console;
 
   char processIdentifier;
 
