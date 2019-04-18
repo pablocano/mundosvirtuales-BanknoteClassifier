@@ -56,6 +56,7 @@ class ModuleBase
 public:
   ENUM(Category,
   {,
+   BanknoteCorrector,
    BanknoteClassifier,
    BaslerCamera,
    OpenCVCamera,

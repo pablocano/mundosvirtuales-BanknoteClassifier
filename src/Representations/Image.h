@@ -34,3 +34,12 @@ STREAMABLE_WITH_BASE(Image, CvMat,
   void draw() const;,
   (unsigned)(0) timeStamp,
 });
+
+STREAMABLE_WITH_BASE(CorrectorImage, CvMat,
+{
+  CorrectorImage() = default;
+  CorrectorImage(const cv::Mat& other);
+  void operator=(const cv::Mat& other) {CvMat::operator=(other);}
+  void draw() const;,
+  (unsigned)(0) timeStamp,
+});

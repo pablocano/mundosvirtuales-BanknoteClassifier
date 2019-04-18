@@ -46,5 +46,5 @@ inline In& operator>>(In& stream, ModulePackage& modulePackage)
   return stream;
 }
 
-class BanknoteClassifierToConfirmer : public ModulePackage {};
-class ConfirmerToBanknoteClassifier : public ModulePackage {};
+class BanknoteClassifierToBanknoteCorrector : public ModulePackage {};
+class BanknoteCorrectorToBanknoteClassifier : public ModulePackage {};

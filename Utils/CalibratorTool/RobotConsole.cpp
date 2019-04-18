@@ -37,7 +37,9 @@ RobotConsole::RobotConsole(MessageQueue &in, MessageQueue &out)
   }
   
   timeInfos['e'] = TimeInfo("BanknoteClassifier", 1);
+  timeInfos['c'] = TimeInfo("BanknoteCorrector", 1);
   debugDrawings['e'];
+  debugDrawings['c'];
 }
 
 RobotConsole::~RobotConsole()
@@ -56,6 +58,7 @@ void RobotConsole::addViews()
   //addView(new StatusView("GroundTruth.Status.Status",*this,"RobotStatus"),"GroundTruth.Status");
 
   ctrl->addView(new TimeView("GroundTruth.Timing.BanknoteClassifier", *this, timeInfos.at('e')), "GroundTruth.Timing");
+  ctrl->addView(new TimeView("GroundTruth.Timing.BanknoteCorrector", *this, timeInfos.at('c')), "GroundTruth.Timing");
 }
 
 
@@ -135,7 +138,7 @@ bool RobotConsole::poll(MessageID id)
         SYNC;
         debugOut.out.bin << DebugRequest("poll");
         debugOut.out.finishMessage(idDebugRequest);
-        waitingFor[id] = 1;
+        waitingFor[id] = 3;
         break;
       }
       case idDrawingManager:
@@ -144,7 +147,8 @@ bool RobotConsole::poll(MessageID id)
         drawingManager.clear();
         debugOut.out.bin << DebugRequest("automated requests:DrawingManager", true);
         debugOut.out.finishMessage(idDebugRequest);
-        waitingFor[id] = 1;
+        waitingFor[id] = 2;
+        break;
       }
       
       case idColorCalibration:
@@ -169,7 +173,7 @@ bool RobotConsole::poll(MessageID id)
         moduleInfo.clear();
         debugOut.out.bin << DebugRequest("automated requests:ModuleTable", true);
         debugOut.out.finishMessage(idDebugRequest);
-        waitingFor[id] = 1;  // Cognition + Motion will answer
+        waitingFor[id] = 2;  // Cognition + Motion will answer
         break;
       }
       default:
@@ -319,7 +323,7 @@ bool RobotConsole::handleMessage(InMessage& message)
     {
         std::string name, type;
         message.bin >> name >> type;
-        if(!processesOfDebugData[name] || (processesOfDebugData[name] != 'e') == (processIdentifier != 'e'))
+        if(!processesOfDebugData[name] || (processesOfDebugData[name] != 'c') == (processIdentifier != 'c'))
         {
           processesOfDebugData[name] = processIdentifier;
           if(debugDataInfos.find(name) == debugDataInfos.end())

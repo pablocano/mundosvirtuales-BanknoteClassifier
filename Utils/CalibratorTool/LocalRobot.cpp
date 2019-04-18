@@ -41,6 +41,16 @@ bool LocalRobot::main()
         debugOut.out.finishMessage(idFrameInfo);
         debugOut.out.bin << 'e';
         debugOut.out.finishMessage(idProcessFinished);
+
+        debugOut.out.bin << 'c';
+        debugOut.out.finishMessage(idProcessBegin);
+        CorrectorFrameInfo correctorFrameInfo;
+        correctorFrameInfo.time = timeStamp;
+        debugOut.out.bin << correctorFrameInfo;
+        debugOut.out.finishMessage(idFrameInfo);
+        debugOut.out.bin << 'c';
+        debugOut.out.finishMessage(idProcessFinished);
+
         lastTimeStampSent = timeStamp;
       }
 

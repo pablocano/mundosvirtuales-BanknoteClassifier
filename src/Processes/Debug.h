@@ -37,10 +37,10 @@ private:
   Receiver<MessageQueue> theDebugReceiver;
   DebugSender<MessageQueue> theDebugSender;
 #endif
-  Receiver<BanknoteClassifierToDebug> theCognitionReceiver;
-  Receiver<ConfirmerToDebug> theMotionReceiver;
-  DebugSender<DebugToBanknoteClassifier> theCognitionSender;
-  DebugSender<DebugToConfirmer> theMotionSender;
+  Receiver<BanknoteClassifierToDebug> theBanknoteClassifierReceiver;
+  Receiver<BanknoteCorrectorToDebug> theBanknoteCorrectorReceiver;
+  DebugSender<DebugToBanknoteClassifier> theBanknoteClassifierSender;
+  DebugSender<DebugToBanknoteCorrector> theBanknoteCorrectorSender;
 
 public:
   QueueFillRequest outQueueMode; /**< The mode (behavior, filter, target) for the outgoing queue. */

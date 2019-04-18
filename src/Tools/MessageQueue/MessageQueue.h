@@ -210,5 +210,5 @@ void operator>>(InMessage& message, MessageQueue& queue);
 
 class BanknoteClassifierToDebug : public MessageQueue {};
 class DebugToBanknoteClassifier : public MessageQueue {};
-class ConfirmerToDebug : public MessageQueue {};
-class DebugToConfirmer : public MessageQueue {};
+class BanknoteCorrectorToDebug : public MessageQueue {};
+class DebugToBanknoteCorrector : public MessageQueue {};

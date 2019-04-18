@@ -8,5 +8,8 @@ STREAMABLE(FrameInfo,
      return static_cast<int>(time - aTime);
     }
     ,
-    (int)(0) time,
+    (unsigned)(0) time,
 });
+
+STREAMABLE_WITH_BASE(CorrectorFrameInfo, FrameInfo,
+{,});

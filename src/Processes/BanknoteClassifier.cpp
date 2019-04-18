@@ -10,6 +10,7 @@
 #include "Modules/RobotFanucDataProvider.h"
 #include "Modules/Segmentator.h"
 #include "Platform/SystemCall.h"
+#include "Platform/Time.h"
 #include "Representations/CameraInfo.h"
 #include "Representations/Regions.h"
 #include "Tools/Global.h"
@@ -23,15 +24,16 @@ BanknoteClassifier::BanknoteClassifier() :
   INIT_GROUND_TRUTH_COMM,
   theDebugReceiver(this),
   theDebugSender(this),
-  theMotionReceiver(this),
-  theMotionSender(this),
+  theBanknoteCorrectorReceiver(this),
+  theBanknoteCorrectorSender(this),
   moduleManager({ModuleBase::BanknoteClassifier,ModuleBase::Segmentation,ModuleBase::Common,ModuleBase::BaslerCamera,ModuleBase::Communication})
-//moduleManager({ "CameraPose","Communication","Common","BaslerCamera","Segmentation" }),
 {
   theDebugSender.setSize(20200000, 100000);
   theDebugReceiver.setSize(2800000);
   theCommSender.setSize(5000 * MAX_SIZE_PACKET);
   theCommReceiver.setSize(5000 * MAX_SIZE_PACKET); // more than 4 because of additional data
+
+  theBanknoteCorrectorSender.moduleManager = theBanknoteCorrectorReceiver.moduleManager = &moduleManager;
 }
 
 void BanknoteClassifier::init()
@@ -56,16 +58,7 @@ bool BanknoteClassifier::main()
   
   timingManager.signalProcessStart();
 
-  unsigned t0 = SystemCall::getCurrentSystemTime();
-
   STOPWATCH("BanknoteClassifierProcess") moduleManager.execute();
-
-  unsigned tf = SystemCall::getCurrentSystemTime();
-
-  unsigned dt = tf - t0;
-
-  if(dt < 100)
-      SystemCall::sleep(100 - dt);
   
   DEBUG_RESPONSE_ONCE("automated requests:DrawingManager") OUTPUT(idDrawingManager, bin, Global::getDrawingManager());
 
@@ -73,6 +66,10 @@ bool BanknoteClassifier::main()
   DEBUG_RESPONSE("timing") timingManager.getData().copyAllMessages(theDebugSender);
   
   DEBUG_RESPONSE_ONCE("automated requests:DrawingManager") OUTPUT(idDrawingManager, bin, Global::getDrawingManager());
+
+  theBanknoteCorrectorSender.timeStamp = Time::getCurrentSystemTime();
+  BH_TRACE_MSG("before theMotionSender.send()");
+  theBanknoteCorrectorSender.send();
 
   timingManager.signalProcessStop();
   DEBUG_RESPONSE("timing") timingManager.getData().copyAllMessages(theDebugSender);
@@ -103,20 +100,20 @@ bool BanknoteClassifier::main()
 
 bool BanknoteClassifier::handleMessage(InMessage &message)
 {
-    switch(message.getMessageID())
-      {
-        case idModuleRequest:
-        {
-          unsigned timeStamp;
-          message.bin >> timeStamp;
-          moduleManager.update(message.bin, timeStamp);
-          return true;
-        }
-        default:
-          return BanknoteClassifierConfiguration::handleMessage(message) ||
-                 ArucoPoseEstimator::handleMessage(message) ||
-                 Process::handleMessage(message);
-      }
+  switch(message.getMessageID())
+  {
+  case idModuleRequest:
+  {
+    unsigned timeStamp;
+    message.bin >> timeStamp;
+    moduleManager.update(message.bin, timeStamp);
+    return true;
+  }
+  default:
+    return BanknoteClassifierConfiguration::handleMessage(message) ||
+        ArucoPoseEstimator::handleMessage(message) ||
+        Process::handleMessage(message);
+  }
 }
 
 MAKE_PROCESS(BanknoteClassifier);

@@ -3,26 +3,24 @@
 #include "Tools/ModuleManager/Module.h"
 #include "Representations/BanknotePosition.h"
 #include "Representations/Classification.h"
-#include "Representations/Features.h"
 #include "Representations/FrameInfo.h"
+#include "Representations/Features.h"
 #include "Representations/Image.h"
-#include "Tools/Debugging/DebugDrawings.h"
+#include "Representations/Modeling/WorldCoordinatesPose.h"
+
 #include <opencv2/xfeatures2d.hpp>
 #include <opencv2/imgproc.hpp>
 #include <map>
 
-#ifdef BC_WITH_CUDA
 #include "opencv2/core/cuda.hpp"
 #include "opencv2/cudaarithm.hpp"
 #include "opencv2/cudafeatures2d.hpp"
 #include "opencv2/xfeatures2d/cuda.hpp"
-#endif
 
 MODULE(BanknotePositionProvider,
 {,
- REQUIRES(Features),
- REQUIRES(FrameInfo),
- //REQUIRES(ImageBGR),
+ REQUIRES(WorldCoordinatesPose),
+ REQUIRES(CorrectorImage),
  PROVIDES(BanknotePosition),
 });
 
@@ -80,21 +78,6 @@ public:
      */
     static int compare(const Features& features, cv::Mat& resultHomography, int first, int last, Vector2f& massCenter);
 
-#ifndef BC_WITH_CUDA
-    // Models features
-    std::vector<cv::Mat> modelsImage;
-    std::vector<Features> modelsFeatures;
-    std::vector<Vector3d> modelsCorners;
-
-    std::vector<cv::DMatch> matches;
-
-    // Tools
-    cv::BFMatcher matcher;
-    cv::Ptr<cv::CLAHE> clahe;
-    cv::Ptr<cv::xfeatures2d::SURF> surf;
-
-    std::vector<cv::Mat> cannys;
-#else
     std::vector<cv::cuda::GpuMat> modelsImage;
     std::vector<Features> modelsFeatures;
     std::vector<std::vector<Vector3d> > modelsCorners;
@@ -106,8 +89,6 @@ public:
     cv::cuda::SURF_CUDA surf;
 
     std::vector<cv::Mat> cannys;
-
-#endif
 
     // Constants
     double minAreaPolygon;

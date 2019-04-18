@@ -831,4 +831,5 @@ inline const char* DrawingManager::getTypeName(char id, char processIdentifier) 
 #define DECLARE_PLOT(id) ((void) 0)
 #define DECLARE_VEC3_PLOT(id) ((void) 0)
 #define PLOT_VEC3(id, vec) ((void) 0)
+#define GEOMETRY(id, geometry, penWidth, penStyle, penColor, brushStyle, brushColor) ((void) 0)
 #endif

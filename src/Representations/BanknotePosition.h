@@ -20,7 +20,7 @@ STREAMABLE(BanknotePosition,
 
     void getColorAndStyle(ColorRGBA& color, Drawings::PenStyle &style) const;
 
-    virtual void draw() const;
+    void draw() const;
     ,
     (Classification::Banknote)(Classification::NONE) banknote,
     (std::vector<Vector2f>) corners,

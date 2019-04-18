@@ -20,18 +20,18 @@ Debug::Debug() :
   theDebugReceiver(this),
   theDebugSender(this),
 #endif
-  theCognitionReceiver(this),
-  theMotionReceiver(this),
-  theCognitionSender(this),
-  theMotionSender(this)
+  theBanknoteClassifierReceiver(this),
+  theBanknoteCorrectorReceiver(this),
+  theBanknoteClassifierSender(this),
+  theBanknoteCorrectorSender(this)
 {
   theDebugSender.setSize(MAX_PACKAGE_SEND_SIZE - 2000);
   theDebugReceiver.setSize(MAX_PACKAGE_RECEIVE_SIZE - 2000);
-  theCognitionReceiver.setSize(20200000);
-  theCognitionSender.setSize(2800000);
+  theBanknoteClassifierReceiver.setSize(20200000);
+  theBanknoteClassifierSender.setSize(2800000);
 
-  theMotionReceiver.setSize(50000);
-  theMotionSender.setSize(500000);
+  theBanknoteCorrectorReceiver.setSize(20200000);
+  theBanknoteCorrectorSender.setSize(2800000);
   //if(SystemCall::getMode() == SystemCall::physicalRobot)
   //  setPriority(1);
 }
@@ -40,26 +40,26 @@ bool Debug::main()
 {
   DEBUG_RESPONSE_ONCE("automated requests:TypeInfo") OUTPUT(idTypeInfo, bin, TypeInfo(true));
 
-  // Copying messages from debug queues from cognition and motion
+  // Copying messages from debug queues from BanknoteClassifier and BanknoteCorrector
   switch(outQueueMode.behavior)
   {
     case QueueFillRequest::sendCollected:
     case QueueFillRequest::discardNew:
     case QueueFillRequest::discardAll:
       // Discard new messages
-      theCognitionReceiver.clear();
-      theMotionReceiver.clear();
+      theBanknoteClassifierReceiver.clear();
+      theBanknoteCorrectorReceiver.clear();
       break;
 
     default:
       // Move the messages from other processes' debug queues to the outgoing queue
-      if(!theCognitionReceiver.isEmpty())
+      if(!theBanknoteClassifierReceiver.isEmpty())
       {
-        theCognitionReceiver.moveAllMessages(theDebugSender);
+        theBanknoteClassifierReceiver.moveAllMessages(theDebugSender);
       }
-      if(!theMotionReceiver.isEmpty())
+      if(!theBanknoteCorrectorReceiver.isEmpty())
       {
-        theMotionReceiver.moveAllMessages(theDebugSender);
+        theBanknoteCorrectorReceiver.moveAllMessages(theDebugSender);
       }
   }
 
@@ -143,13 +143,13 @@ bool Debug::main()
 
   // Send messages to the processes
 #ifdef CALIBRATION_TOOL
-  theCognitionSender.send(true);
-  theMotionSender.send(true);
+  theBanknoteClassifierSender.send(true);
+  theBanknoteCorrectorSender.send(true);
   if(sendToGUI)
     theDebugSender.send();
 #else
-  theCognitionSender.send(false);
-  theMotionSender.send(false);
+  theBanknoteClassifierSender.send(false);
+  theBanknoteCorrectorSender.send(false);
   debugHandler.communicate(sendToGUI);
 #endif
 
@@ -177,14 +177,14 @@ bool Debug::handleMessage(InMessage& message)
       message >> theDebugSender;
       return true;
 
-    // messages to Cognition
+    // messages to BanknoteClassifier
     case idColorCalibration:
-      message >> theCognitionSender;
+      message >> theBanknoteClassifierSender;
       return true;
 
-    // messages to Motion
-    //case idMotionNet:
-    //  message >> theMotionSender;
+    // messages to BanknoteCorrector
+    //case idBanknoteCorrectorNet:
+    //  message >> theBanknoteCorrectorSender;
     //  return true;
 
     // messages to Debug
@@ -195,18 +195,18 @@ bool Debug::handleMessage(InMessage& message)
       fout = nullptr;
       return true;
 
-    // messages to Cognition and Motion
+    // messages to BanknoteClassifier and BanknoteCorrector
     case idModuleRequest:
     case idDebugDataChangeRequest:
     case idTypeInfo:
-      message >> theCognitionSender;
-      //message >> theMotionSender;
+      message >> theBanknoteClassifierSender;
+      message >> theBanknoteCorrectorSender;
       return true;
 
     // messages to all processes
     case idDebugRequest:
-      message >> theCognitionSender;
-      //message >> theMotionSender;
+      message >> theBanknoteClassifierSender;
+      message >> theBanknoteCorrectorSender;
       return Process::handleMessage(message);
 
     case idProcessBegin:
@@ -215,10 +215,10 @@ bool Debug::handleMessage(InMessage& message)
       // no break
 
     default:
-      if(processIdentifier == 'm')
-        message >> theMotionSender;
+      if(processIdentifier == 'c')
+        message >> theBanknoteCorrectorSender;
       else
-        message >> theCognitionSender;
+        message >> theBanknoteClassifierSender;
 
       return true;
   }

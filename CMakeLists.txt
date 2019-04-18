@@ -50,8 +50,6 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/BanknoteDetector.h
   src/Modules/BanknoteClassifierConfiguration.cpp
   src/Modules/BanknoteClassifierConfiguration.h
-  src/Modules/BanknotePositionProvider.cpp
-  src/Modules/BanknotePositionProvider.h
   src/Modules/BanknoteTracker.cpp
   src/Modules/BanknoteTracker.h
   src/Modules/Camera.cpp
@@ -60,6 +58,12 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/CameraPoseFilter.h
   src/Modules/CameraPoseProvider.cpp
   src/Modules/CameraPoseProvider.h
+  src/Modules/Corrector/BanknoteCorrectorConfiguration.cpp
+  src/Modules/Corrector/BanknoteCorrectorConfiguration.h
+  src/Modules/Corrector/BanknotePositionProvider.cpp
+  src/Modules/Corrector/BanknotePositionProvider.h
+  src/Modules/Corrector/CorrectorCamera.cpp
+  src/Modules/Corrector/CorrectorCamera.h
   src/Modules/CustomCommunication.cpp
   src/Modules/CustomCommunication.h
   src/Modules/DummyImages.cpp
@@ -94,6 +98,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Platform/Time.h
   src/Processes/BanknoteClassifier.cpp
   src/Processes/BanknoteClassifier.h
+  src/Processes/BanknoteCorrector.cpp
+  src/Processes/BanknoteCorrector.h
   src/Processes/Debug.cpp
   src/Processes/Debug.h
   src/Representations/BanknoteDetections.cpp
