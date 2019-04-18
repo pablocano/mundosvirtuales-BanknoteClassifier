@@ -29,6 +29,18 @@ ConsoleController::ConsoleController(CalibratorTool::Application& application)
   representationToFile["representation:RobotDimensions"] = "robotDimensions.cfg";
 }
 
+ConsoleController::~ConsoleController()
+{
+  /*for(RemoteRobot* remoteRobot : remoteRobots)
+    remoteRobot->announceStop();
+
+  for(RemoteRobot* remoteRobot : remoteRobots)
+    delete remoteRobot;*/
+
+  stop();
+  Global::theSettings = nullptr;
+}
+
 bool ConsoleController::compile()
 {
 

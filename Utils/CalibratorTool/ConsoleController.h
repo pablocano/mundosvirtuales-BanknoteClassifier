@@ -38,6 +38,8 @@ public:
    */
   ConsoleController(CalibratorTool::Application& aplication);
 
+  ~ConsoleController();
+
   /**
    * The function is called when a console command has been entered.
    * @param command The command.

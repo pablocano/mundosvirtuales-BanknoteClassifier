@@ -19,7 +19,7 @@ LocalRobot::LocalRobot() :
   updatedSignal(1),
   timeStamp(0),
   lastTimeStampSent(0),
-  timeDelay(20)
+  timeDelay(1000)
 {
   addViews();
 }

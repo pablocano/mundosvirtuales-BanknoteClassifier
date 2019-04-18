@@ -35,7 +35,7 @@ MainWindow::MainWindow(int argc, char *argv[])
   dockWidgetUserMenu(0),
   dockWidgetFileMenu(0),
   activeDockWidget(0),
-  guiUpdateRate(0),
+  guiUpdateRate(20),
   lastGuiUpdate(0),
   opened(false),
   layoutRestored(true),
@@ -157,10 +157,6 @@ void MainWindow::close()
   
   openedObjects.clear();
   openedObjectsByName.clear();
-  
-  //if (wasOpened) {
-    //ctrl->stop();
-  //}
 
   delete ctrl;
   
@@ -250,10 +246,13 @@ void MainWindow::timerEvent(QTimerEvent* event)
   unsigned int now = getSystemTime();
   if (now - lastGuiUpdate > (unsigned int)guiUpdateRate) {
     lastGuiUpdate = now;
-    foreach(RegisteredDockWidget* dockWidget, openedObjectsByName)
+    for(RegisteredDockWidget* dockWidget : openedObjectsByName)
+      if(dockWidget->isReallyVisible())
+        dockWidget->update();
+    /*foreach(RegisteredDockWidget* dockWidget, openedObjectsByName)
     {
       dockWidget->update();
-    }
+    }*/
   }
 }
 
