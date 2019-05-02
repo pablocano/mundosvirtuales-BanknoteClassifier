@@ -52,8 +52,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/BanknoteClassifierConfiguration.h
   src/Modules/BanknoteTracker.cpp
   src/Modules/BanknoteTracker.h
-  src/Modules/Camera.cpp
-  src/Modules/Camera.h
+  src/Modules/CameraProvider.cpp
+  src/Modules/CameraProvider.h
   src/Modules/CameraPoseFilter.cpp
   src/Modules/CameraPoseFilter.h
   src/Modules/CameraPoseProvider.cpp
@@ -87,6 +87,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Modules/SemanticSeg.cpp
   src/Modules/SemanticSeg.h
   src/Platform/BCAssert.h
+  src/Platform/Camera.cpp
+  src/Platform/Camera.h
   src/Platform/DebugHandler.h
   src/Platform/File.cpp
   src/Platform/File.h
@@ -111,6 +113,8 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Representations/BanknotePosition.h
   src/Representations/CameraInfo.cpp
   src/Representations/CameraInfo.h
+  src/Representations/CameraSettings.cpp
+  src/Representations/CameraSettings.h
   src/Representations/Classification.cpp
   src/Representations/Classification.h
   src/Representations/SemanticSegmented.cpp
@@ -172,6 +176,7 @@ set( BANCKNOTECLASSIFIER_SRC
   src/Tools/Math/Eigen.h
   src/Tools/Math/EigenArrayExtensions.h
   src/Tools/Math/EigenMatrixBaseExtensions.h
+  src/Tools/Math/FixedPoint.h
   src/Tools/Math/Line.cpp
   src/Tools/Math/Line.h
   src/Tools/Math/Geometry.cpp
@@ -249,6 +254,7 @@ set(BC_PLATFORM_SRC
   src/Platform/Linux/Thread.cpp
   src/Platform/Linux/ThreadBase.cpp
   src/Platform/Linux/Time.cpp
+  src/Platform/Linux/V4lCamera.cpp
 )
 ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 set(BC_PLATFORM_SRC

@@ -90,7 +90,7 @@ void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
 
   cv::Mat H;
   Vector2f massCenter;
-  int banknote = compare(f,H,Classification::CINCO_C,Classification::CINCO_C, massCenter);
+  int banknote = compare(f,H,Classification::UNO_C,Classification::UNO_C, massCenter);
 
 
   banknotePosition.banknote = Classification::NONE;

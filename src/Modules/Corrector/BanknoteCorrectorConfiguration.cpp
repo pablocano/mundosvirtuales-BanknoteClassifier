@@ -6,11 +6,13 @@
 
 MAKE_MODULE(BanknoteCorrectorConfiguration, BanknoteCorrector)
 
-BanknoteCorrectorConfiguration* BanknoteCorrectorConfiguration::theInstance = 0;
+thread_local BanknoteCorrectorConfiguration* BanknoteCorrectorConfiguration::theInstance = 0;
 
 BanknoteCorrectorConfiguration::BanknoteCorrectorConfiguration()
 {
   theInstance = this;
+
+  read(theCorrectorCameraSettings);
   
   last = SystemCall::getCurrentSystemTime();
 }

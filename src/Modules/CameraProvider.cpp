@@ -1,4 +1,4 @@
-#include "Camera.h"
+#include "CameraProvider.h"
 #include "Platform/File.h"
 #include "Tools/Debugging/Debugging.h"
 #include <opencv2/cudaimgproc.hpp>
@@ -12,11 +12,11 @@
 #define VALID_PATH(s) s
 #endif 
 
-MAKE_MODULE(Camera, BaslerCamera)
+MAKE_MODULE(CameraProvider, BaslerCamera)
 
-Camera* Camera::theInstance = 0;
+thread_local CameraProvider* CameraProvider::theInstance = 0;
 
-Camera::Camera() : cameraLoaded(false)
+CameraProvider::CameraProvider() : cameraLoaded(false)
 {
 
   theInstance = this;
@@ -72,7 +72,7 @@ Camera::Camera() : cameraLoaded(false)
     std::cerr << "An exception occurred." << std::endl << e.GetDescription() << std::endl;
   }
 }
-Camera::~Camera()
+CameraProvider::~CameraProvider()
 {
   if(camera)
   {
@@ -86,12 +86,12 @@ Camera::~Camera()
   Pylon::PylonTerminate();
 }
 
-void Camera::update(CameraInfo& cameraInfo)
+void CameraProvider::update(CameraInfo& cameraInfo)
 {
   cameraInfo = info;
 }
 
-void Camera::update(Image& image)
+void CameraProvider::update(Image& image)
 {
   if(!cameraLoaded)
     return;
@@ -125,7 +125,7 @@ void Camera::update(Image& image)
   
 }
 
-CameraInfo& Camera::getCameraInfo()
+CameraInfo& CameraProvider::getCameraInfo()
 {
   if(theInstance)
     return theInstance->info;

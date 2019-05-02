@@ -3,6 +3,8 @@
 #include "Platform/Time.h"
 #include "Tools/Global.h"
 
+#include "Modules/Corrector/CorrectorCamera.h"
+
 BanknoteCorrector::BanknoteCorrector() :
   Process (theDebugReceiver,theDebugSender),
   theDebugReceiver(this),
@@ -28,31 +30,53 @@ void BanknoteCorrector::init()
 
 bool BanknoteCorrector::main()
 {
-  timingManager.signalProcessStart();
-
-  STOPWATCH("BanknoteCorrectorProcess") moduleManager.execute();
-
-  DEBUG_RESPONSE_ONCE("automated requests:DrawingManager") OUTPUT(idDrawingManager, bin, Global::getDrawingManager());
-
-  theBanknoteClassifierSender.timeStamp = Time::getCurrentSystemTime();
-  theBanknoteClassifierSender.send();
-
-  timingManager.signalProcessStop();
-  DEBUG_RESPONSE("timing") timingManager.getData().copyAllMessages(theDebugSender);
-
-  if(theDebugSender.getNumberOfMessages() > numberOfMessages + 1)
+  if(CorrectorCamera::isFrameDataComplete())
   {
-    // messages were sent in this frame -> send process finished
-    OUTPUT(idProcessFinished, bin, 'c');
+    timingManager.signalProcessStart();
+
+    STOPWATCH("BanknoteCorrectorProcess") moduleManager.execute();
+
+    DEBUG_RESPONSE_ONCE("automated requests:DrawingManager") OUTPUT(idDrawingManager, bin, Global::getDrawingManager());
+
+    theBanknoteClassifierSender.timeStamp = Time::getCurrentSystemTime();
+    theBanknoteClassifierSender.send();
+
+    timingManager.signalProcessStop();
+    DEBUG_RESPONSE("timing") timingManager.getData().copyAllMessages(theDebugSender);
+
+    if(theDebugSender.getNumberOfMessages() > numberOfMessages + 1)
+    {
+      // messages were sent in this frame -> send process finished
+      OUTPUT(idProcessFinished, bin, 'c');
+    }
+    else
+      theDebugSender.removeLastMessage();
+
+    theDebugSender.send();
+
+    // Prepare next frame
+    numberOfMessages = theDebugSender.getNumberOfMessages();
+    OUTPUT(idProcessBegin, bin, 'c');
+  }
+  else if(Global::getDebugRequestTable().pollCounter > 0)
+    ++Global::getDebugRequestTable().pollCounter;
+
+  if(Blackboard::getInstance().exists("CorrectorImage"))
+  {
+#ifndef CALIBRATION_TOOL
+    setPriority(10);
+#endif
+    Thread::sleep(1);
+    BH_TRACE_MSG("before waitForFrameData");
+    CorrectorCamera::waitForFrameData();
+#ifndef CALIBRATION_TOOL
+    setPriority(0);
+#endif
   }
   else
-    theDebugSender.removeLastMessage();
+    Thread::sleep(33);
 
-  theDebugSender.send();
 
-  // Prepare next frame
-  numberOfMessages = theDebugSender.getNumberOfMessages();
-  OUTPUT(idProcessBegin, bin, 'c');
 
 #ifdef CALIBRATION_TOOL
   return true;

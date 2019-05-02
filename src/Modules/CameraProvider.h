@@ -11,7 +11,7 @@
 #include <pylon/PylonIncludes.h>
 #include <pylon/usb/BaslerUsbInstantCamera.h>
 
-MODULE(Camera,
+MODULE(CameraProvider,
 {,
   REQUIRES(FrameInfo),
   PROVIDES(CameraInfo),
@@ -25,22 +25,22 @@ MODULE(Camera,
  *
  * Provides the images from the camera and the calibration of the camera
  */
-class Camera : public CameraBase
+class CameraProvider : public CameraProviderBase
 {
 public:
     /**
-    * @brief Camera
+    * @brief CameraProvider
     * Constructor of the class
     */
-    Camera();
+    CameraProvider();
 
     /**
     * @brief Destructor
     * Destructor of the class
     */
-    ~Camera();
+    ~CameraProvider();
 
-    static Camera *theInstance;
+    static thread_local CameraProvider *theInstance;
   
     /**
      * @brief Update function of the camera info representation

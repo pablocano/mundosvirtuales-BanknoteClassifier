@@ -1,6 +1,6 @@
 #include "CameraPose.h"
 #include "Tools/Debugging/DebugDrawings.h"
-#include "Modules/Camera.h"
+#include "Modules/CameraProvider.h"
 #include <opencv2/calib3d.hpp>
 
 void CameraPose::draw() const
@@ -31,7 +31,7 @@ void CameraPose::drawPose() const
     objectPoints.at< float >(3, 2) = size;
 
     std::vector<cv::Point2f > imagePoints;
-    cv::projectPoints(objectPoints, rvec, tvec, Camera::getCameraInfo().K, Camera::getCameraInfo().d, imagePoints);
+    cv::projectPoints(objectPoints, rvec, tvec, CameraProvider::getCameraInfo().K, CameraProvider::getCameraInfo().d, imagePoints);
 
     LINE("representation:CameraPose",imagePoints[0].x, imagePoints[0].y, imagePoints[1].x, imagePoints[1].y, 3, Drawings::solidPen,ColorRGBA::blue);
     LINE("representation:CameraPose",imagePoints[0].x, imagePoints[0].y, imagePoints[2].x, imagePoints[2].y, 3, Drawings::solidPen,ColorRGBA::red);
