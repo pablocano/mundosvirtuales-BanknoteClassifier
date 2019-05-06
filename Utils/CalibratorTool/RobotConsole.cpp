@@ -181,7 +181,6 @@ bool RobotConsole::poll(MessageID id)
     }
     return false; // Must return a boolean !
   }
-  return false;
 }
 
 bool RobotConsole::handleMessage(InMessage& message)
@@ -320,31 +319,40 @@ bool RobotConsole::handleMessage(InMessage& message)
       return true;
     }
     case idDebugDataResponse:
+  {
+    std::string name, type;
+    message.bin >> name >> type;
+    if(!processesOfDebugData[name] || (processesOfDebugData[name] != 'm') == (processIdentifier != 'm'))
     {
-        std::string name, type;
-        message.bin >> name >> type;
-        if(!processesOfDebugData[name] || (processesOfDebugData[name] != 'c') == (processIdentifier != 'c'))
-        {
-          processesOfDebugData[name] = processIdentifier;
-          if(debugDataInfos.find(name) == debugDataInfos.end())
-            debugDataInfos[name] = DebugDataInfoPair(type, new MessageQueue);
-          debugDataInfos[name].second->clear();
-          message >> *debugDataInfos[name].second;
-          dataViewWriter.handleMessage(message, type, name);
-
-          for(const auto& i : debugRequestTable.slowIndex)
-            if("debug data:" + name == i.first)
+      processesOfDebugData[name] = processIdentifier;
+      if(debugDataInfos.find(name) == debugDataInfos.end())
+        debugDataInfos[name] = DebugDataInfoPair(type, new MessageQueue);
+      debugDataInfos[name].second->clear();
+      message >> *debugDataInfos[name].second;
+      dataViewWriter.handleMessage(message, type, name);
+      if(getOrSetWaitsFor == name) // console command requested this one?
+      {
+        waitingFor[idDebugDataResponse] = 0;
+        getOrSetWaitsFor = "";
+      }
+      else
+      {
+        // no, representation view requested it
+        for(const auto& i : debugRequestTable.slowIndex)
+          if("debug data:" + name == i.first)
+          {
+            if(debugRequestTable.enabled[i.second]) // still enabled?
             {
-              if(debugRequestTable.enabled[i.second]) // still enabled?
-              {
-                // then request it again for the next update
-                debugOut.out.bin << DebugRequest("debug data:" + name, true);
-                debugOut.out.finishMessage(idDebugRequest);
-              }
-              break;
+              // then request it again for the next update
+              debugOut.out.bin << DebugRequest("debug data:" + name, true);
+              debugOut.out.finishMessage(idDebugRequest);
             }
+            break;
+          }
         }
-        return true;
+      }
+
+      return true;
     }
     case idStopwatch:
     {

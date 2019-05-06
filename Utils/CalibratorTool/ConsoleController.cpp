@@ -16,17 +16,9 @@ ConsoleController::ConsoleController(CalibratorTool::Application& application)
   addView(new ConsoleView("Console.Pad",*this,true), consoleView);
 
   // file names for representations
-  representationToFile["representation:BallSpecification"] = "ballSpecification.cfg";
-  representationToFile["representation:BehaviorParameters"] = "behaviorParameters.cfg";
   representationToFile["representation:CameraCalibration"] = "cameraCalibration.cfg";
   representationToFile["representation:CameraIntrinsics"] = "cameraIntrinsics.cfg";
-  representationToFile["representation:HeadLimits"] = "headLimits.cfg";
-  representationToFile["representation:IMUCalibration"] = "imuCalibration.cfg";
-  representationToFile["representation:JointCalibration"] = "jointCalibration.cfg";
-  representationToFile["representation:JointLimits"] = "jointLimits.cfg";
-  representationToFile["representation:KickInfo"] = "kickInfo.cfg";
-  representationToFile["representation:MassCalibration"] = "massCalibration.cfg";
-  representationToFile["representation:RobotDimensions"] = "robotDimensions.cfg";
+  representationToFile["representation:CorrectorCameraSettings"] = "correctorCameraSettings.cfg";
 }
 
 ConsoleController::~ConsoleController()

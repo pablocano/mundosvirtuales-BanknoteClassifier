@@ -39,10 +39,8 @@ void CorrectorCamera::update(CorrectorImage &image)
 {
   if(camera->hasImage())
   {
-    OUTPUT_TEXT("----- New Image -----");
     useImage(std::max(lastImageTimeStamp + 1, static_cast<unsigned>(camera->getTimeStamp() / 1000) - Time::getSystemTimeBase()),image);
     lastImageTimeStamp = image.timeStamp;
-    OUTPUT_TEXT(lastImageTimeStamp);
   }
 }
 
@@ -57,7 +55,7 @@ void CorrectorCamera::useImage(unsigned int timestamp, CorrectorImage &image)
 
 void CorrectorCamera::setupCameras()
 {
-  camera = new V4lCamera("/dev/video0", theCorrectorCameraSettings);
+  camera = new V4lCamera("/dev/video1", theCorrectorCameraSettings);
 }
 
 bool CorrectorCamera::isFrameDataComplete()
@@ -90,7 +88,11 @@ void CorrectorCamera::takeImages()
         camera->releaseImage();
     }
 
+    camera->setSettings(theCorrectorCameraSettings);
+
     imageTaken.post();
+
+    camera->writeCameraSettings();
   }
 }
 

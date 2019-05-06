@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Representations/CameraSettings.h"
+
 class Camera
 {
 public:
@@ -35,4 +37,12 @@ public:
    * @return The timestamp.
    */
   virtual unsigned long long getTimeStamp() const = 0;
+
+  /**
+   * Unconditional write of the camera settings
+   */
+  virtual void writeCameraSettings() = 0;
+
+  virtual void setSettings(const CameraSettings& settings) = 0;
+
 };

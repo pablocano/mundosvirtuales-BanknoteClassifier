@@ -6,12 +6,10 @@
 #include "Representations/GpuImage.h"
 #include <opencv2/xfeatures2d.hpp>
 
-#ifdef BC_WITH_CUDA
 #include "opencv2/core/cuda.hpp"
 #include "opencv2/cudaarithm.hpp"
 #include "opencv2/cudafeatures2d.hpp"
 #include "opencv2/xfeatures2d/cuda.hpp"
-#endif
 
 MODULE(FeaturesProvider,
 {,

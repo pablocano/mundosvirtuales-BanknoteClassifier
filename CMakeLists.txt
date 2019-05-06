@@ -12,11 +12,9 @@ find_package(Torch REQUIRED PATHS Utils/libtorch/)#pytorch
 
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 
-if(WIN32)
-        set(CMAKE_CXX_STANDARD 11)
-else()
-        set(CMAKE_CXX_FLAGS "-std=c++14")
-endif()
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
@@ -30,12 +28,6 @@ set(PYLON_ROOT /opt/pylon5)
 #include(${QT_USE_FILE})
 
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build Type")
-
-set(BC_WITH_CUDA OFF CACHE BOOL "Use CUDA")
-
-if(${BC_WITH_CUDA})
-    add_definitions(-DBC_WITH_CUDA)
-endif(${BC_WITH_CUDA})
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
@@ -471,7 +463,7 @@ target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen PylonBase
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
-include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt /usr/local/incude ${TORCH_INCLUDE_DIRS} ${Qt5Widgets_INCLUDES})
+include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt /usr/local/include ${TORCH_INCLUDE_DIRS} ${Qt5Widgets_INCLUDES})
 add_library( banknoteClassifierSim SHARED ${BANCKNOTECLASSIFIER_SRC} ${BC_PLATFORM_SRC} ${OpenCV_INCLUDE} ${LIB_ETHERNETIP_FANUC_SRC} ${LIB_ETHERNETIP_FANUC_INCLUDE})
 target_compile_definitions(banknoteClassifierSim PRIVATE CALIBRATION_TOOL)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -502,9 +494,6 @@ target_link_libraries( cameraCalibration ${OpenCV_LIBS} pylonBase_MD_VC120_v5_1 
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 add_executable(bc src/Platform/Linux/Main.cpp src/Platform/Linux/RobotCtrl.cpp)
-include (GenerateExportHeader)          
-generate_export_header(banknoteClassifier BASE_NAME banknoteClassifier EXPORT_MACRO_NAME BANCKNOTECLASSIFIER_EXPORT EXPORT_FILE_NAME BanknoteClassifier_EXPORTS.h STATIC_DEFINE BANCKNOTECLASSIFIER_EXPORTS_BUILT_AS_STATIC)
-generate_export_header(banknoteClassifier BASE_NAME Process EXPORT_MACRO_NAME PROCESS_EXPORT EXPORT_FILE_NAME Process_EXPORTS.h STATIC_DEFINE PROCESS_EXPORTS_BUILT_AS_STATIC)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(bc banknoteClassifier)
 

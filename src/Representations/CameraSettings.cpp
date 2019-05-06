@@ -69,7 +69,7 @@ void CameraSettings::reg()
   REG(int,contrast);
   REG(int,saturation);
   REG(int,gain);
-  REG(int,powerLineFrequency);
+  REG(PowerLineFrequency,powerLineFrequency);
   REG(int,whiteBalanceTemperature);
   REG(int,sharpness);
   REG(int,backlightCompensation);

@@ -70,6 +70,8 @@ BanknotePositionProvider::~BanknotePositionProvider()
 
 void BanknotePositionProvider::update(BanknotePosition &banknotePosition)
 {
+  return;
+
   DECLARE_DEBUG_DRAWING("module:BanknotePositionProvider:result","drawingOnImage");
 
   //if(!theWorldCoordinatesPose.valid)
