@@ -55,7 +55,7 @@ void CorrectorCamera::useImage(unsigned int timestamp, CorrectorImage &image)
 
 void CorrectorCamera::setupCameras()
 {
-  camera = new V4lCamera("/dev/video1", theCorrectorCameraSettings);
+  camera = new V4lCamera("/dev/video0", theCorrectorCameraSettings);
 }
 
 bool CorrectorCamera::isFrameDataComplete()

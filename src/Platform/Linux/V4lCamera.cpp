@@ -40,7 +40,7 @@ V4lCamera::~V4lCamera()
 
 bool V4lCamera::captureNew()
 {
-  ASSERT(currentBuf == nullptr);
+  /*ASSERT(currentBuf == nullptr);
 
   pollfd pollfd = {fd, POLLIN | POLLPRI, 0};
   int polled = poll(&pollfd, 1, 200);
@@ -89,6 +89,45 @@ bool V4lCamera::captureNew()
   {
     OUTPUT_ERROR("strange poll results: " << pollfd.revents);
     return false;
+  }
+
+  return true;*/
+
+  // requeue the buffer of the last captured image which is obsolete now
+  if(currentBuf)
+  {
+    BH_TRACE;
+    VERIFY(ioctl(fd, VIDIOC_QBUF, currentBuf) != -1);
+  }
+  BH_TRACE;
+
+  pollfd pollfd = {fd, POLLIN | POLLPRI, 0};
+  int polled = poll(&pollfd, 1, 200); // Fail after missing 6 frames (200ms)
+  if(polled < 0)
+  {
+    OUTPUT_ERROR("Camera : Cannot poll. Reason: " << strerror(errno));
+    FAIL("Camera : Cannot poll. Reason: " << strerror(errno) << ".");
+  }
+  else if(polled == 0)
+  {
+    OUTPUT_ERROR("Camera : 200 ms passed and there's still no image to read from the camera. Terminating.");
+    return false;
+  }
+  else if(pollfd.revents & (POLLERR | POLLNVAL))
+  {
+    OUTPUT_ERROR("Camera : Polling failed.");
+    return false;
+  }
+  // dequeue a frame buffer (this call blocks when there is no new image available) */
+  VERIFY(ioctl(fd, VIDIOC_DQBUF, buf) != -1);
+  BH_TRACE;
+  currentBuf = buf;
+  timeStamp = static_cast<unsigned long long>(currentBuf->timestamp.tv_sec) * 1000000ll + currentBuf->timestamp.tv_usec;
+
+  if(first)
+  {
+    first = false;
+    printf("Camera is working\n");
   }
 
   return true;

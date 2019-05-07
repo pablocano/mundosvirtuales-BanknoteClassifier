@@ -22,6 +22,11 @@ MODULE(BanknotePositionProvider,
  REQUIRES(WorldCoordinatesPose),
  REQUIRES(CorrectorImage),
  PROVIDES(BanknotePosition),
+ DEFINES_PARAMETERS(
+ {,
+  (float)(0.75f) thresholdMatches,
+  (float)(5.f) ransacReprojThreshold,
+ }),
 });
 
 
@@ -59,7 +64,7 @@ public:
      * @param resultHomography the resulting homography between the template and the current image
      * @return the banknote detected
      */
-    int compare(cv::Mat& resultHomography, int start, int amount);
+    int compare(cv::Mat& resultHomography, int banknoteClass);
 
     /**
      * @brief analyze the resulting area given by the perpective transformation
@@ -76,7 +81,7 @@ public:
      * @param the center of mass of the inliers
      * @return the banknote detected
      */
-    static int compare(const Features& features, cv::Mat& resultHomography, int first, int last, Vector2f& massCenter);
+    static int compare(const Features& features, cv::Mat& resultHomography, int banknoteClass, Vector2f& massCenter);
 
     std::vector<cv::cuda::GpuMat> modelsImage;
     std::vector<Features> modelsFeatures;
