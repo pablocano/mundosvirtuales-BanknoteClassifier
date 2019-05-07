@@ -1,0 +1,7 @@
+classes= 4
+train  = /home/nicolas/barcode/darknet/data/trainProducts.txt
+valid  = /home/nicolas/barcode/darknet/data/testProducts.txt
+names = /home/nicolas/barcode/darknet/data/objProducts.names
+backup = /home/nicolas/barcode/darknet/backup/
+
+

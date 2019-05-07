@@ -331,7 +331,7 @@ void BanknoteTracker::selectBestHypothesis(BanknotePositionFiltered &position)
       continue;
 
     detection.summary = BanknoteDetection::stretcherOccupied;
-    if(detection.areaRatio <= 0.5f && theRobotFanucStatus.stretchOccupied)
+    if(detection.areaRatio <= 0.6f && theRobotFanucStatus.stretchOccupied)
       continue;
 
     detection.summary = BanknoteDetection::eligible;
@@ -417,7 +417,7 @@ void BanknoteTracker::selectBestHypothesis(BanknotePositionFiltered &position)
 
       lastBestDetecion = detection;
 
-      position.needEstirator = doNoStretch || detection.areaRatio > 0.5f || detection.banknoteClass.result > Classification::CINCO_S ? 0 : 1;
+      position.needEstirator = doNoStretch || detection.areaRatio > 0.6f || detection.banknoteClass.result > Classification::CINCO_S ? 0 : 1;
 
       if(useRobotStates || saveDetectionImages)
       {
@@ -460,9 +460,6 @@ void BanknoteTracker::transpose(cv::Mat src)//de (W,H,C)->(C,W,H)
       float gn=g/255.f;
       float rn=r/255.f;
 
-      bufferImgIn[0*w*h + j*w + i] = bn;//noramlizacion (valor-media)/(std*255) y transposicion
-      bufferImgIn[1*w*h + j*w + i] = gn;
-      bufferImgIn[2*w*h + j*w + i] = rn;
     }
   }
 
@@ -477,51 +474,7 @@ void BanknoteTracker::transpose(cv::Mat src)//de (W,H,C)->(C,W,H)
  *
  * @param detection: The detection
  */
-float BanknoteTracker::checkDetectionArea(const BanknoteDetection& detection)
-{
-  cv::Mat M, rotated, cropped;
 
-  ASSERT(detection.banknoteClass.result >= 0 && detection.banknoteClass.result < Classification::numOfRealBanknotes);
-  const BanknoteModel& model = models[detection.banknoteClass.result];
-
-  cv::Size rect_size = cv::Size(model.image.cols, model.image.rows);
-
-  M = cv::getRotationMatrix2D(cv::Point2f(detection.pose.translation.x(), detection.pose.translation.y()), Angle(180_deg + detection.pose.rotation).toDegrees(),  1.0);
-
-  cv::warpAffine(theImage, rotated, M, theImage.size(), cv::INTER_CUBIC);
-
-  cv::getRectSubPix(rotated, rect_size, cv::Point2f(detection.pose.translation.x(), detection.pose.translation.y()), cropped);
-
-  cv::Mat netInput;
-  cv::Mat resized;
-
-  cv::resize(cropped, resized, cv::Size(110,50), 0, 0);
-
-  transpose(resized);
-
-  auto output = (moduleTorch->forward({torch::from_blob(bufferImgIn, {1,3, 50, 110}, at::kFloat).to(at::kCUDA)}).toTensor());//inferencia de la red en cuda
-  float area= (output.data<float>())[0];
-
-
-  COMPLEX_DRAWING("module:BanknoteTracker:semantic_consistency")
-  {
-    const BanknoteModel& model = models[detection.banknoteClass.result];
-
-    Vector3f start = model.corners[BanknoteModel::CornerID::MiddleMiddle];
-    start = detection.transform * start;
-
-    std::string area_string = std::to_string(area);
-    if(area_string.length() > 4)
-      area_string = area_string.substr(0,4);
-
-    float font = 20.f;
-
-    DRAWTEXT("module:BanknoteTracker:semantic_consistency", start.x(), start.y(), font, ColorRGBA::black, area_string);
-  }
-
-  return area;
-
-}
 
 
 /**

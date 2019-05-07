@@ -21,7 +21,6 @@
 #include "Tools/Debugging/Debugging.h"
 #include "Tools/Math/Geometry.h"
 #include "Tools/Math/Random.h"
-
 #include <opencv2/core/cuda.hpp>
 #include <opencv2/cudaarithm.hpp>
 #include <opencv2/cudafeatures2d.hpp>
@@ -29,7 +28,7 @@
 #include <opencv2/highgui.hpp>
 
 #include <Eigen/Eigen>
-
+#include <darknet.h>
 #include <geos/geom/PrecisionModel.h>
 #include <geos/geom/GeometryFactory.h>
 #include <geos/geom/Geometry.h>
@@ -44,13 +43,6 @@
 #include "Tools/ModuleManager/Module.h"
 
 //#define _GLIBCXX_USE_CXX11_ABI 0
-
-//pytorch
-#include <torch/script.h>
-#include <torch/csrc/jit/import.h>
-#include <torch/torch.h>
-#include <torch/csrc/api/include/torch/jit.h>
-//pytorchEnd
 
 //#define _GLIBCXX_USE_CXX11_ABI 1
 
@@ -68,19 +60,24 @@ class SemanticSeg : public SemanticSegBase
 {
 public:
     SemanticSeg();
-    std::shared_ptr<torch::jit::script::Module> moduleTorch;
-
+    network net;
 
 private:
 
     void update(SegmentedImage &image);
-    torch::DeviceType device_type;
-    at::Tensor output;
+
     void transpose(cv::Mat src);
+    void transposeToMat(cv::Mat tarjet, image source);
     void colored(cv::Mat src, cv::Mat colored);
     float* bufferImgIn;
     double alpha; double beta; double input;
     std::vector<cv::Vec3b> coloursMap;
+    float thresh;
+    float hier_thresh;
+    char **names;
+    int fullscreen;
+    char *outfile;
+    image **alphabet;
 
 
 };

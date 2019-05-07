@@ -39,10 +39,6 @@
 #include <geos/geom/CoordinateArraySequence.h>
 
 //pytorch
-#include <torch/script.h>
-#include <torch/csrc/jit/import.h>
-#include <torch/torch.h>
-#include <torch/csrc/api/include/torch/jit.h>
 //pytorchEnd
 
 MODULE(BanknoteTracker,
@@ -100,7 +96,7 @@ protected:
 
     void saveDetectionImage(const BanknoteDetection& detection);
     void transpose(cv::Mat src);
-    float checkDetectionArea(const BanknoteDetection& detection);
+
 
     void saveRandomDetectionImage(const BanknoteDetection& detection);
     void setNewDetection(int detectionIndex, const BanknoteDetection& detection);
@@ -135,9 +131,4 @@ protected:
     ColorRGBA debugColors[Classification::numOfRealBanknotes];
     int saveDetectionImagesIndex[Classification::numOfRealBanknotes];
     int saveRandomDetectionImagesIndex[Classification::numOfRealBanknotes];
-
-    std::shared_ptr<torch::jit::script::Module> moduleTorch;
-    torch::DeviceType device_type;
-    float* bufferImgIn;
-    at::Tensor output;
 };

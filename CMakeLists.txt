@@ -4,11 +4,23 @@ PROJECT (BanknoteClassifier)
 find_package(OpenCV 4 REQUIRED)
 find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-
 find_package(CUDA 9.0 REQUIRED)
 message(STATUS "Found CUDA ${CUDA_VERSION_STRING} at ${CUDA_TOOLKIT_ROOT_DIR}")
 
-find_package(Torch REQUIRED PATHS Utils/libtorch/)#pytorch
+if (CUDA_FOUND)
+    add_definitions(-DGPU)
+    add_definitions(-DCUDNN)
+    include_directories(${CUDA_INCLUDE_DIRS})
+else()
+    list(APPEND LIBRARIES "m")
+    message(STATUS "CUDA not found")
+endif()
+
+#find_package(Torch REQUIRED PATHS Utils/libtorch/)#pytorch
+
+find_library(DARKNETLIB darknet PATHS Utils/darknet/lib/)
+set(DARKNET_INCLUDE_DIR Utils/darknet/include)
+include_directories(${DARKNET_INCLUDE_DIR} include)
 
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 
@@ -404,7 +416,7 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 message(STATUS ${EIGEN3_INCLUDE_DIR})
 
-include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt /usr/local/incude ${TORCH_INCLUDE_DIRS})
+include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt /usr/local/incude ${DARKNET_INCLUDE_DIR})
 
 message(STATUS "Pylon dir find in " ${PYLON_ROOT})
 
@@ -412,7 +424,7 @@ add_library( banknoteClassifier SHARED ${BANCKNOTECLASSIFIER_SRC} ${OpenCV_INCLU
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1 geos)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-target_link_libraries( banknoteClassifier ${OpenCV_LIBS} "${TORCH_LIBRARIES}" Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1 geos)
+target_link_libraries( banknoteClassifier ${OpenCV_LIBS} "${DARKNETLIB}" Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1 geos)
 ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 target_link_libraries( banknoteClassifier ${OpenCV_LIBS} Eigen3::Eigen PylonBase_MD_VC120_v5_1 PylonUtility_MD_VC120_v5_1 GenApi_MD_VC120_v3_0_Basler_pylon_v5_1 GCBase_MD_VC120_v3_1_Basler_pylon_v5_1 ws2_32 winmm geos)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -422,7 +434,7 @@ target_compile_definitions(banknoteClassifierSim PRIVATE CALIBRATION_TOOL)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 target_link_libraries( banknoteClassifierSim ${OpenCV_LIBS} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1 geos)
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-target_link_libraries( banknoteClassifierSim ${OpenCV_LIBS} ${TORCH_LIBRARIES} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1 geos)
+target_link_libraries( banknoteClassifierSim ${OpenCV_LIBS} ${DARKNETLIB} Eigen3::Eigen pylonbase pylonutility GenApi_gcc_v3_1_Basler_pylon_v5_1 GCBase_gcc_v3_1_Basler_pylon_v5_1 geos)
 ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 target_link_libraries( banknoteClassifierSim ${OpenCV_LIBS} Eigen3::Eigen PylonBase_MD_VC120_v5_1 PylonUtility_MD_VC120_v5_1 GenApi_MD_VC120_v3_0_Basler_pylon_v5_1 GCBase_MD_VC120_v3_1_Basler_pylon_v5_1 ws2_32 winmm geos)
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

@@ -18,42 +18,47 @@ MAKE_MODULE(SemanticSeg, BanknoteClassifier)
 SemanticSeg::SemanticSeg()
 {
 
-    if (torch::cuda::is_available())//hay gpu
-    {
-        string darknetFolder = string(File::getBCDir()) + "/Config/LibTorch/";
-        const string traceFile = darknetFolder + "billetatorSegmentor.pt";
-        device_type = torch::kCUDA;
-        torch::Device device(device_type);
-        moduleTorch = torch::jit::load(traceFile);//parseo
-        moduleTorch->to(at::kCUDA);//modelo a cuda
+        char* datacfg = "/home/nicolas/barcode/mundosvirtuales-BanknoteClassifier/Config/Darknet/cfg/products.data";
 
-        bufferImgIn= (float *)malloc(1024*1024*3 * sizeof(float));//espacio de entrada
+
+
+
+        int names_size = 0;
+        list *options = read_data_cfg(datacfg);
+        char *name_list = option_find_str(options, "names", "data/names.list");
+        names = get_labels_custom(name_list, &names_size); //get_labels(name_list);
+
+        thresh = 0.25;
+        hier_thresh = 0.5f;
+        fullscreen = 0;
+
+        alphabet = load_alphabet();
+        char* cfgfile = "/home/nicolas/barcode/mundosvirtuales-BanknoteClassifier/Config/Darknet/cfg/yolov3-tiny-products.cfg";
+        net=parse_network_cfg_custom(cfgfile, 1); // set batch=1
+        char* weightfile = "/home/nicolas/barcode/mundosvirtuales-BanknoteClassifier/Config/Darknet/weights/yolov3-tiny-products_92000.weights";
+        load_weights(&net, weightfile);
+
+
+        fuse_conv_batchnorm(net);
+        calculate_binary_weights(net);
+
+        if (net.layers[net.n - 1].classes != names_size) {
+            printf(" Error: in the file %s number of names %d that isn't equal to classes=%d in the file %s \n",
+                name_list, names_size, net.layers[net.n - 1].classes, cfgfile);
+            if (net.layers[net.n - 1].classes > names_size) getchar();
+        }
+
+
+
+
+
+        bufferImgIn= (float *)malloc(416*416*3 * sizeof(float));//espacio de entrada
 
         alpha = 0.3;//que tan transparente son los labels
         beta = ( 1.0 - alpha );
-    }
-    else
-    {
-        ASSERT(false);
-    }
-
-    ASSERT(moduleTorch != nullptr);
-    cv::Vec3b container;
-    container={0,255,0};
-    coloursMap.push_back(container);
-
-    container={255,0,255};
-    coloursMap.push_back(container);
-
-    container={0,0,255};
-    coloursMap.push_back(container);
-
-    container={255,0,0};
-    coloursMap.push_back(container);
-
-    container={0,255,255};
-    coloursMap.push_back(container);
 }
+
+
 
 void SemanticSeg::transpose(cv::Mat src)//de (W,H,C)->(C,W,H)
 {
@@ -68,9 +73,33 @@ void SemanticSeg::transpose(cv::Mat src)//de (W,H,C)->(C,W,H)
             unsigned char g = src.at<cv::Vec3b>(j, i)[1];
             unsigned char r = src.at<cv::Vec3b>(j, i)[2];
 
-            bufferImgIn[0*w*h + j*w + i] = (b-114.25576f)/(255.f*52.64641f);//noramlizacion (valor-media)/(std*255) y transposicion
-            bufferImgIn[1*w*h + j*w + i] = (g-119.12578f)/(255.f*44.85764f);
-            bufferImgIn[2*w*h + j*w + i] = (r-119.85714f)/(255.f*46.682106f);
+            bufferImgIn[0*w*h + j*w + i] = (r)/(255.f);//noramlizacion (valor-media)/(std*255) y transposicion
+            bufferImgIn[1*w*h + j*w + i] = (g)/(255.f);
+            bufferImgIn[2*w*h + j*w + i] = (b)/(255.f);
+        }
+    }
+
+    return;
+}
+
+
+
+void SemanticSeg::transposeToMat(cv::Mat tarjet, image source)//de (W,H,C)->(C,W,H)
+{
+    int h = tarjet.rows;
+    int w = tarjet.cols;
+
+    for(int j = 0; j < h; j++)
+    {
+        for(int i = 0; i < w; i++)
+        {
+            float b = source.data[2*w*h + j*w + i];
+            float g = source.data[1*w*h + j*w + i];
+            float r = source.data[0*w*h + j*w + i];
+
+            tarjet.at<cv::Vec3b>(j, i)[2] = (unsigned char)((r)*(255.f));//noramlizacion (valor-media)/(std*255) y transposicion
+            tarjet.at<cv::Vec3b>(j, i)[1] = (unsigned char)((g)*(255.f));
+            tarjet.at<cv::Vec3b>(j, i)[0] = (unsigned char)((b)*(255.f));
         }
     }
 
@@ -112,43 +141,87 @@ void SemanticSeg::update(SegmentedImage &image)
     cv::Mat netInput;
     cv::Mat resized;
 
-    cv::resize(theImage, resized, cv::Size(1024,1024), 0, 0);
+    cv::resize(theImage, resized, cv::Size(416,416), 0, 0, cv::INTER_AREA);
     //imwrite("background.png",theImage);
     transpose(resized);
 
-    auto output = (moduleTorch->forward({torch::from_blob(bufferImgIn, {1,3, 1024, 1024}, at::kFloat).to(at::kCUDA)}).toTensor());//inferencia de la red en cuda
+    struct image im;
+    im.h = net.h;
+    im.w = net.w;
+    im.c = net.c;
+    im.data = bufferImgIn;
 
-    cv::Mat netOut(1024,1024, CV_8U);
 
 
-    image.map.resize(Classification::numOfBanknotes);
-    image.map[Classification::NONE] = 0;
-    image.map[Classification::UNO_C] = 1;
-    image.map[Classification::UNO_S] = 1;
-    image.map[Classification::DOS_C] = 2;
-    image.map[Classification::DOS_S] = 2;
-    image.map[Classification::CINCO_C] = 3;
-    image.map[Classification::CINCO_S] = 3;
-    image.map[Classification::DIEZ_C] = 4;
-    image.map[Classification::DIEZ_S] = 4;
-    image.map[Classification::VEINTE_C] = 5;
-    image.map[Classification::VEINTE_S] = 5;
 
-    // de aca en adelante todo es dibujos
-    netOut.data = output.data<unsigned char>();
-    image = netOut.clone();
+    srand(2222222);
+    char buff[256];
+    int j;
+    float nms=.3;
+    //std::vector<boundingBox> bBoxes;
+
+    int letterbox = 0;
+    layer l = net.layers[net.n-1];
+
+    float *X = im.data;
+    network_predict(net, X);
+    int nboxes = 0;
+    int aa=0;
+    detection *dets = get_network_boxes(&net, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes, letterbox);
+    if (nms)
+        do_nms_sort(dets, nboxes, l.classes, nms);
+
+
+    draw_detections_v3(im, dets, nboxes, thresh, names, alphabet, l.classes, 0);
+
+    free_detections(dets, nboxes);
+
+    /*qsort(dets, nboxes, sizeof(*dets), compare_by_lefts);
+
+    std::vector<detection> dets_norm;
+
+    int i;
+    for (i = 0; i < nboxes; ++i) {
+        int class_id = -1;
+        float prob = 0;
+        for (j = 0; j < l.classes; ++j) {
+            if (dets[i].prob[j] > thresh && dets[i].prob[j] > prob) {
+                prob = dets[i].prob[j];
+                class_id = j;
+            }
+        }
+        if (class_id >= 0) {
+            dets[i].sort_class=class_id;
+            dets_norm.push_back(dets[i]);
+        }
+    }
+    free_detections(dets, nboxes);*/
+
+
+
+    //image = netOut.clone();
+
 
     COMPLEX_IMAGE("semanticSegmentation")
     {
-        cv::Mat imageRGB(1024,1024, CV_8UC3);//(theImage.rows,theImage.cols, CV_8UC3);
+        cv::Mat imageRGB(416,416, CV_8UC3);//(theImage.rows,theImage.cols, CV_8UC3);
+        cv::Mat imageFinal(2000,2000, CV_8UC3);
         imageRGB=0;
-        cv::resize(netOut, netOut,  cv::Size(1024,1024), 0, 0, cv::INTER_NEAREST);//nearest para no perder la clase
-        colored(netOut,imageRGB);//obtener imagen coloreada
-        cv::Mat BGRResized;
-        cv::resize(theImage, BGRResized,  cv::Size(1024,1024), 0, 0);
-        addWeighted( imageRGB, alpha, BGRResized, beta, 0.0, imageRGB);//superponer imagenes
+        transposeToMat(imageRGB, im);
+        cv::resize(imageRGB, imageFinal, cv::Size(2000,2000), 0, 0, cv::INTER_CUBIC);
 
-        SEND_DEBUG_IMAGE("semanticSegmentation", imageRGB);
+        //cv::resize(im, im,  cv::Size(1024,1024), 0, 0, cv::INTER_NEAREST);//nearest para no perder la clase
+        //colored(im,imageRGB);//obtener imagen coloreada
+        //cv::Mat BGRResized;
+        //cv::resize(theImage, BGRResized,  cv::Size(1024,1024), 0, 0);
+        //addWeighted( imageRGB, alpha, BGRResized, beta, 0.0, imageRGB);//superponer imagenes
+
+        SEND_DEBUG_IMAGE("semanticSegmentation", imageFinal);
     }
 
 }
+
+
+
+
+
