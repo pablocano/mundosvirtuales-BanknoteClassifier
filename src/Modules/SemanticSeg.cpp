@@ -1,4 +1,4 @@
-
+﻿
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -34,15 +34,18 @@ SemanticSeg::SemanticSeg()
 
         alphabet = load_alphabet();
         char* cfgfile = "/home/nicolas/barcode/mundosvirtuales-BanknoteClassifier/Config/Darknet/cfg/yolov3-tiny-products.cfg";
-        net=parse_network_cfg_custom(cfgfile, 1); // set batch=1
+        net=parse_network_cfg_custom(cfgfile, 1,1); // set batch=1
+
         char* weightfile = "/home/nicolas/barcode/mundosvirtuales-BanknoteClassifier/Config/Darknet/weights/yolov3-tiny-products_92000.weights";
         load_weights(&net, weightfile);
-
+        int aaa=net.layers[net.n - 1].classes;
 
         fuse_conv_batchnorm(net);
         calculate_binary_weights(net);
 
+
         if (net.layers[net.n - 1].classes != names_size) {
+            ASSERT(false);
             printf(" Error: in the file %s number of names %d that isn't equal to classes=%d in the file %s \n",
                 name_list, names_size, net.layers[net.n - 1].classes, cfgfile);
             if (net.layers[net.n - 1].classes > names_size) getchar();
@@ -53,9 +56,6 @@ SemanticSeg::SemanticSeg()
 
 
         bufferImgIn= (float *)malloc(416*416*3 * sizeof(float));//espacio de entrada
-
-        alpha = 0.3;//que tan transparente son los labels
-        beta = ( 1.0 - alpha );
 }
 
 
@@ -131,6 +131,13 @@ void SemanticSeg::colored(cv::Mat src, cv::Mat colored) //Obtener colores en RGB
     return;
 }
 
+int compare_by_lefts(const void *a_ptr, const void *b_ptr) {
+    const detection* a = (detection*)a_ptr;
+    const detection* b = (detection*)b_ptr;
+    const float delta = (a->bbox.x - a->bbox.w/2) - (b->bbox.x - b->bbox.w/2);
+    return delta < 0 ? -1 : delta > 0 ? 1 : 0;
+}
+
 void SemanticSeg::update(SegmentedImage &image)
 {
     DECLARE_DEBUG_DRAWING("module:SemanticSeg:enable", "drawingOnImage");
@@ -138,7 +145,6 @@ void SemanticSeg::update(SegmentedImage &image)
     if(theImage.empty())
       return;
 
-    cv::Mat netInput;
     cv::Mat resized;
 
     cv::resize(theImage, resized, cv::Size(416,416), 0, 0, cv::INTER_AREA);
@@ -157,26 +163,23 @@ void SemanticSeg::update(SegmentedImage &image)
     srand(2222222);
     char buff[256];
     int j;
-    float nms=.3;
+    float nms=.45;
     //std::vector<boundingBox> bBoxes;
-
+    struct image sized = resize_image(im, net.w, net.h);
+    save_image(sized, "imleft");
     int letterbox = 0;
     layer l = net.layers[net.n-1];
 
-    float *X = im.data;
+    float *X = sized.data;
     network_predict(net, X);
     int nboxes = 0;
-    int aa=0;
     detection *dets = get_network_boxes(&net, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes, letterbox);
     if (nms)
         do_nms_sort(dets, nboxes, l.classes, nms);
 
 
     draw_detections_v3(im, dets, nboxes, thresh, names, alphabet, l.classes, 0);
-
-    free_detections(dets, nboxes);
-
-    /*qsort(dets, nboxes, sizeof(*dets), compare_by_lefts);
+    qsort(dets, nboxes, sizeof(*dets), compare_by_lefts);
 
     std::vector<detection> dets_norm;
 
@@ -195,11 +198,8 @@ void SemanticSeg::update(SegmentedImage &image)
             dets_norm.push_back(dets[i]);
         }
     }
-    free_detections(dets, nboxes);*/
+    free_detections(dets, nboxes);
 
-
-
-    //image = netOut.clone();
 
 
     COMPLEX_IMAGE("semanticSegmentation")
@@ -218,9 +218,18 @@ void SemanticSeg::update(SegmentedImage &image)
 
         SEND_DEBUG_IMAGE("semanticSegmentation", imageFinal);
     }
+    //free_image(im);
+    //free_image(sized);
+
 
 }
 
+
+void SemanticSeg::draw(cv::Mat src, cv::Mat colored) //Obtener colores en RGB solo para debugeo
+{
+
+    return;
+}
 
 
 

@@ -357,17 +357,17 @@ set( LIBQXT_SRC
 
 
 set( LIB_ETHERNETIP_FANUC_SRC
-	src/Tools/Fanuc/PositionRegisterCartesian.cpp
-	src/Tools/Fanuc/PositionRegisterJoint.cpp
-	src/Tools/Comm/TcpComm.cpp
+        src/Tools/Fanuc/PositionRegisterCartesian.cpp
+        src/Tools/Fanuc/PositionRegisterJoint.cpp
+        src/Tools/Comm/TcpComm.cpp
 )
 
 set( LIB_ETHERNETIP_FANUC_INCLUDE
-	src/Tools/Fanuc/PositionRegisterCartesian.h
+        src/Tools/Fanuc/PositionRegisterCartesian.h
         src/Tools/Fanuc/PositionRegisterJoint.h
         src/Tools/Fanuc/PacketEthernetIPFanuc.cpp
-	src/Tools/Fanuc/PacketEthernetIPFanuc.h
-	src/Tools/Comm/TcpComm.h
+        src/Tools/Fanuc/PacketEthernetIPFanuc.h
+        src/Tools/Comm/TcpComm.h
 )
 
 source_group(src\\Processes REGULAR_EXPRESSION "src/Processes/*")
@@ -390,11 +390,11 @@ source_group(Utils\\VisionTool REGULAR_EXPRESSION "Utils/VisionTool/*")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 IF(WIN32)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Zm200 -wd4503")
-	add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS)
-	message(STATUS "Windows computer")
-	SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:msvcrt.lib")
-	SET(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:msvcrt.lib")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Zm200 -wd4503")
+        add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS)
+        message(STATUS "Windows computer")
+        SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:msvcrt.lib")
+        SET(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:msvcrt.lib")
 ENDIF(WIN32)
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -459,7 +459,7 @@ target_link_libraries( cameraCalibration ${OpenCV_LIBS} pylonBase_MD_VC120_v5_1 
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 add_executable(bc src/Processes/main.cpp)
-include (GenerateExportHeader)          
+include (GenerateExportHeader)
 generate_export_header(banknoteClassifier BASE_NAME banknoteClassifier EXPORT_MACRO_NAME BANCKNOTECLASSIFIER_EXPORT EXPORT_FILE_NAME BanknoteClassifier_EXPORTS.h STATIC_DEFINE BANCKNOTECLASSIFIER_EXPORTS_BUILT_AS_STATIC)
 generate_export_header(banknoteClassifier BASE_NAME Process EXPORT_MACRO_NAME PROCESS_EXPORT EXPORT_FILE_NAME Process_EXPORTS.h STATIC_DEFINE PROCESS_EXPORTS_BUILT_AS_STATIC)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
@@ -477,4 +477,3 @@ target_link_libraries( calibrationTool banknoteClassifierSim libqxt qtpropertybr
 ELSE(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 target_link_libraries( calibrationTool banknoteClassifierSim libqxt qtpropertybrowser ${Qt5Widgets_LIBRARIES})
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-

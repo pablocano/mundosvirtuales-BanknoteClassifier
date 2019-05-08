@@ -5,15 +5,18 @@
 #define inline __inline
 #endif
 
+#if defined(DEBUG) && !defined(_CRTDBG_MAP_ALLOC)
+#define _CRTDBG_MAP_ALLOC
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <pthread.h>
 #include <stdint.h>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/features2d/features2d.hpp>
+#include <assert.h>
+#include <pthread.h>
 
+#ifndef LIB_API
 #ifdef LIB_EXPORTS
 #if defined(_MSC_VER)
 #define LIB_API __declspec(dllexport)
@@ -27,9 +30,12 @@
 #define LIB_API
 #endif
 #endif
+#endif
+
+#define NFRAMES 3
+#define SECRET_NUM -1234
 
 #ifdef GPU
-#define BLOCK 512
 
 #include "cuda_runtime.h"
 #include "curand.h"
@@ -48,7 +54,7 @@ struct network;
 typedef struct network network;
 
 struct network_state;
-typedef struct network_state;
+typedef struct network_state network_state;
 
 struct layer;
 typedef struct layer layer;
@@ -71,8 +77,6 @@ typedef struct metadata metadata;
 struct tree;
 typedef struct tree tree;
 
-
-#define SECRET_NUM -1234
 extern int gpu_index;
 
 // option_list.h
@@ -367,7 +371,9 @@ struct layer {
     float *c_cpu;
     float *dc_cpu;
 
-    float * binary_input;
+    float *binary_input;
+    uint32_t *bin_re_packed_input;
+    char *t_bit_input;
 
     struct layer *input_layer;
     struct layer *self_layer;
@@ -459,6 +465,8 @@ struct layer {
 
     float *binary_input_gpu;
     float *binary_weights_gpu;
+    float *bin_conv_shortcut_in_gpu;
+    float *bin_conv_shortcut_out_gpu;
 
     float * mean_gpu;
     float * variance_gpu;
@@ -514,7 +522,7 @@ struct layer {
 
 // network.h
 typedef enum {
-    CONSTANT, STEP, EXP, POLY, STEPS, SIG, RANDOM
+    CONSTANT, STEP, EXP, POLY, STEPS, SIG, RANDOM, SGDR
 } learning_rate_policy;
 
 // network.h
@@ -530,6 +538,9 @@ typedef struct network {
     learning_rate_policy policy;
 
     float learning_rate;
+    float learning_rate_min;
+    float learning_rate_max;
+    int batches_per_cycle;
     float momentum;
     float decay;
     float gamma;
@@ -566,7 +577,9 @@ typedef struct network {
     float saturation;
     float hue;
     int random;
-    int small_object;
+    int track;
+    int augment_speed;
+    int try_fix_nan;
 
     int gpu_index;
     tree *hierarchy;
@@ -641,10 +654,6 @@ typedef struct box {
     float x, y, w, h;
 } box;
 
-typedef struct boxD{
-    float x, y, z, w, h;
-} boxD;
-
 // box.h
 typedef struct detection{
     box bbox;
@@ -654,16 +663,6 @@ typedef struct detection{
     float objectness;
     int sort_class;
 } detection;
-
-typedef struct detectionD{
-    boxD bbox;
-    int classes;
-    float *prob;
-    float *mask;
-    float objectness;
-    int sort_class;
-    int cluster_num;
-} detectionD;
 
 // matrix.h
 typedef struct matrix {
@@ -708,7 +707,10 @@ typedef struct load_args {
     int scale;
     int center;
     int coords;
-    int small_object;
+    int mini_batch;
+    int track;
+    int augment_speed;
+    int show_imgs;
     float jitter;
     int flip;
     float angle;
@@ -737,7 +739,7 @@ typedef struct node {
     struct node *prev;
 } node;
 
-// list.h
+ //list.h
 typedef struct list {
     int size;
     node *front;
@@ -752,6 +754,7 @@ LIB_API network *load_network(char *cfg, char *weights, int clear);
 LIB_API network *load_network_custom(char *cfg, char *weights, int clear, int batch);
 LIB_API network *load_network(char *cfg, char *weights, int clear);
 
+LIB_API void load_weights(network *net, char *filename);
 // network.c
 LIB_API load_args get_base_args(network *net);
 
@@ -761,6 +764,7 @@ LIB_API void do_nms_obj(detection *dets, int total, int classes, float thresh);
 
 // network.h
 LIB_API float *network_predict(network net, float *input);
+LIB_API float *network_predict_ptr(network *net, float *input);
 LIB_API detection *get_network_boxes(network *net, int w, int h, float thresh, float hier, int *map, int relative, int *num, int letter);
 LIB_API void free_detections(detection *dets, int n);
 LIB_API void fuse_conv_batchnorm(network net);
@@ -772,8 +776,8 @@ LIB_API layer* get_network_layer(network* net, int i);
 LIB_API detection *make_network_boxes(network *net, float thresh, int *num);
 LIB_API void reset_rnn(network *net);
 LIB_API float *network_predict_image(network *net, image im);
-LIB_API float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, float thresh_calc_avg_iou, const float iou_thresh, network *existing_net);
-LIB_API void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, int ngpus, int clear, int dont_show, int calc_map, int mjpeg_port);
+LIB_API float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, float thresh_calc_avg_iou, const float iou_thresh, const int map_points, network *existing_net);
+LIB_API void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, int ngpus, int clear, int dont_show, int calc_map, int mjpeg_port, int show_imgs);
 LIB_API void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filename, float thresh,
     float hier_thresh, int dont_show, int ext_output, int save_labels, char *outfile);
 LIB_API int network_width(network *net);
@@ -782,28 +786,15 @@ LIB_API void optimize_picture(network *net, image orig, int max_layer, float sca
 
 // image.h
 LIB_API image resize_image(image im, int w, int h);
+LIB_API void copy_image_from_bytes(image im, char *pdata);
 LIB_API image letterbox_image(image im, int w, int h);
 LIB_API void rgbgr_image(image im);
 LIB_API image make_image(int w, int h, int c);
 LIB_API image load_image_color(char *filename, int w, int h);
 LIB_API void free_image(image m);
-LIB_API float get_color(int a,int b,int c);
 LIB_API image **load_alphabet();
-LIB_API void draw_box_width(image a, int x1, int y1, int x2, int y2, int w, float r, float g, float b);
-LIB_API image get_label_v3(image **characters, char *string, int size);
-LIB_API void draw_label(image a, int r, int c, image label, const float *rgb);
-LIB_API void save_image(image im, const char *name);
-LIB_API char *option_find_str(list *l, char *key, char *def);
-LIB_API char **get_labels_custom(char *filename, int *size);
-LIB_API network parse_network_cfg_custom(char *filename, int batch);
-LIB_API void load_weights(network *net, char *filename);
-LIB_API void free_network(network *net);
-LIB_API image copy_image(image p);
-LIB_API image crop_image(image im, int dx, int dy, int w, int h);
-LIB_API image grayscale_image(image im);
-//LIB_API void show_image_cv_ipl(IplImage *disp, const char *name);
-//LIB_API image get_image_from_stream_resize(CvCapture *cap, int w, int h, int c, IplImage** in_img, int cpp_video_capture, int dont_close);
 LIB_API void draw_detections_v3(image im, detection *dets, int num, float thresh, char **names, image **alphabet, int classes, int ext_output);
+LIB_API void save_image(image im, const char *name);
 // layer.h
 LIB_API void free_layer(layer);
 
@@ -811,11 +802,12 @@ LIB_API void free_layer(layer);
 LIB_API void free_data(data d);
 LIB_API pthread_t load_data(load_args args);
 LIB_API pthread_t load_data_in_thread(load_args args);
-LIB_API list *read_data_cfg(char *filename);
-// cuda.h
+LIB_API char **get_labels_custom(char *filename, int *size);
+// dark_cuda.h
 LIB_API void cuda_pull_array(float *x_gpu, float *x, size_t n);
 LIB_API void cuda_pull_array_async(float *x_gpu, float *x, size_t n);
 LIB_API void cuda_set_device(int n);
+LIB_API void *cuda_get_context();
 
 // utils.h
 LIB_API void free_ptrs(void **ptrs, int n);
@@ -826,9 +818,11 @@ LIB_API tree *read_tree(char *filename);
 
 // option_list.h
 LIB_API metadata get_metadata(char *file);
-
-
+LIB_API list *read_data_cfg(char *filename);
+LIB_API char *option_find_str(list *l, char *key, char *def);
 // http_stream.h
+LIB_API void delete_json_sender();
+LIB_API void send_json_custom(char const* send_buf, int port, int timeout);
 LIB_API double get_time_point();
 void start_timer();
 void stop_timer();
@@ -836,7 +830,7 @@ double get_time();
 void stop_timer_and_show();
 void stop_timer_and_show_name(char *name);
 void show_total_time();
-
+LIB_API network parse_network_cfg_custom(char *filename, int batch, int time_steps);
 #ifdef __cplusplus
 }
 #endif  // __cplusplus
