@@ -65,7 +65,7 @@ class SemanticSeg : public SemanticSegBase
 public:
     SemanticSeg();
     network net;
-
+    network netV3;
 private:
 
     void update(SegmentedImage &image);
@@ -74,15 +74,22 @@ private:
     void transposeToMat(cv::Mat tarjet, image source);
     void colored(cv::Mat src, cv::Mat colored);
     void draw(std::vector<detection> dets_norm);
-    float* bufferImgIn;
+    void predict(std::vector<detection>& dets_norm, network choosenNet);
+
     double alpha; double beta; double input;
     std::vector<cv::Vec3b> coloursMap;
     float thresh;
     float hier_thresh;
-    char **names;
+
     int fullscreen;
     char *outfile;
     image **alphabet;
-    struct image im;
 
+    struct image im;
+    float* bufferImgIn;
+    char **names;
+
+    struct image imV3;
+    float* bufferImgInV3;
+    char **namesV3;
 };
