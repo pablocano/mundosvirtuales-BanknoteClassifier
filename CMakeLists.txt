@@ -18,9 +18,11 @@ endif()
 
 #find_package(Torch REQUIRED PATHS Utils/libtorch/)#pytorch
 
-find_library(DARKNETLIB darknet PATHS Utils/darknet/lib/)
-set(DARKNET_INCLUDE_DIR Utils/darknet/include)
-include_directories(${DARKNET_INCLUDE_DIR} include)
+#find_package(Darknet REQUIRED PATHS Utils/darknet)
+
+#find_library(DARKNETLIB darknet PATHS Utils/darknet/lib/)
+#set(DARKNET_INCLUDE_DIR Utils/darknet/include)
+#include_directories(${DARKNET_INCLUDE_DIR} include)
 
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 
