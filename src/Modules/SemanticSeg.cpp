@@ -141,7 +141,7 @@ int compare_by_lefts(const void *a_ptr, const void *b_ptr) {
 
 void SemanticSeg::update(SegmentedImage &image)
 {
-    DECLARE_DEBUG_DRAWING("module:SemanticSeg:enable", "drawingOnImage");
+    DECLARE_DEBUG_DRAWING("module:SemanticSeg", "drawingOnImage");
 
     if(theImage.empty())
       return;
@@ -176,7 +176,7 @@ void SemanticSeg::update(SegmentedImage &image)
         do_nms_sort(dets, nboxes, l.classes, nms);
 
 
-    draw_detections_v3(im, dets, nboxes, thresh, names, alphabet, l.classes, 0);
+    //draw_detections_v3(im, dets, nboxes, thresh, names, alphabet, l.classes, 0);
     qsort(dets, nboxes, sizeof(*dets), compare_by_lefts);
 
     std::vector<detection> dets_norm;
@@ -199,32 +199,43 @@ void SemanticSeg::update(SegmentedImage &image)
     free_detections(dets, nboxes);
 
 
-
-    COMPLEX_IMAGE("semanticSegmentation")
-    {
-        cv::Mat imageRGB(net.h,net.w, CV_8UC3);//(theImage.rows,theImage.cols, CV_8UC3);
-        cv::Mat imageFinal(2000,2000, CV_8UC3);
-        imageRGB=0;
-        transposeToMat(imageRGB, im);
-        cv::resize(imageRGB, imageFinal, cv::Size(2000,2000), 0, 0, cv::INTER_CUBIC);
-
-        //cv::resize(im, im,  cv::Size(1024,1024), 0, 0, cv::INTER_NEAREST);//nearest para no perder la clase
-        //colored(im,imageRGB);//obtener imagen coloreada
-        //cv::Mat BGRResized;
-        //cv::resize(theImage, BGRResized,  cv::Size(1024,1024), 0, 0);
-        //addWeighted( imageRGB, alpha, BGRResized, beta, 0.0, imageRGB);//superponer imagenes
-
-        SEND_DEBUG_IMAGE("semanticSegmentation", imageFinal);
-    }
     //free_image(im);
-
+    draw(dets_norm);
 
 }
 
 
-void SemanticSeg::draw(cv::Mat src, cv::Mat colored) //Obtener colores en RGB solo para debugeo
+void SemanticSeg::draw(std::vector<detection> dets_norm) //Obtener colores en RGB solo para debugeo
 {
 
+    int imageHeight=2000;
+    int imageWidth=2000;
+    if (width < 1)
+        width = 1;
+    for(int j=0;j<dets_norm.size();j++)
+    {
+       box b = dets_norm[j].bbox;
+
+       int leftImg  = (b.x-b.w/2.f)*imageWidth;
+       int rightImg = (b.x+b.w/2.f)*imageWidth;
+       int topImg   = (b.y-b.h/2.f)*imageHeight;
+       int botImg   = (b.y+b.h/2.f)*imageHeight;
+
+       if(leftImg < 0) leftImg = 0;
+       if(rightImg > imageHeight-1) rightImg = imageHeight-1;
+       if(topImg < 0) topImg = 0;
+       if(botImg > imageWidth-1) botImg = imageWidth-1;
+
+
+       LINE("module:SemanticSeg", leftImg, topImg , leftImg, botImg, 3, Drawings::solidPen, ColorRGBA::green );
+       LINE("module:SemanticSeg", leftImg, botImg , rightImg, botImg, 3, Drawings::solidPen, ColorRGBA::green );
+       LINE("module:SemanticSeg", rightImg, topImg , rightImg, botImg, 3, Drawings::solidPen, ColorRGBA::green );
+       LINE("module:SemanticSeg", leftImg, topImg , rightImg, topImg, 3, Drawings::solidPen, ColorRGBA::green );
+
+
+    }
+
+    // 3 channels RGB
     return;
 }
 

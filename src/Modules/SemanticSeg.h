@@ -73,7 +73,7 @@ private:
     void transpose(cv::Mat src);
     void transposeToMat(cv::Mat tarjet, image source);
     void colored(cv::Mat src, cv::Mat colored);
-    void draw(cv::Mat src, cv::Mat colored);
+    void draw(std::vector<detection> dets_norm);
     float* bufferImgIn;
     double alpha; double beta; double input;
     std::vector<cv::Vec3b> coloursMap;
