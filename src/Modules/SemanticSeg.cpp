@@ -210,8 +210,6 @@ void SemanticSeg::draw(std::vector<detection> dets_norm) //Obtener colores en RG
 
     int imageHeight=2000;
     int imageWidth=2000;
-    if (width < 1)
-        width = 1;
     for(int j=0;j<dets_norm.size();j++)
     {
        box b = dets_norm[j].bbox;
