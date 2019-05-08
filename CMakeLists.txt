@@ -20,9 +20,14 @@ endif()
 
 #find_package(Darknet REQUIRED PATHS Utils/darknet)
 
-#find_library(DARKNETLIB darknet PATHS Utils/darknet/lib/)
-#set(DARKNET_INCLUDE_DIR Utils/darknet/include)
-#include_directories(${DARKNET_INCLUDE_DIR} include)
+find_library(DARKNETLIB darknet PATHS Utils/darknet/)
+set(DARKNET_INCLUDE_DIR Utils/darknet/include)
+include_directories(${DARKNET_INCLUDE_DIR} include)
+
+
+set(DARKNET_INCLUDE_DIR Utils/darknet/src)
+include_directories(${DARKNET_INCLUDE_DIR_SRC} include)
+
 
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 
@@ -418,7 +423,7 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 message(STATUS ${EIGEN3_INCLUDE_DIR})
 
-include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt /usr/local/incude ${DARKNET_INCLUDE_DIR})
+include_directories(${OpenCV_INCLUDE} ${EIGEN3_INCLUDE_DIR} ${PYLON_ROOT}/include ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/Utils/libqxt /usr/local/incude ${DARKNET_INCLUDE_DIR} ${DARKNET_INCLUDE_DIR_SRC})
 
 message(STATUS "Pylon dir find in " ${PYLON_ROOT})
 
