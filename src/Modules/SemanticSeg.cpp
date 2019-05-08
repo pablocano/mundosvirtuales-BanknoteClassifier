@@ -36,7 +36,7 @@ SemanticSeg::SemanticSeg()
         char* cfgfile = "/home/nicolas/barcode/mundosvirtuales-BanknoteClassifier/Config/Darknet/cfg/yolov3-tiny-products.cfg";
         net=parse_network_cfg_custom(cfgfile, 1,1); // set batch=1
 
-        char* weightfile = "/home/nicolas/barcode/mundosvirtuales-BanknoteClassifier/Config/Darknet/weights/yolov3-tiny-products_92000.weights";
+        char* weightfile = "/home/nicolas/barcode/mundosvirtuales-BanknoteClassifier/Config/Darknet/weights/yolov3-tiny-products_50000.weights";
         load_weights(&net, weightfile);
 
         fuse_conv_batchnorm(net);
