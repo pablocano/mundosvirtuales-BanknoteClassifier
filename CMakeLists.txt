@@ -25,7 +25,7 @@ set(DARKNET_INCLUDE_DIR Utils/darknet/include)
 include_directories(${DARKNET_INCLUDE_DIR} include)
 
 
-set(DARKNET_INCLUDE_DIR Utils/darknet/src)
+set(DARKNET_INCLUDE_DIR_SRC Utils/darknet/src)
 include_directories(${DARKNET_INCLUDE_DIR_SRC} include)
 
 
