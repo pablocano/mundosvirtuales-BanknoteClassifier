@@ -83,7 +83,7 @@ private:
 
     int fullscreen;
     char *outfile;
-    image **alphabet;
+    //image **alphabet;
 
     struct image im;
     float* bufferImgIn;

@@ -28,7 +28,7 @@ SemanticSeg::SemanticSeg()
         hier_thresh = 0.5f;
         fullscreen = 0;
 
-        alphabet = load_alphabet();
+        //alphabet = load_alphabet();
         char* cfgfile = "/home/nicolas/barcode/mundosvirtuales-BanknoteClassifier/Config/Darknet/cfg/yolov3-tiny-products.cfg";
         net=parse_network_cfg_custom(cfgfile, 1,1); // set batch=1
 
