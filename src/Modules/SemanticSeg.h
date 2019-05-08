@@ -83,6 +83,6 @@ private:
     int fullscreen;
     char *outfile;
     image **alphabet;
-
+    struct image im;
 
 };

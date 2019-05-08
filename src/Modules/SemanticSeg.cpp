@@ -52,9 +52,11 @@ SemanticSeg::SemanticSeg()
 
 
 
+        im.h = net.h;
+        im.w = net.w;
+        im.c = net.c;
 
-
-        bufferImgIn= (float *)malloc(416*416*3 * sizeof(float));//espacio de entrada
+        bufferImgIn= (float *)malloc(net.h*net.w*net.c * sizeof(float));//espacio de entrada
 }
 
 
@@ -146,14 +148,12 @@ void SemanticSeg::update(SegmentedImage &image)
 
     cv::Mat resized;
 
-    cv::resize(theImage, resized, cv::Size(416,416), 0, 0, cv::INTER_AREA);
+    cv::resize(theImage, resized, cv::Size(net.h,net.w), 0, 0, cv::INTER_AREA);
     //imwrite("background.png",theImage);
     transpose(resized);
 
-    struct image im;
-    im.h = net.h;
-    im.w = net.w;
-    im.c = net.c;
+
+
     im.data = bufferImgIn;
 
 
@@ -164,12 +164,11 @@ void SemanticSeg::update(SegmentedImage &image)
     int j;
     float nms=.45;
     //std::vector<boundingBox> bBoxes;
-    struct image sized = resize_image(im, net.w, net.h);
-    save_image(sized, "imleft");
+    //save_image(sized, "imleft");
     int letterbox = 0;
     layer l = net.layers[net.n-1];
 
-    float *X = sized.data;
+    float *X = im.data;
     network_predict(net, X);
     int nboxes = 0;
     detection *dets = get_network_boxes(&net, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes, letterbox);
@@ -203,7 +202,7 @@ void SemanticSeg::update(SegmentedImage &image)
 
     COMPLEX_IMAGE("semanticSegmentation")
     {
-        cv::Mat imageRGB(416,416, CV_8UC3);//(theImage.rows,theImage.cols, CV_8UC3);
+        cv::Mat imageRGB(net.h,net.w, CV_8UC3);//(theImage.rows,theImage.cols, CV_8UC3);
         cv::Mat imageFinal(2000,2000, CV_8UC3);
         imageRGB=0;
         transposeToMat(imageRGB, im);
@@ -218,7 +217,6 @@ void SemanticSeg::update(SegmentedImage &image)
         SEND_DEBUG_IMAGE("semanticSegmentation", imageFinal);
     }
     //free_image(im);
-    //free_image(sized);
 
 
 }
