@@ -28,7 +28,7 @@
 #include <opencv2/highgui.hpp>
 
 #include <Eigen/Eigen>
-#include <darknet.h>
+
 #include <geos/geom/PrecisionModel.h>
 #include <geos/geom/GeometryFactory.h>
 #include <geos/geom/Geometry.h>
@@ -42,6 +42,10 @@
 #include "Representations/ColorModel/ColorModel.h"
 #include "Tools/ModuleManager/Module.h"
 
+#include <darknet.h>
+#include <option_list.h>
+#include <image.h>
+#include <parser.h>
 //#define _GLIBCXX_USE_CXX11_ABI 0
 
 //#define _GLIBCXX_USE_CXX11_ABI 1

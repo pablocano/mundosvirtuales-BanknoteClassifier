@@ -38,7 +38,6 @@ SemanticSeg::SemanticSeg()
 
         char* weightfile = "/home/nicolas/barcode/mundosvirtuales-BanknoteClassifier/Config/Darknet/weights/yolov3-tiny-products_92000.weights";
         load_weights(&net, weightfile);
-        int aaa=net.layers[net.n - 1].classes;
 
         fuse_conv_batchnorm(net);
         calculate_binary_weights(net);
