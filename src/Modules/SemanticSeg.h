@@ -73,8 +73,8 @@ private:
     void transpose(cv::Mat src);
     void transposeToMat(cv::Mat tarjet, image source);
     void colored(cv::Mat src, cv::Mat colored);
-    void draw(std::vector<detection> dets_norm);
-    void predict(std::vector<detection>& dets_norm, network choosenNet);
+    void draw(std::vector<detection>& dets_norm);
+    void predict(std::vector<detection>& dets_norm, network& choosenNet);
 
     double alpha; double beta; double input;
     std::vector<cv::Vec3b> coloursMap;

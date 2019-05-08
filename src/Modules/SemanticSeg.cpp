@@ -129,7 +129,7 @@ void SemanticSeg::update(SegmentedImage &image)
 
 
 
-void SemanticSeg::predict(std::vector<detection>& dets_norm, network choosenNet) //Obtener colores en RGB solo para debugeo
+void SemanticSeg::predict(std::vector<detection>& dets_norm, network& choosenNet) //Obtener colores en RGB solo para debugeo
 {
     srand(2222222);
     char buff[256];
@@ -242,7 +242,7 @@ void SemanticSeg::colored(cv::Mat src, cv::Mat colored) //Obtener colores en RGB
     return;
 }
 
-void SemanticSeg::draw(std::vector<detection> dets_norm) //Obtener colores en RGB solo para debugeo
+void SemanticSeg::draw(std::vector<detection>& dets_norm) //Obtener colores en RGB solo para debugeo
 {
 
     int imageHeight=2046;
