@@ -73,15 +73,21 @@ BanknoteTracker::BanknoteTracker()
     model.corners[BanknoteModel::CornerID::MiddleMiddle] = Vector3f(0.5f*image.cols, 0.5f*image.rows, 1);
     model.corners[BanknoteModel::CornerID::MiddleRight] = Vector3f(0.25f*image.cols, 0.5f*image.rows, 1);
 
-    model.allowedGraspArea1[0] = Vector3f(0.1f*image.cols, 0.25f*image.rows, 1.f);
-    model.allowedGraspArea1[1] = Vector3f(0.1f*image.cols, 0.75f*image.rows, 1.f);
-    model.allowedGraspArea1[2] = Vector3f(0.35f*image.cols, 0.75f*image.rows, 1.f);
-    model.allowedGraspArea1[3] = Vector3f(0.35f*image.cols, 0.25f*image.rows, 1.f);
+    float percentageY = (1.f - static_cast<float>(percentageGraspAreaY) / 100.f) / 2.f;
 
-    model.allowedGraspArea2[0] = Vector3f(0.65f*image.cols, 0.25f*image.rows, 1.f);
-    model.allowedGraspArea2[1] = Vector3f(0.65f*image.cols, 0.75f*image.rows, 1.f);
-    model.allowedGraspArea2[2] = Vector3f(0.9f*image.cols, 0.75f*image.rows, 1.f);
-    model.allowedGraspArea2[3] = Vector3f(0.9f*image.cols, 0.25f*image.rows, 1.f);
+    /**
+     * @todo percentageX
+     */
+
+    model.allowedGraspArea1[0] = Vector3f(0.1f*image.cols, percentageY*image.rows, 1.f);
+    model.allowedGraspArea1[1] = Vector3f(0.1f*image.cols, (1 - percentageY)*image.rows, 1.f);
+    model.allowedGraspArea1[2] = Vector3f(0.35f*image.cols, ( 1 - percentageY)*image.rows, 1.f);
+    model.allowedGraspArea1[3] = Vector3f(0.35f*image.cols, percentageY*image.rows, 1.f);
+
+    model.allowedGraspArea2[0] = Vector3f(0.65f*image.cols, percentageY*image.rows, 1.f);
+    model.allowedGraspArea2[1] = Vector3f(0.65f*image.cols, ( 1 - percentageY)*image.rows, 1.f);
+    model.allowedGraspArea2[2] = Vector3f(0.9f*image.cols, ( 1 - percentageY)*image.rows, 1.f);
+    model.allowedGraspArea2[3] = Vector3f(0.9f*image.cols, percentageY*image.rows, 1.f);
   }
 
 
@@ -331,7 +337,7 @@ void BanknoteTracker::selectBestHypothesis(BanknotePositionFiltered &position)
       continue;
 
     detection.summary = BanknoteDetection::stretcherOccupied;
-    if(detection.areaRatio <= 0.5f && theRobotFanucStatus.stretchOccupied)
+    if(detection.areaRatio <= 0.6f && theRobotFanucStatus.stretchOccupied)
       continue;
 
     detection.summary = BanknoteDetection::eligible;
@@ -417,7 +423,7 @@ void BanknoteTracker::selectBestHypothesis(BanknotePositionFiltered &position)
 
       lastBestDetecion = detection;
 
-      position.needEstirator = doNoStretch || detection.areaRatio > 0.5f || detection.banknoteClass.result > Classification::CINCO_S ? 0 : 1;
+      position.needEstirator = doNoStretch || detection.areaRatio > 0.6f || detection.banknoteClass.result > Classification::CINCO_S ? 0 : 1;
 
       if(useRobotStates || saveDetectionImages)
       {

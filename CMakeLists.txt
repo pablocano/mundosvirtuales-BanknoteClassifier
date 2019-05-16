@@ -4,7 +4,6 @@ PROJECT (BanknoteClassifier)
 find_package(OpenCV 4 REQUIRED)
 find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-
 find_package(CUDA 9.0 REQUIRED)
 message(STATUS "Found CUDA ${CUDA_VERSION_STRING} at ${CUDA_TOOLKIT_ROOT_DIR}")
 
